@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorProne.NET.Test", "Erro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorProne.NET.Vsix", "ErrorProne.NET\ErrorProne.NET.Vsix\ErrorProne.NET.Vsix.csproj", "{2C2F9323-7A7A-4134-AB17-28D52AC21E2F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynNunitTestRunner", "RoslynNunitTestRunner\RoslynNunitTestRunner.csproj", "{23EDBAB6-4BDE-48D4-AC29-2813CE3CF6CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{2C2F9323-7A7A-4134-AB17-28D52AC21E2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C2F9323-7A7A-4134-AB17-28D52AC21E2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C2F9323-7A7A-4134-AB17-28D52AC21E2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23EDBAB6-4BDE-48D4-AC29-2813CE3CF6CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23EDBAB6-4BDE-48D4-AC29-2813CE3CF6CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23EDBAB6-4BDE-48D4-AC29-2813CE3CF6CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23EDBAB6-4BDE-48D4-AC29-2813CE3CF6CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
