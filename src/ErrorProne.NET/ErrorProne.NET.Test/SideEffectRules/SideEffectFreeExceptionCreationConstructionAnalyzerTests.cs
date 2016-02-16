@@ -1,10 +1,9 @@
 ﻿using ErrorProne.NET.Common;
 using ErrorProne.NET.SideEffectRules;
-using Microsoft.CodeAnalysis.Diagnostics;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.Test.ExceptionRulesTests
+namespace ErrorProne.NET.Test.SideEffectRules
 {
     [TestFixture]
     public class SideEffectFreeExceptionCreationConstructionAnalyzerTests : CSharpAnalyzerTestFixture<SideEffectFreeExceptionConstructionAnalyzer>

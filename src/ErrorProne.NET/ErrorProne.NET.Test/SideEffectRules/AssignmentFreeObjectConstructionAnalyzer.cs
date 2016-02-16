@@ -1,10 +1,9 @@
 ﻿using ErrorProne.NET.Common;
 using ErrorProne.NET.SideEffectRules;
-using Microsoft.CodeAnalysis.Diagnostics;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.Test.ExceptionRulesTests
+namespace ErrorProne.NET.Test.SideEffectRules
 {
     [TestFixture]
     public class AssignmentFreeObjectConstructionAnalyzerTests : CSharpAnalyzerTestFixture<AssignmentFreeObjectConstructionAnalyzer>
@@ -34,6 +33,24 @@ class Foo : IDisposable
 	public static void Test()
 	{
 		using (new Foo()) {}
+	}
+}";
+
+            NoDiagnostic(code, RuleIds.AssignmentFreeObjectContructionId);
+        }
+
+        [Test]
+        public void NoWarningWithFunctionInvocation()
+        {
+            // This could be a warning if Blah is pure and does provide a value!
+            const string code = @"
+class Foo
+{
+	public void Blah() { }
+
+	public static void Test()
+	{
+		new Foo().Blah();
 	}
 }";
 

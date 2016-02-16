@@ -24,7 +24,7 @@ namespace ErrorProne.NET.SideEffectRules
         private const string Category = "Bugs";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, Message, Category,
-            DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+            DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

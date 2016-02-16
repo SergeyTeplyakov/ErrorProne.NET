@@ -53,8 +53,15 @@ namespace RoslynNunitTestRunner
 
             var diagnostic = diagnostics[0];
             Assert.That(diagnostic.Id, Is.EqualTo(diagnosticId));
-            Assert.That(diagnostic.Location.IsInSource, Is.True);
-            Assert.That(diagnostic.Location.SourceSpan, Is.EqualTo(span));
+            Assert.IsTrue(diagnostic.Location.IsInSource);
+
+            
+            string expected = document.GetSyntaxRootAsync().GetAwaiter().GetResult().ToString();
+
+            expected = expected.Insert(span.End, "|]");
+            expected = expected.Insert(span.Start, "[|");
+
+            Assert.That(diagnostic.Location.SourceSpan, Is.EqualTo(span), $"{expected}");
         }
 
         private ImmutableArray<Diagnostic> GetDiagnostics(Document document)
