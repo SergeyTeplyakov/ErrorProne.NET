@@ -146,7 +146,7 @@ class C
     private static void Test()
     {
         var c = new C();
-        [|c.WithX(42)|];
+        [|c.Update(42)|];
     }
    
     public C Update(int number) {return this;}
@@ -172,6 +172,46 @@ class C
 }";
 
             HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
+        }
+        
+        [Test]
+        public void ShouldNotWarnIfRefOrOutputParameterPresented()
+        {
+            const string code = @"
+class C
+{
+    [System.Diagnostics.Contracts.Pure]
+    private static bool Method1(out object o) {o = null; return false;}
+
+    [System.Diagnostics.Contracts.Pure]
+    private static bool Method2(ref object o) {o = null; return false;}
+
+    private static void Test()
+    {
+        object o1 = null;
+        Method1(out o1);
+        Method2(ref o1);
+    }   
+}";
+
+            NoDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
+        }
+
+
+        [Test]
+        public void ShouldNotWarnOnStringBuilder()
+        {
+            const string code = @"
+class C
+{
+    private static void Test()
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append(42);
+    }   
+}";
+
+            NoDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
         }
     }
 }

@@ -44,7 +44,14 @@ namespace ErrorProne.NET.Core
             Contract.Requires(semanticModel != null);
 
             var symbol = semanticModel.GetSymbolInfo(methodInvocation).Symbol as IMethodSymbol;
-            if (symbol == null || symbol.ReturnsVoid)
+            // If method has out or ref param the return value could be ignored!
+            // TODO: this logic has to be moved out of this method!
+            if (symbol == null || symbol.ReturnsVoid || symbol.Parameters.Any(p => p.RefKind == RefKind.Out || p.RefKind == RefKind.Ref))
+            {
+                return false;
+            }
+
+            if ((symbol.Name == "VerifyDiagnostics" || symbol.Name.Contains("VerifyAnalyzer")) && IsRoslynApi(symbol))
             {
                 return false;
             }
@@ -74,10 +81,10 @@ namespace ErrorProne.NET.Core
                 return true;
             }
 
-            if (IsRoslynApi(symbol) && ReturnsTheSameType(symbol))
-            {
-                return true;
-            }
+            //if (IsRoslynApi(symbol) && ReturnsTheSameType(symbol))
+            //{
+            //    return true;
+            //}
 
             if (WithPattern(symbol) && ReturnsTheSameType(symbol))
             {
