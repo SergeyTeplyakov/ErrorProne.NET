@@ -22,8 +22,9 @@ namespace ErrorProne.NET.SideEffectRules
         // TODO: add attribute that will suppress this warning!
         private const string Category = "CodeSmell";
 
+        // Disabing this rule, because it leads to tons of false positives
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, Message, Category,
-            DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+            DiagnosticSeverity.Hidden, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

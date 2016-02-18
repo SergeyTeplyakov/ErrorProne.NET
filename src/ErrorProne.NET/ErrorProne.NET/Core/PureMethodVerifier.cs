@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
@@ -12,29 +13,22 @@ namespace ErrorProne.NET.Core
 {
     public static class PureMethodVerifier
     {
-        //private static HashSet<INamedTypeSymbol> _immutableTypes;
-        private static HashSet<string> _pureMethodNames = CreatePureMethodNames();
-        private static HashSet<string> _immutableTypes = CreateImmutableTypes();
-
-        private static HashSet<string> CreatePureMethodNames()
+        private static HashSet<INamedTypeSymbol> GetWellKnownImmutableSystemTypes(SemanticModel model)
         {
-            return new HashSet<string>()
+            return new HashSet<INamedTypeSymbol>()
             {
-                "ToString",
-                "GetHashCode",
-                "Equals"
-            };
-        }
+                model.GetClrType(typeof(object)),
+                model.GetClrType(typeof(Delegate)),
+                model.GetClrType(typeof(string)),
+                model.GetClrType(typeof(Enum)),
+                model.GetClrType(typeof(Type)),
 
-        private static HashSet<string> CreateImmutableTypes()
-        {
-            return new HashSet<string>()
-            {
-                typeof(string).FullName,
-                typeof(Delegate).FullName,
-                typeof(object).FullName,
-                typeof(Enum).FullName,
-                typeof(Type).FullName,
+                model.GetClrType(typeof(IEquatable<>)),
+                model.GetClrType(typeof(IComparable<>)),
+                model.GetClrType(typeof(IFormattable)),
+                model.GetClrType(typeof(IEnumerable<>)),
+                model.GetClrType(typeof(IQueryable<>)),
+                model.GetClrType(typeof(ICustomFormatter)),
             };
         }
 
@@ -51,12 +45,9 @@ namespace ErrorProne.NET.Core
                 return false;
             }
 
-            if ((symbol.Name == "VerifyDiagnostics" || symbol.Name.Contains("VerifyAnalyzer")) && IsRoslynApi(symbol))
-            {
-                return false;
-            }
+            ImmutableArray<IMethodSymbol> methodChain = symbol.MethodAndFullInheritanceChain();
 
-            if (HasPureAttribute(symbol, semanticModel))
+            if (HasPureAttribute(methodChain, semanticModel))
             {
                 return true;
             }
@@ -66,25 +57,10 @@ namespace ErrorProne.NET.Core
                 return true;
             }
 
-            if (IsReceiverImmutable(symbol))
+            if (IsImmutableMemberCall(symbol, methodChain, semanticModel))
             {
                 return true;
             }
-
-            if (IsImmutableExtensionMethod(symbol))
-            {
-                return true;
-            }
-
-            if (MethodFromWellKnownImmutableCoreTypes(symbol, semanticModel))
-            {
-                return true;
-            }
-
-            //if (IsRoslynApi(symbol) && ReturnsTheSameType(symbol))
-            //{
-            //    return true;
-            //}
 
             if (WithPattern(symbol) && ReturnsTheSameType(symbol))
             {
@@ -93,87 +69,53 @@ namespace ErrorProne.NET.Core
 
             return false;
         }
-
-        /// <summary>
-        /// Returns true if method is most likely pure, or result is useful enough for caller to consume.
-        /// </summary>
-        public static bool IsPureCandidate(this InvocationExpressionSyntax methodInvocation, SemanticModel semanticModel)
-        {
-            return false;
-        }
-
         private static bool WithPattern(IMethodSymbol symbol)
         {
             return symbol.Name.StartsWith("With", StringComparison.Ordinal);
         }
 
-        private static bool MethodFromWellKnownImmutableCoreTypes(IMethodSymbol symbol, SemanticModel model)
-        {
-            if (symbol.IsOverride)
-            {
-                // Can't just use symbol.OverriddenMethod, because the same method could be overriden multiple types!
-                // Hint: R# pure method invocation analysis for methods from IEquatable are not working on portable project!!
-                //symbol.GetBaseMostOverridenMethod().ContainingType.Equals(null);
-
-                if (symbol.GetBaseMostOverridenMethod().ContainingType.Equals(model.GetClrType(typeof (object))))
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                // Could be two cases: 
-                // 1. Static type could be of the well-known interface type or
-                // 2. Method is an implementation of the well-known interface type
-
-                var wellKnownImmutableInterfaces = GetWellKnownImmutableSystemTypes(model);
-
-                if (wellKnownImmutableInterfaces.Contains(symbol.ContainingType.ConstructedFrom))
-                {
-                    // First case: calling method of the well-known immutable interface type
-                    return true;
-                }
-
-                var members = symbol.ContainingType.AllInterfaces
-                    .Select(i => i)
-                    .Where(i => wellKnownImmutableInterfaces.Contains(i.ConstructedFrom))
-                    .SelectMany(interfaceType => interfaceType.GetMembers().OfType<IMethodSymbol>()).ToList();
-
-                return members
-                    .Any(interfaceMethod => symbol.Equals(symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMethod)));
-            }
-
-            return false;
-        }
-
-        private static HashSet<INamedTypeSymbol> GetWellKnownImmutableSystemTypes(SemanticModel model)
-        {
-            return new HashSet<INamedTypeSymbol>()
-            {
-                model.GetClrType(typeof(IEquatable<>)),
-                model.GetClrType(typeof(IComparable<>)),
-                model.GetClrType(typeof(IFormattable)),
-                //model.GetClrType(typeof(IConvertible)),
-                model.GetClrType(typeof(ICustomFormatter)),
-
-                //model.GetClrType(typeof(ICloneable)),
-            };
-        }
-
-        // TODO: not sure about this approach because it could be too agreesive!
-        private static bool IsRoslynApi(IMethodSymbol symbol)
-        {
-            return symbol.ContainingNamespace.ToDisplayString().Contains("Microsoft.CodeAnalysis");
-        }
-
-        private static bool IsReceiverImmutable(IMethodSymbol symbol)
+        private static bool IsImmutableMemberCall(IMethodSymbol symbol, ImmutableArray<IMethodSymbol> baseMethodsChain, SemanticModel model)
         {
             if (symbol.ReceiverType.Name.StartsWith("Immutable", StringComparison.Ordinal))
             {
                 return true;
             }
 
-            if (_immutableTypes.Contains(symbol.ReceiverType.FullName()))
+            HashSet<INamedTypeSymbol> immutableTypes = GetWellKnownImmutableSystemTypes(model);
+
+            // If method is an extension method and method extends an immutable type, then the method is pure
+            if (symbol.IsExtensionMethod && immutableTypes.Contains(symbol.ReceiverType.UnwrapGenericIfNeeded()))
+            {
+                return true;
+            }
+            
+            if (baseMethodsChain.Any(m => immutableTypes.Contains(m.ContainingType.UnwrapGenericIfNeeded())))
+            {
+                return true;
+            }
+
+            // Check whether method is a factory method that uses only primitive types
+            if (symbol.IsStatic && symbol.Parameters.All(p => IsImmutableOrPrimitive(immutableTypes, p.Type)))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsImmutableOrPrimitive(HashSet<INamedTypeSymbol> immutableTypes, ITypeSymbol parameterType)
+        {
+            if (parameterType.Name.StartsWith("Immutable"))
+            {
+                return true;
+            }
+            if (immutableTypes.Contains(parameterType.UnwrapGenericIfNeeded()))
+            {
+                return true;
+            }
+
+            // Consider that all valud types in System namespace are pure!
+            if (parameterType.IsValueType && parameterType.ContainingNamespace.Name == "System")
             {
                 return true;
             }
@@ -186,52 +128,17 @@ namespace ErrorProne.NET.Core
             return symbol.ReceiverType.IsValueType && symbol.IsStatic;
         }
 
-        private static bool IsImmutableExtensionMethod(IMethodSymbol symbol)
-        {
-            if (symbol.IsExtensionMethod)
-            {
-                // If this is an extension method and there is no additional parameters, then
-                // client should better observer the result!
-                if (symbol.Parameters.Length == 0)
-                {
-                    return true;
-                }
-
-                return ReturnsTheSameType(symbol);
-            }
-
-            return false;
-        }
-
         private static bool ReturnsTheSameType(IMethodSymbol symbol)
         {
-            // it is ok, if return type and the first argument (i.e. this argument) are differs only
-            // with generic type arguments, like for Enumerable.Select
-            if (symbol.ReturnType.Equals(symbol.ReceiverType))
-            {
-                return true;
-            }
-
-            if (symbol.IsGenericMethod)
-            {
-                return (symbol.ReturnType as INamedTypeSymbol)?.ConstructedFrom?.Equals(
-                    (symbol.ReceiverType as INamedTypeSymbol)?.ConstructedFrom) == true;
-            }
-
-            return false;
+            // Need to unwrap generics to get unsinstantiated types if needed
+            return symbol.ReturnType.UnwrapGenericIfNeeded().Equals(symbol.ReceiverType.UnwrapGenericIfNeeded());
         }
 
-        private static bool HasPureAttribute(IMethodSymbol symbol, SemanticModel model)
+        private static bool HasPureAttribute(ImmutableArray<IMethodSymbol> methodChain, SemanticModel model)
         {
             var pureAttribute = model.Compilation.GetTypeByMetadataName(typeof(PureAttribute).FullName);
-            var attributes = symbol.GetAttributes();
 
-            return attributes.Any(a => a.AttributeClass.Equals(pureAttribute));
-        }
-
-        private static HashSet<INamedTypeSymbol> GetImmutableTypes(SemanticModel model)
-        {
-            return null;
+            return methodChain.SelectMany(m => m.GetAttributes()).Any(a => a.AttributeClass.Equals(pureAttribute));
         }
     }
 }

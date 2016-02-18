@@ -28,6 +28,38 @@ class C
         }
 
         [Test]
+        public void ShouldWarnOnEnumerableRange()
+        {
+            const string code = @"
+using System.Linq;
+class C
+{
+    public C()
+    {
+        [|Enumerable.Range(1, 10)|];
+    }
+}";
+
+            HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
+        }
+
+        [Test]
+        public void ShouldWarnOnEnumerableFirst()
+        {
+            const string code = @"
+using System.Linq;
+class C
+{
+    public C()
+    {
+        [|Enumerable.Range(1, 10).First()|];
+    }
+}";
+
+            HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
+        }
+
+        [Test]
         public void ShouldWarnOnString()
         {
             const string code = @"
@@ -136,6 +168,7 @@ class C
             HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
         }
 
+        [Ignore("THis is a bad example! Not everything in RoslynAPI is immutable!")]
         [Test]
         public void ShouldWarnOnRoslynApi()
         {
@@ -157,7 +190,7 @@ class C
         }
 
         [Test]
-        public void ShouldWarnOnWithApi()
+        public void ShouldWarnOnWithPattern()
         {
             const string code = @"
 class C
@@ -169,6 +202,52 @@ class C
     }
    
     public C WithX(int number) {return this;}
+}";
+
+            HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
+        }
+        
+        [Test]
+        public void ShouldWarnIfBaseMethodHasPureAttribute()
+        {
+            const string code = @"
+class Base
+{
+  [System.Diagnostics.Contracts.Pure]
+  public virtual int Foo() {return 42;}
+}
+
+class Derived : Base
+{
+  public override int Foo() {return 14;}
+  public static void Test()
+  {
+     var d = new Derived();
+     [|d.Foo()|];
+  }
+}";
+
+            HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
+        }
+
+        [Test]
+        public void ShouldWarnIfInterfaceMethodHasPureAttribute()
+        {
+            const string code = @"
+interface IFoo<T>
+{
+  [System.Diagnostics.Contracts.Pure]
+  int Foo();
+}
+
+class Derived : IFoo<int>
+{
+  public int Foo() {return 14;}
+  public static void Test()
+  {
+     var d = new Derived();
+     [|d.Foo()|];
+  }
 }";
 
             HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
