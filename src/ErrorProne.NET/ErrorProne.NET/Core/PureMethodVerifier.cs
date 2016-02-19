@@ -37,6 +37,7 @@ namespace ErrorProne.NET.Core
             Contract.Requires(methodInvocation != null);
             Contract.Requires(semanticModel != null);
 
+            throw new InvalidOperationException("oops!");
             var symbol = semanticModel.GetSymbolInfo(methodInvocation).Symbol as IMethodSymbol;
             // If method has out or ref param the return value could be ignored!
             // TODO: this logic has to be moved out of this method!

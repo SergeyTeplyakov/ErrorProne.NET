@@ -80,6 +80,9 @@
     <Compile Include="Common\RuleIds.cs" />
     <Compile Include="Common\WellKnownTypes.cs" />
     <Compile Include="Core\PureMethodVerifier.cs" />
+    <Compile Include="ExceptionHandlingRules\Helpers.cs" />
+    <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzer.cs" />
+    <Compile Include="ExceptionHandlingRules\ThrowExAnalyzer.cs" />
     <Compile Include="Extensions\NamedSymbolExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
@@ -165,7 +168,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ExceptionRules\" />
     <Folder Include="ImmutabilityRules\" />
     <Folder Include="StructRules\" />
   </ItemGroup>

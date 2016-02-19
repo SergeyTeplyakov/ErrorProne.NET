@@ -1,5 +1,8 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -68,8 +71,16 @@ namespace RoslynNunitTestRunner
         {
             var analyzers = ImmutableArray.Create(CreateAnalyzer());
             var compilation = document.Project.GetCompilationAsync(CancellationToken.None).Result;
-            
-            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, cancellationToken: CancellationToken.None);
+
+            List<Exception> exceptions = new List<Exception>();
+
+            var options = new CompilationWithAnalyzersOptions(
+                options: new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                onAnalyzerException: (exception, analyzer, arg3) => exceptions.Add(exception), 
+                concurrentAnalysis: true, 
+                logAnalyzerExecutionTime: false);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, options);
+
             var discarded = compilation.GetDiagnostics(CancellationToken.None);
 
             var tree = document.GetSyntaxTreeAsync(CancellationToken.None).Result;
@@ -83,6 +94,11 @@ namespace RoslynNunitTestRunner
                 {
                     builder.Add(diagnostic);
                 }
+            }
+
+            if (exceptions.Count != 0)
+            {
+                Assert.Fail($"Unhandled exception occurred during analysis: \r\n{string.Join("\r\n", exceptions)}");
             }
 
             return builder.ToImmutable();

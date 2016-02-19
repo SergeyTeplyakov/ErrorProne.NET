@@ -104,6 +104,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExceptionHandlingRules\ThrowExAnalyzerTests.cs" />
     <Compile Include="SideEffectRules\AssignmentFreeObjectConstructionAnalyzer.cs" />
     <Compile Include="SideEffectRules\SideEffectFreeExceptionCreationConstructionAnalyzerTests.cs" />
     <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzerTests.cs" />

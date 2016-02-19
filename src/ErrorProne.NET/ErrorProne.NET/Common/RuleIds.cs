@@ -10,5 +10,9 @@
         public const string StringFormatInvalidId = "ERR5";
 
         public const string AssignmentFreeObjectContructionId = "WARN1";
+
+        // Exception handling
+        public const string IncorrectExceptionPropagation = "EW01";
+        public const string AllExceptionSwalled = "EW01";
     }
 }

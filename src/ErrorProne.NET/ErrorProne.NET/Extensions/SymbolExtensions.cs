@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ErrorProne.NET.Extensions
 {
@@ -55,5 +56,17 @@ namespace ErrorProne.NET.Extensions
             return members
                 .Where(interfaceMethod => method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod)));
         }
+
+        public static bool ExceptionFromCatchBlock(this ISymbol symbol)
+        {
+            return
+                (symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()) is CatchDeclarationSyntax;
+
+            // There is additional interface, called ILocalSymbolInternal
+            // that has IsCatch property, but, unfortunately, that interface is internal.
+            // Use following code if the trick with DeclaredSyntaxReferences would not work properly!
+            // return (bool?)(symbol.GetType().GetRuntimeProperty("IsCatch")?.GetValue(symbol)) == true;
+        }
+
     }
 }

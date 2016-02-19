@@ -4,3 +4,9 @@ Something that will simplify expressions at compile time will greatly simplify i
 For instance: string.Format(Format, GetStableFunction()); will be easily analyzed to
 string.Format("{0}{1}", 1); if Format is a const and GetStableFunction() is a constant function!
 (OK, function simplification is a next step, but for many cases it would be very helpful!)
+
+if (foo);
+
+if (foo)
+  s1;
+  s2;
