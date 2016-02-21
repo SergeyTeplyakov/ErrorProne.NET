@@ -6,7 +6,7 @@ using RoslynNunitTestRunner;
 namespace ErrorProne.NET.Test.SideEffectRules
 {
     [TestFixture]
-    public class AssignmentFreeObjectConstructionAnalyzerTests : CSharpAnalyzerTestFixture<AssignmentFreeObjectConstructionAnalyzer>
+    public class AssignmentFreeObjectConstructionAnalyzerTests : CSharpAnalyzerTestFixture<AssignmentFreeImmutableObjectConstructionAnalyzer>
     {
         [Test]
         public void ShouldWarnOnObject()
@@ -20,7 +20,7 @@ class C
     }
 }";
 
-            HasDiagnostic(code, RuleIds.AssignmentFreeObjectContructionId);
+            HasDiagnostic(code, RuleIds.AssignmentFreeImmutableObjectContructionId);
         }
 
         [Test]
@@ -36,7 +36,7 @@ class Foo : IDisposable
 	}
 }";
 
-            NoDiagnostic(code, RuleIds.AssignmentFreeObjectContructionId);
+            NoDiagnostic(code, RuleIds.AssignmentFreeImmutableObjectContructionId);
         }
 
         [Test]
@@ -54,7 +54,7 @@ class Foo
 	}
 }";
 
-            NoDiagnostic(code, RuleIds.AssignmentFreeObjectContructionId);
+            NoDiagnostic(code, RuleIds.AssignmentFreeImmutableObjectContructionId);
         }
     }
 }

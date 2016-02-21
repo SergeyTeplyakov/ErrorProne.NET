@@ -10,3 +10,15 @@ if (foo);
 if (foo)
   s1;
   s2;
+
+Regex validity
+
+Switch completeness (if default throws invalid operation or has Debug/Contract.assert)
+
+Disable (remove) assignment-free object construction (could be if type is pure!!!)
+
+Make swallowed exceptions just an info message (this is not even a warning!)
+
+Make rule that will warn if ex.Message was used in catch(Exception)
+
+Enumerable.Range is working, but Directory.CreateInstance also considered pure! Add checks to cover only immutable/pure type factories

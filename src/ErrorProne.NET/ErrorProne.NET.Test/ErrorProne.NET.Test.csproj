@@ -108,6 +108,7 @@
     <Compile Include="SideEffectRules\AssignmentFreeObjectConstructionAnalyzer.cs" />
     <Compile Include="SideEffectRules\SideEffectFreeExceptionCreationConstructionAnalyzerTests.cs" />
     <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzerTests.cs" />
+    <Compile Include="StringFormatRules\ExcessiveFormatArgumentTests.cs" />
     <Compile Include="StringFormatRules\InvalidFormatString.cs" />
     <Compile Include="StringFormatRules\InvalidIndexTests.cs" />
     <Compile Include="Verifiers\CodeFixVerifier.cs" />

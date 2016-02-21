@@ -74,8 +74,6 @@ namespace ErrorProne.NET.SideEffectRules
                             // Giving up all the checks! Can't deal with them!
                             return;
                         }
-                        // Here we can cover another corner case:
-                        // If arg[0] is an expression that creates an array, than we can consder it as an argument list!
                     }
 
                     // Checking for non-existed indices in a format string
@@ -89,13 +87,20 @@ namespace ErrorProne.NET.SideEffectRules
                     }
 
                     // TODO: unused parameters should have warnings on the parameters themselves not on the string format!
+                    var excessiveArguments =
+                        Enumerable.Range(0, actualArgumentsLength)
+                            .Where(i => !parsedFormat.UsedIndices.Contains(i))
+                            .Select(i => parsedFormat.Args[i])
+                            .ToList();
+
+                    foreach (var excessiveArg in excessiveArguments)
+                    {
+                        context.ReportDiagnostic(Diagnostic
+                            .Create(
+                                ExcessiveArgumentRule, excessiveArg.GetLocation(), excessiveArg));
+                    }
                 }
-
-                //context.ReportDiagnostic(Diagnostic.Create(NonExistingIndexRule, context.Node.GetLocation()));
             }
-
-
-
         }
 
         private bool IsArrayOfObjects(ITypeSymbol expressionType, SemanticModel semanticModel)

@@ -87,7 +87,7 @@
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
     <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzer.cs" />
-    <Compile Include="SideEffectRules\AssignmentFreeObjectConstructionAnalyzer.cs" />
+    <Compile Include="SideEffectRules\AssignmentFreeImmutableObjectConstructionAnalyzer.cs" />
     <Compile Include="SideEffectRules\SideEffectFreeExceptionConstructionAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">

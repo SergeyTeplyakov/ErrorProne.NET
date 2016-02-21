@@ -41,12 +41,30 @@ namespace RoslynNunitTestRunner
 
         protected void HasDiagnostic(string markupCode, string diagnosticId)
         {
-            Document document;
-            TextSpan span;
-            bool result = TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out document, out span);
-            Assert.IsTrue(result, "Can't create document from specified markup code");
+            var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(markupCode, LanguageName);
 
-            HasDiagnostic(document, span, diagnosticId);
+            HasDiagnostics(processedDocument, diagnosticId);
+        }
+
+        protected void HasDiagnostics(ProcessedCode processed, string diagnosticId)
+        {
+            var document = processed.Document;
+            var spans = processed.Spans;
+
+            var diagnostics = GetDiagnostics(document);
+            string expected = processed.GetCodeWithMarkers(diagnostics.Select(d => d.Location.SourceSpan).ToList());
+
+            var message = $"Expected {spans.Count} diagnostic(s). Document with diagnostics:\r\n{expected}";
+            Assert.That(diagnostics.Length, Is.EqualTo(spans.Count), message);
+
+            var spanSet = new HashSet<TextSpan>(spans);
+
+            foreach (var diagnostic in diagnostics)
+            {
+                Assert.That(diagnostic.Id, Is.EqualTo(diagnosticId));
+                Assert.IsTrue(diagnostic.Location.IsInSource);
+                Assert.IsTrue(spanSet.Contains(diagnostic.Location.SourceSpan), $"{expected}");
+            }
         }
 
         protected void HasDiagnostic(Document document, TextSpan span, string diagnosticId)

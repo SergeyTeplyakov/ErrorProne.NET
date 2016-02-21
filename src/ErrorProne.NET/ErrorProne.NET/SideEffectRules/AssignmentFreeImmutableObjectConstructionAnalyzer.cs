@@ -10,13 +10,13 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.SideEffectRules
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class AssignmentFreeObjectConstructionAnalyzer : DiagnosticAnalyzer
+    public sealed class AssignmentFreeImmutableObjectConstructionAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = RuleIds.AssignmentFreeObjectContructionId;
+        public const string DiagnosticId = RuleIds.AssignmentFreeImmutableObjectContructionId;
 
-        private static readonly string Title = "Assignment-free object construction.";
-        private static readonly string Message = "Assignment-free object construction.";
-        private static readonly string Description = "Newly created object was not stored in any form!";
+        private static readonly string Title = "Assignment-free immutable object construction.";
+        private static readonly string Message = "Assignment-free immutable object construction.";
+        private static readonly string Description = "Newly created immutable object was not stored in any form!";
 
         // This is just a warning! Maybe an exception via attributes or something should be added!
         // TODO: add attribute that will suppress this warning!
@@ -24,7 +24,7 @@ namespace ErrorProne.NET.SideEffectRules
 
         // Disabing this rule, because it leads to tons of false positives
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, Message, Category,
-            DiagnosticSeverity.Hidden, isEnabledByDefault: true, description: Description);
+            DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -39,7 +39,9 @@ namespace ErrorProne.NET.SideEffectRules
 
             var symbol = context.SemanticModel.GetSymbolInfo(objectCreation.Type);
 
-            if (objectCreation.Parent is ExpressionStatementSyntax && !symbol.Symbol.IsExceptionType(context.SemanticModel))
+            if (objectCreation.Parent is ExpressionStatementSyntax && 
+                !symbol.Symbol.IsExceptionType(context.SemanticModel)) //&&
+                //symbol.Symbol.IsImmutable(context.SemanticModel))
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
             }
