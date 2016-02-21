@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.SideEffectRules;
@@ -10,6 +11,44 @@ namespace ErrorProne.NET.Test.SideEffectRules
     [TestFixture]
     public class UnobservedPureMethodInvocationAnalyzerTests : CSharpAnalyzerTestFixture<UnobservedPureMethodInvocationAnalyzer>
     {
+        [TestCaseSource(nameof(FactoryMethodTestCases))]
+        public void ShouldWarnOnKnownFactoryMethods(string code)
+        {
+            HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
+        }
+
+        private static IEnumerable<string> FactoryMethodTestCases()
+        {
+            yield return @"
+using System.Linq;
+class C
+{
+    public C()
+    {
+        [|Enumerable.Range(1, 10)|];
+    }
+}";
+
+            yield return @"
+class C
+{
+    public C()
+    {
+        [|object.ReferenceEquals(null, null)|];
+    }
+}";
+
+            yield return @"
+class C
+{
+    public C()
+    {
+        [|Type.GetType(""object"")|];
+    }
+}";
+            // TODO: add more cases
+        }
+
         [Test]
         public void ShouldWarnOnEnumerable()
         {
@@ -21,22 +60,6 @@ class C
     {
         var x1 = Enumerable.Range(1, 10);
         [|x1.Select(x => x.ToString())|];
-    }
-}";
-
-            HasDiagnostic(code, RuleIds.UnobservedPureMethodInvocationId);
-        }
-
-        [Test]
-        public void ShouldWarnOnEnumerableRange()
-        {
-            const string code = @"
-using System.Linq;
-class C
-{
-    public C()
-    {
-        [|Enumerable.Range(1, 10)|];
     }
 }";
 

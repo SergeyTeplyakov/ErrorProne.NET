@@ -16,9 +16,15 @@ Regex validity
 Switch completeness (if default throws invalid operation or has Debug/Contract.assert)
 
 Disable (remove) assignment-free object construction (could be if type is pure!!!)
+Enable for structs (default ctors on structs!!)
 
 Make swallowed exceptions just an info message (this is not even a warning!)
 
 Make rule that will warn if ex.Message was used in catch(Exception)
 
-Enumerable.Range is working, but Directory.CreateInstance also considered pure! Add checks to cover only immutable/pure type factories
+Enumerable.Range is working, but Directory.CreateInstance also considered pure! Add checks to cover only immutable/pure type factories.
+
+Add support for Diagnostic.Create for formatting string!
+
+Additional rule:
+ - Not call default ctor on struct (one example: immutable array). Add attribute to check!

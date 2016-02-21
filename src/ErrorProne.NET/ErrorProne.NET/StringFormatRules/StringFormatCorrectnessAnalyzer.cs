@@ -95,8 +95,8 @@ namespace ErrorProne.NET.SideEffectRules
 
                     foreach (var excessiveArg in excessiveArguments)
                     {
-                        context.ReportDiagnostic(Diagnostic
-                            .Create(
+                        context.ReportDiagnostic(
+                            Diagnostic.Create(
                                 ExcessiveArgumentRule, excessiveArg.GetLocation(), excessiveArg));
                     }
                 }

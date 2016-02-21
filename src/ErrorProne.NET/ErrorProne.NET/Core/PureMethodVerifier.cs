@@ -6,14 +6,115 @@ using System.Linq;
 using System.Threading;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Extensions;
+using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ErrorProne.NET.Core
 {
-    public static class PureMethodVerifier
+    public static class PureMethodExtensions
     {
-        private static HashSet<INamedTypeSymbol> GetWellKnownImmutableSystemTypes(SemanticModel model)
+        [Pure]
+        public static bool IsPure(this InvocationExpressionSyntax methodInvocation, SemanticModel semanticModel)
+        {
+            Contract.Requires(methodInvocation != null);
+            Contract.Requires(semanticModel != null);
+
+            return new PureMethodVerifier(semanticModel).IsPure(methodInvocation);
+        }
+
+        public static bool IsImmutable(this ITypeSymbol symbol, SemanticModel semanticModel)
+        {
+            Contract.Requires(symbol != null);
+            Contract.Requires(semanticModel != null);
+
+            return new PureMethodVerifier(semanticModel).IsImmutable(symbol);
+        }
+    }
+
+    internal class PureMethodVerifier
+    {
+        private readonly SemanticModel _semanticModel;
+        private readonly Lazy<HashSet<INamedTypeSymbol>> _wellKnownImmutableTypes;
+        private readonly Lazy<HashSet<INamedTypeSymbol>> _wellKnownFactoryTypes;
+
+        public PureMethodVerifier(SemanticModel semanticModel)
+        {
+            Contract.Requires(semanticModel != null);
+            _semanticModel = semanticModel;
+
+            _wellKnownImmutableTypes = LazyEx.Create(() => GetWellKnownImmutableSystemTypes(semanticModel));
+            _wellKnownFactoryTypes = LazyEx.Create(() => GetWellKnownFactories(semanticModel));
+        }
+
+        public bool IsImmutable(ITypeSymbol symbol)
+        {
+            Contract.Requires(symbol != null);
+
+            if (symbol.Name.StartsWith("Immutable", StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            // If method is an extension method and method extends an immutable type, then the method is pure
+            if (_wellKnownImmutableTypes.Value.Contains(symbol.UnwrapGenericIfNeeded()))
+            {
+                return true;
+            }
+
+            // Consider that all valud types in System namespace are pure!
+            if (symbol.IsValueType && symbol.ContainingNamespace.Name == "System")
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool IsPure(InvocationExpressionSyntax methodInvocation)
+        {
+            Contract.Requires(methodInvocation != null);
+
+            var symbol = _semanticModel.GetSymbolInfo(methodInvocation).Symbol as IMethodSymbol;
+            
+            // If method has out or ref param the return value could be ignored!
+
+            if (symbol == null || symbol.ReturnsVoid || symbol.Parameters.Any(p => p.RefKind == RefKind.Out || p.RefKind == RefKind.Ref))
+            {
+                return false;
+            }
+
+            ImmutableArray<IMethodSymbol> methodChain = symbol.MethodAndFullInheritanceChain();
+
+            if (HasPureAttribute(methodChain))
+            {
+                return true;
+            }
+
+            if (IsStaticOnStruct(symbol))
+            {
+                return true;
+            }
+
+            if (IsImmutableMemberCall(symbol, methodChain))
+            {
+                return true;
+            }
+
+            if (IsFactoryMethod(symbol))
+            {
+                return true;
+            }
+
+            if (WithPattern(symbol) && ReturnsTheSameType(symbol))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private HashSet<INamedTypeSymbol> GetWellKnownImmutableSystemTypes(SemanticModel model)
         {
             return new HashSet<INamedTypeSymbol>()
             {
@@ -32,91 +133,40 @@ namespace ErrorProne.NET.Core
             };
         }
 
-        public static bool IsPure(this InvocationExpressionSyntax methodInvocation, SemanticModel semanticModel)
+        private HashSet<INamedTypeSymbol> GetWellKnownFactories(SemanticModel model)
         {
-            Contract.Requires(methodInvocation != null);
-            Contract.Requires(semanticModel != null);
-
-            throw new InvalidOperationException("oops!");
-            var symbol = semanticModel.GetSymbolInfo(methodInvocation).Symbol as IMethodSymbol;
-            // If method has out or ref param the return value could be ignored!
-            // TODO: this logic has to be moved out of this method!
-            if (symbol == null || symbol.ReturnsVoid || symbol.Parameters.Any(p => p.RefKind == RefKind.Out || p.RefKind == RefKind.Ref))
+            return new HashSet<INamedTypeSymbol>()
             {
-                return false;
-            }
+                model.GetClrType(typeof(Enumerable)),
+                model.GetClrType(typeof(Queryable)),
+            };
+        }
 
-            ImmutableArray<IMethodSymbol> methodChain = symbol.MethodAndFullInheritanceChain();
-
-            if (HasPureAttribute(methodChain, semanticModel))
+        private bool IsFactoryMethod(IMethodSymbol symbol)
+        {
+            if (symbol.IsStatic)
             {
-                return true;
-            }
-
-            if (IsStaticOnStruct(symbol))
-            {
-                return true;
-            }
-
-            if (IsImmutableMemberCall(symbol, methodChain, semanticModel))
-            {
-                return true;
-            }
-
-            if (WithPattern(symbol) && ReturnsTheSameType(symbol))
-            {
-                return true;
+                return _wellKnownFactoryTypes.Value.Contains(symbol.ContainingType) ||
+                       _wellKnownImmutableTypes.Value.Contains(symbol.ContainingType);
             }
 
             return false;
         }
+
         private static bool WithPattern(IMethodSymbol symbol)
         {
             return symbol.Name.StartsWith("With", StringComparison.Ordinal);
         }
 
-        private static bool IsImmutableMemberCall(IMethodSymbol symbol, ImmutableArray<IMethodSymbol> baseMethodsChain, SemanticModel model)
+        private bool IsImmutableMemberCall(IMethodSymbol symbol, ImmutableArray<IMethodSymbol> baseMethodsChain)
         {
-            if (symbol.ReceiverType.Name.StartsWith("Immutable", StringComparison.Ordinal))
+            if (IsImmutable(symbol.ReceiverType))
             {
                 return true;
             }
-
-            HashSet<INamedTypeSymbol> immutableTypes = GetWellKnownImmutableSystemTypes(model);
 
             // If method is an extension method and method extends an immutable type, then the method is pure
-            if (symbol.IsExtensionMethod && immutableTypes.Contains(symbol.ReceiverType.UnwrapGenericIfNeeded()))
-            {
-                return true;
-            }
-            
-            if (baseMethodsChain.Any(m => immutableTypes.Contains(m.ContainingType.UnwrapGenericIfNeeded())))
-            {
-                return true;
-            }
-
-            // Check whether method is a factory method that uses only primitive types
-            if (symbol.IsStatic && symbol.Parameters.All(p => IsImmutableOrPrimitive(immutableTypes, p.Type)))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsImmutableOrPrimitive(HashSet<INamedTypeSymbol> immutableTypes, ITypeSymbol parameterType)
-        {
-            if (parameterType.Name.StartsWith("Immutable"))
-            {
-                return true;
-            }
-            if (immutableTypes.Contains(parameterType.UnwrapGenericIfNeeded()))
-            {
-                return true;
-            }
-
-            // Consider that all valud types in System namespace are pure!
-            if (parameterType.IsValueType && parameterType.ContainingNamespace.Name == "System")
+            if (symbol.IsExtensionMethod && _wellKnownImmutableTypes.Value.Contains(symbol.ReceiverType.UnwrapGenericIfNeeded()))
             {
                 return true;
             }
@@ -135,9 +185,9 @@ namespace ErrorProne.NET.Core
             return symbol.ReturnType.UnwrapGenericIfNeeded().Equals(symbol.ReceiverType.UnwrapGenericIfNeeded());
         }
 
-        private static bool HasPureAttribute(ImmutableArray<IMethodSymbol> methodChain, SemanticModel model)
+        private bool HasPureAttribute(ImmutableArray<IMethodSymbol> methodChain)
         {
-            var pureAttribute = model.Compilation.GetTypeByMetadataName(typeof(PureAttribute).FullName);
+            var pureAttribute = _semanticModel.Compilation.GetTypeByMetadataName(typeof(PureAttribute).FullName);
 
             return methodChain.SelectMany(m => m.GetAttributes()).Any(a => a.AttributeClass.Equals(pureAttribute));
         }

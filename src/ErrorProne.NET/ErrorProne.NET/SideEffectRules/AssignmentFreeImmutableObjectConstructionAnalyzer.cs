@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection.Metadata;
 using ErrorProne.NET.Common;
+using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -37,14 +40,39 @@ namespace ErrorProne.NET.SideEffectRules
         {
             var objectCreation = (ObjectCreationExpressionSyntax) context.Node;
 
-            var symbol = context.SemanticModel.GetSymbolInfo(objectCreation.Type);
+            var symbol = context.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol as ITypeSymbol;
 
-            if (objectCreation.Parent is ExpressionStatementSyntax && 
-                !symbol.Symbol.IsExceptionType(context.SemanticModel)) //&&
-                //symbol.Symbol.IsImmutable(context.SemanticModel))
+            if (symbol != null && objectCreation.Parent is ExpressionStatementSyntax && 
+                !symbol.IsExceptionType(context.SemanticModel))
             {
-                context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+                // Can warn on immutable types and default ctors on structs!
+                if (symbol.IsImmutable(context.SemanticModel) 
+                    // Enum creation would be covered as well!
+                    || IsDefaultCtorOnStruct(objectCreation, symbol, context.SemanticModel)
+                    || IsCollection(symbol, context.SemanticModel))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+                }
             }
+        }
+
+        private bool IsCollection(ITypeSymbol symbol, SemanticModel semanticModel)
+        {
+            return symbol.AllInterfaces.Any(i => i.Equals(semanticModel.GetClrType(typeof(IEnumerable))));
+        }
+
+        private bool IsDefaultCtorOnStruct(ObjectCreationExpressionSyntax objectCreation, ITypeSymbol symbol, SemanticModel semanticModel)
+        {
+            if (symbol.IsValueType)
+            {
+                var ctor = semanticModel.GetSymbolInfo(objectCreation).Symbol as IMethodSymbol;
+                if (ctor != null)
+                {
+                    return ctor.Parameters.Length == 0;
+                }
+            }
+
+            return false;
         }
     }
 }

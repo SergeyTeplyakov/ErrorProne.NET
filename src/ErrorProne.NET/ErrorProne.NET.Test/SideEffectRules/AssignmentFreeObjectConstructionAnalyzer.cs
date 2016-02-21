@@ -1,17 +1,25 @@
-﻿using ErrorProne.NET.Common;
+﻿using System.Collections.Generic;
+using ErrorProne.NET.Common;
 using ErrorProne.NET.SideEffectRules;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
 namespace ErrorProne.NET.Test.SideEffectRules
 {
+    enum Foo { }
     [TestFixture]
     public class AssignmentFreeObjectConstructionAnalyzerTests : CSharpAnalyzerTestFixture<AssignmentFreeImmutableObjectConstructionAnalyzer>
     {
-        [Test]
-        public void ShouldWarnOnObject()
+        [TestCaseSource(nameof(GetWarnTestCases))]
+        public void ShouldWarn(string code)
         {
-            const string code = @"
+            HasDiagnostic(code, RuleIds.AssignmentFreeImmutableObjectContructionId);
+        }
+
+        public static IEnumerable<string> GetWarnTestCases()
+        {
+            // Should warn on object
+            yield return @"
 class C
 {
     public C()
@@ -19,8 +27,56 @@ class C
         [|new object()|];
     }
 }";
+            // Should warn on other immutable types
+            yield return @"
+class C
+{
+    public C()
+    {
+        [|new string()|];
+    }
+}";
 
-            HasDiagnostic(code, RuleIds.AssignmentFreeImmutableObjectContructionId);
+            // Should warn on collections
+            yield return @"
+class C
+{
+    public C()
+    {
+        [|new System.Collections.Generic.List<int>()|];
+    }
+}";
+            // Should warn on default constructors for value types
+            yield return @"
+class C
+{
+    public C()
+    {
+        [|new int()|];
+    }
+}";
+            
+            // For custom structs as well
+            yield return @"
+struct Foo {}
+class C
+{
+    public C()
+    {
+        [|new Foo()|];
+    }
+}";
+
+            // Should war on enums
+            yield return @"
+enum Foo {}
+class C
+{
+    public C()
+    {
+        [|new Foo()|];
+    }
+}";
         }
 
         [Test]
@@ -50,7 +106,7 @@ class Foo
 
 	public static void Test()
 	{
-		new Foo().Blah();
+		new object().ToString();
 	}
 }";
 
