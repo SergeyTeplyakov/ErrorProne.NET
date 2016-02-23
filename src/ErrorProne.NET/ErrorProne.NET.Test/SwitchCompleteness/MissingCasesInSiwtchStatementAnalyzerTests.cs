@@ -1,5 +1,6 @@
 ﻿using ErrorProne.NET.Common;
 using ErrorProne.NET.SideEffectRules;
+using ErrorProne.NET.SwitchAnalysis;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 

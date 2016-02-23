@@ -13,10 +13,11 @@ if (foo)
 
 Regex validity
 
-Switch completeness (if default throws invalid operation or has Debug/Contract.assert)
+DONE: Switch completeness (if default throws invalid operation or has Debug/Contract.assert)
+Check for redundant cases on enums
 
-Disable (remove) assignment-free object construction (could be if type is pure!!!)
-Enable for structs (default ctors on structs!!)
+DONE: Disable (remove) assignment-free object construction (could be if type is pure!!!)
+Enable for structs (default ctors on structs!!) 
 
 Make swallowed exceptions just an info message (this is not even a warning!)
 

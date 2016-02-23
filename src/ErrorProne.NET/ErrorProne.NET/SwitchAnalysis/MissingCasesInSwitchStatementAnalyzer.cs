@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Reflection.Metadata;
 using ErrorProne.NET.Common;
-using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.SideEffectRules
+namespace ErrorProne.NET.SwitchAnalysis
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class MissingCasesInSwitchStatementAnalyzer : DiagnosticAnalyzer
@@ -42,10 +37,11 @@ namespace ErrorProne.NET.SideEffectRules
         {
             var switchStatement = (SwitchStatementSyntax) context.Node;
 
-            var expressionSymbol = context.SemanticModel.GetSymbolInfo(switchStatement.Expression).Symbol;
-            var expressionType = GetSymbolType(expressionSymbol) as INamedTypeSymbol;
+            var switchAnalyzer = new SwitchAnalyzer(switchStatement, context.SemanticModel);
+            //var expressionSymbol = context.SemanticModel.GetSymbolInfo(switchStatement.Expression).Symbol;
+            //var expressionType = GetSymbolType(expressionSymbol) as INamedTypeSymbol;
 
-            if (!IsEnum(expressionType, context.SemanticModel))
+            if (!switchAnalyzer.SwitchOverEnum)
             {
                 return;
             }
@@ -55,16 +51,16 @@ namespace ErrorProne.NET.SideEffectRules
                 return;
             }
 
-            var enumValues = expressionType.GetSortedEnumFieldsAndValues();
-            var enums = enumValues.ToDictionarySafe(e => e.Item1, e => e.Item2);
+            var enumValues = switchAnalyzer.SortedEnumFIeldsAndValues;
+            var enums = switchAnalyzer.SortedEnumFIeldsAndValues.ToDictionarySafe(e => e.Item1, e => e.Item2);
 
-            var cases = GetUsedCases(switchStatement, context.SemanticModel, enums);
-            var uniqueCases = new HashSet<ulong>(cases);
+            var cases = switchAnalyzer.Cases;
+            var uniqueCases = new HashSet<long>(cases.Select(c => c.Item2));
 
             var nonCoveredValues =
                 enumValues
                     .ToDictionarySafe(e => e.Item2, e => e.Item1)
-                    .Where(kvp => !uniqueCases.Contains((ulong) kvp.Key))
+                    .Where(kvp => !uniqueCases.Contains(kvp.Key))
                     .ToList();
 
             if (nonCoveredValues.Count != 0)
@@ -74,48 +70,7 @@ namespace ErrorProne.NET.SideEffectRules
                 context.ReportDiagnostic(
                     Diagnostic.Create(Rule, switchStatement.SwitchKeyword.GetLocation(), message));
             }
-
         }
-
-        private static List<ulong> GetUsedCases(SwitchStatementSyntax switchStatement, SemanticModel semanticModel, Dictionary<IFieldSymbol, long> enums)
-        {
-            var cases = new List<ulong>();
-            // Need to exclude default!
-            var caseStatements = switchStatement.Sections.Select(s => s.Statements.First()).ToList();
-            foreach (var s in caseStatements)
-            {
-                ulong? caseValue = null;
-
-                var expression = s as ExpressionStatementSyntax;
-                if (expression != null)
-                {
-                    // It could be a cast!
-                    var castExpression = expression.Expression as CastExpressionSyntax;
-                    // Can cover only if expression inside the cast is constant!
-                    var literal = castExpression?.Expression as LiteralExpressionSyntax;
-                    if (literal != null)
-                    {
-                        caseValue = Convert.ToUInt64(literal.Token.Value);
-                    }
-                    else
-                    {
-                        var symbol = semanticModel.GetSymbolInfo(expression.Expression).Symbol as IFieldSymbol;
-                        if (symbol != null)
-                        {
-                            Contract.Assert(enums.ContainsKey(symbol), "Enum case should be present in enum field");
-                            caseValue = (ulong) enums[symbol];
-                        }
-                    }
-                }
-
-                if (caseValue != null)
-                {
-                    cases.Add(caseValue.Value);
-                }
-            }
-            return cases;
-        }
-
 
         private bool DefaultSectionThrows(SwitchStatementSyntax switchStatement, SemanticModel semanticModel)
         {
@@ -170,29 +125,6 @@ namespace ErrorProne.NET.SideEffectRules
             return false;
         }
 
-        private ITypeSymbol GetSymbolType(ISymbol symbol)
-        {
-            var parameterSymbol = symbol as IParameterSymbol;
-            if (parameterSymbol != null) return parameterSymbol.Type;
 
-            var local = symbol as ILocalSymbol;
-            if (local != null) return local.Type;
-
-            var field = symbol as IFieldSymbol;
-            if (field != null) return field.Type;
-
-            var method = symbol as IMethodSymbol;
-            if (method != null) return method.ReturnType;
-
-            var property = symbol as IPropertySymbol;
-            if (property != null) return property.Type;
-
-            return null;
-        }
-
-        private bool IsEnum(ITypeSymbol type, SemanticModel semanticModel)
-        {
-            return type?.IsValueType == true && type.BaseType.Equals(semanticModel.GetClrType(typeof (System.Enum)));
-        }
     }
 }

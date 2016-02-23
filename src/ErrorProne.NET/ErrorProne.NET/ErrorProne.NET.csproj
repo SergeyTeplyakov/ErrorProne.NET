@@ -98,7 +98,9 @@
     </Compile>
     <Compile Include="StringFormatRules\FormatHelper.cs" />
     <Compile Include="StringFormatRules\StringFormatCorrectnessAnalyzer.cs" />
-    <Compile Include="SwitchCompleteness\MissingCasesInSwitchStatementAnalyzer.cs" />
+    <Compile Include="SwitchAnalysis\MissingCasesInSwitchStatementAnalyzer.cs" />
+    <Compile Include="SwitchAnalysis\SwitchAnalyzer.cs" />
+    <Compile Include="SwitchAnalysis\SwitchExtensions.cs" />
     <Compile Include="Utils\LazyEx.cs" />
   </ItemGroup>
   <ItemGroup>
