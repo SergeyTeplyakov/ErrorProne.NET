@@ -105,12 +105,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExceptionHandlingRules\ThrowExAnalyzerTests.cs" />
+    <Compile Include="FormatRules\RegexPatternAnalyzerTests.cs" />
     <Compile Include="SideEffectRules\AssignmentFreeObjectConstructionAnalyzer.cs" />
     <Compile Include="SideEffectRules\SideEffectFreeExceptionCreationConstructionAnalyzerTests.cs" />
     <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzerTests.cs" />
-    <Compile Include="StringFormatRules\ExcessiveFormatArgumentTests.cs" />
-    <Compile Include="StringFormatRules\InvalidFormatString.cs" />
-    <Compile Include="StringFormatRules\InvalidIndexTests.cs" />
+    <Compile Include="FormatRules\ExcessiveFormatArgumentTests.cs" />
+    <Compile Include="FormatRules\InvalidFormatString.cs" />
+    <Compile Include="FormatRules\InvalidIndexTests.cs" />
     <Compile Include="SwitchCompleteness\MissingCasesInSiwtchStatementAnalyzerTests.cs" />
     <Compile Include="Verifiers\CodeFixVerifier.cs" />
     <Compile Include="Verifiers\DiagnosticVerifier.cs" />

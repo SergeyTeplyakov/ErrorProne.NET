@@ -154,7 +154,7 @@ namespace ErrorProne.NET.SideEffectRules
             Tuple<ArgumentSyntax, ExpressionSyntax[]> arguments = ExtractFormatArgumentAndArgs(invocation, symbol,
                 semanticModel);
 
-            var format = ExtractFormatLiteral(arguments.Item1, semanticModel);
+            var format = arguments.Item1.Expression.GetLiteral(semanticModel);
             HashSet<int> usedIndices;
 
             bool isValid = ParseFormatString(format, out usedIndices);
@@ -169,49 +169,6 @@ namespace ErrorProne.NET.SideEffectRules
             };
         }
 
-        private static string ExtractFormatLiteral(ArgumentSyntax formatArgument, SemanticModel semanticModel)
-        {
-            if (formatArgument.Expression is LiteralExpressionSyntax)
-            {
-                return formatArgument.Expression.ToString();
-            }
-
-            IdentifierNameSyntax identifier = formatArgument.Expression as IdentifierNameSyntax;
-            if (identifier != null)
-            {
-                var referencedIdentifier = semanticModel.GetSymbolInfo(identifier);
-                if (referencedIdentifier.Symbol != null)
-                {
-                    IFieldSymbol fieldReference = referencedIdentifier.Symbol as IFieldSymbol;
-                    if (fieldReference == null)
-                    {
-                        return null;
-                    }
-
-                    // Checking if the field is a constant
-                    string value = fieldReference.ConstantValue?.ToString();
-                    if (value != null)
-                    {
-                        return value;
-                    }
-
-                    // Checking if the field is static readonly with literal initializer
-                    if (fieldReference.IsStatic && fieldReference.IsReadOnly)
-                    {
-                        var referencedSyntax = fieldReference.DeclaringSyntaxReferences.FirstOrDefault();
-                        VariableDeclaratorSyntax declarator = referencedSyntax?.GetSyntax() as VariableDeclaratorSyntax;
-                        LiteralExpressionSyntax literal = declarator?.Initializer.Value as LiteralExpressionSyntax;
-                        if (literal != null)
-                        {
-                            return literal.ToString();
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
         private static bool ParseFormatString(string format, out HashSet<int> usedIndices)
         {
             //Contract.Ensures(Contract.Result<StringBuilder>() != null);
@@ -221,13 +178,6 @@ namespace ErrorProne.NET.SideEffectRules
             int pos = 0;
             int len = format.Length;
             char ch = '\x0';
-
-            ICustomFormatter cf = null;
-            //if (provider != null)
-            //{
-            //    cf = (ICustomFormatter)provider.GetFormat(typeof(ICustomFormatter));
-            //}
-            //var result = new ParseResult(format);
 
             while (true)
             {
@@ -342,57 +292,9 @@ namespace ErrorProne.NET.SideEffectRules
 
                 if (ch != '}') return false; //FormatError();
                 pos++;
-                String sFmt = null;
-                String s = null;
-                //if (cf != null)
-                //{
-                //    if (fmt != null)
-                //    {
-                //        sFmt = fmt.ToString();
-                //    }
-                //    s = cf.Format(sFmt, arg, provider);
-                //}
-
-//                if (s == null)
-//                {
-//                    IFormattable formattableArg = arg as IFormattable;
-
-//#if FEATURE_LEGACYNETCF
-//                    if(CompatibilitySwitches.IsAppEarlierThanWindowsPhone8) {
-//                        // TimeSpan does not implement IFormattable in Mango
-//                        if(arg is TimeSpan) {
-//                            formattableArg = null;
-//                        }
-//                    }
-//#endif
-//                    if (formattableArg != null)
-//                    {
-//                        if (sFmt == null && fmt != null)
-//                        {
-//                            sFmt = fmt.ToString();
-//                        }
-
-//                        s = formattableArg.ToString(sFmt, provider);
-//                    }
-//                    else if (arg != null)
-//                    {
-//                        s = arg.ToString();
-//                    }
-//                }
-
-                //if (s == null) s = String.Empty;
-                //int pad = width - s.Length;
-                //if (!leftJustify && pad > 0) Append(' ', pad);
-                //Append(s);
-                //if (leftJustify && pad > 0) Append(' ', pad);
             }
-
-            //result.IsValid = 
-            //false.IsValid = true;
 
             return true;
         }
-
-        //private static 
     }
 }

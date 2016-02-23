@@ -171,6 +171,7 @@ namespace RoslynNunitTestRunner
         {
             references = references ?? ImmutableList.Create<MetadataReference>(
                 MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.GetLocation()),
+                MetadataReference.CreateFromFile(typeof(Regex).GetTypeInfo().Assembly.GetLocation()),
                 MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.GetLocation()));
 
             return new AdhocWorkspace()

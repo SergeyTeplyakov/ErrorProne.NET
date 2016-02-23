@@ -43,7 +43,7 @@ class C
 {
     public C()
     {
-        [|Type.GetType(""object"")|];
+        [|System.Type.GetType(""object"")|];
     }
 }";
             // TODO: add more cases

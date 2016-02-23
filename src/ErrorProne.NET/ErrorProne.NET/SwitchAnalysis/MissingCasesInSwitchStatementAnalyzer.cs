@@ -38,9 +38,7 @@ namespace ErrorProne.NET.SwitchAnalysis
             var switchStatement = (SwitchStatementSyntax) context.Node;
 
             var switchAnalyzer = new SwitchAnalyzer(switchStatement, context.SemanticModel);
-            //var expressionSymbol = context.SemanticModel.GetSymbolInfo(switchStatement.Expression).Symbol;
-            //var expressionType = GetSymbolType(expressionSymbol) as INamedTypeSymbol;
-
+            
             if (!switchAnalyzer.SwitchOverEnum)
             {
                 return;
@@ -124,7 +122,5 @@ namespace ErrorProne.NET.SwitchAnalysis
 
             return false;
         }
-
-
     }
 }

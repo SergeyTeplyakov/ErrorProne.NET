@@ -1,4 +1,6 @@
-﻿namespace ErrorProne.NET.Common
+﻿using System.Text.RegularExpressions;
+
+namespace ErrorProne.NET.Common
 {
     public static class RuleIds
     {
@@ -9,6 +11,7 @@
         public const string StringFormatInvalidIndexId = "ERP011";
         public const string StringFormatHasEcessiveArgumentId = "ERP012";
         public const string StringFormatInvalidId = "ERP013";
+        public const string RegexPatternIsInvalid = "ERP014";
 
         // Exception handling
         public const string IncorrectExceptionPropagation = "ERP021";

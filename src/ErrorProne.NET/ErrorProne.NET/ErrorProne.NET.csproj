@@ -79,14 +79,17 @@
   <ItemGroup>
     <Compile Include="Common\RuleIds.cs" />
     <Compile Include="Common\WellKnownTypes.cs" />
+    <Compile Include="Core\PureMethodExtensions.cs" />
     <Compile Include="Core\PureMethodVerifier.cs" />
     <Compile Include="ExceptionHandlingRules\Helpers.cs" />
     <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzer.cs" />
     <Compile Include="ExceptionHandlingRules\ThrowExAnalyzer.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
+    <Compile Include="Extensions\ExpressionExtensions.cs" />
     <Compile Include="Extensions\NamedSymbolExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
+    <Compile Include="FormatRules\RegexPatternAnalyzer.cs" />
     <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzer.cs" />
     <Compile Include="SideEffectRules\AssignmentFreeImmutableObjectConstructionAnalyzer.cs" />
     <Compile Include="SideEffectRules\SideEffectFreeExceptionConstructionAnalyzer.cs" />
@@ -96,8 +99,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="StringFormatRules\FormatHelper.cs" />
-    <Compile Include="StringFormatRules\StringFormatCorrectnessAnalyzer.cs" />
+    <Compile Include="FormatRules\FormatHelper.cs" />
+    <Compile Include="FormatRules\StringFormatCorrectnessAnalyzer.cs" />
     <Compile Include="SwitchAnalysis\MissingCasesInSwitchStatementAnalyzer.cs" />
     <Compile Include="SwitchAnalysis\SwitchAnalyzer.cs" />
     <Compile Include="SwitchAnalysis\SwitchExtensions.cs" />
@@ -173,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ImmutabilityRules\" />
+    <Folder Include="OtherRules\" />
     <Folder Include="StructRules\" />
   </ItemGroup>
   <ItemGroup>

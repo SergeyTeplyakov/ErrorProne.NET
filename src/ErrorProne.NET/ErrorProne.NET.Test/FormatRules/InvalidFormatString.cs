@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ErrorProne.NET.Common;
+using ErrorProne.NET.FormatRules;
 using ErrorProne.NET.SideEffectRules;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
