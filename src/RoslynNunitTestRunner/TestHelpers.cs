@@ -96,11 +96,6 @@ namespace RoslynNunitTestRunner
                 spans.Add(TextSpan.FromBounds(start, end - markerSize));
             }
 
-            if (spans.Count == 0)
-            {
-                throw new MarkupCodeInvalidFormatException($"Can't find start marker ('{StartMarker}') in markup code.");
-            }
-
             // Need to adjust beginning of the span, because each previous marker affects next spans
             var correctedSpans = spans.Select((span, index) => new TextSpan(span.Start - (index*4), span.Length)).ToList();
 

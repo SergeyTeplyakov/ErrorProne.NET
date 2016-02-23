@@ -35,10 +35,10 @@ namespace ErrorProne.NET.SwitchAnalysis
 
         private void AnalyzeSwitchStatement(SyntaxNodeAnalysisContext context)
         {
-            var switchStatement = (SwitchStatementSyntax) context.Node;
+            var switchStatement = (SwitchStatementSyntax)context.Node;
 
             var switchAnalyzer = new SwitchAnalyzer(switchStatement, context.SemanticModel);
-            
+
             if (!switchAnalyzer.SwitchOverEnum)
             {
                 return;
@@ -63,7 +63,7 @@ namespace ErrorProne.NET.SwitchAnalysis
 
             if (nonCoveredValues.Count != 0)
             {
-                string message = string.Join(",", nonCoveredValues.Select(kvp => $"'{kvp.Value}'"));
+                string message = string.Join(",", nonCoveredValues.Select(kvp => $"'{kvp.Value.Name}'"));
 
                 context.ReportDiagnostic(
                     Diagnostic.Create(Rule, switchStatement.SwitchKeyword.GetLocation(), message));
@@ -90,7 +90,7 @@ namespace ErrorProne.NET.SwitchAnalysis
                     .Select(s => semanticModel.GetSymbolInfo(s.Type).Symbol)
                     .Where(s => s != null)
                     // True, if throw new InvalidOperationException()
-                    .Any(s => s.Equals(semanticModel.GetClrType(typeof (InvalidOperationException))));
+                    .Any(s => s.Equals(semanticModel.GetClrType(typeof(InvalidOperationException))));
 
             if (throwsInvalidOperation)
             {
@@ -105,13 +105,13 @@ namespace ErrorProne.NET.SwitchAnalysis
                     .Select(s => s.Expression as InvocationExpressionSyntax)
                     .Where(s => s != null)
                     // with first argument equals to false
-                    .Where(s => 
+                    .Where(s =>
                             s.ArgumentList.Arguments.FirstOrDefault()?.Expression?.Kind() == SyntaxKind.FalseLiteralExpression)
                     // with known symbols
                     .Select(s => semanticModel.GetSymbolInfo(s).Symbol as IMethodSymbol)
                     .Where(s => s != null)
                     // Contract.Assert/Assume or Debug.Assert
-                    .Any(m => (m.ContainingType.Equals(semanticModel.GetClrType(typeof (Contract))) && 
+                    .Any(m => (m.ContainingType.Equals(semanticModel.GetClrType(typeof(Contract))) &&
                                (m.Name == "Assert" || m.Name == "Assume")) ||
                               (m.ContainingType.Name == "Debug" && m.Name == "Assert"));
 

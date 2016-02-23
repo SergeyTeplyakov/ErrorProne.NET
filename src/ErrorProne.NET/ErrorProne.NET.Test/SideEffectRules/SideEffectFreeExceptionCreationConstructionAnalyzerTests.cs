@@ -39,7 +39,7 @@ class C
         }
 
         [Test]
-        public void ShouldNotWarnOnNewString()
+        public void ShouldNotWarnOnNewStringBuilder()
         {
             
             const string code = @"
@@ -47,10 +47,11 @@ class C
 {
     public C()
     {
-        [|new System.Text.StringBuilder();|]
+        new System.Text.StringBuilder();
     }
 }";
 
+            // Previous code should lead to other diagnostic, but definitely not for exception creation one.
             NoDiagnostic(code, RuleIds.SideEffectFreeExceptionContructionId);
         }
 

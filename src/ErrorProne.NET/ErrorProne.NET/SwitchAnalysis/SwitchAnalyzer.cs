@@ -22,7 +22,7 @@ namespace ErrorProne.NET.SwitchAnalysis
 
         private readonly Lazy<bool> _switchOverEnum;
         private readonly Lazy<ImmutableList<Tuple<IFieldSymbol, long>>> _enumValues;
-        private readonly Lazy<ImmutableList<Tuple<ExpressionStatementSyntax, long>>> _cases; 
+        private readonly Lazy<ImmutableList<Tuple<ExpressionSyntax, long>>> _cases; 
 
         public SwitchAnalyzer(SwitchStatementSyntax switchStatement, SemanticModel semanticModel)
         {
@@ -42,7 +42,7 @@ namespace ErrorProne.NET.SwitchAnalysis
 
         public bool SwitchOverEnum => _switchOverEnum.Value;
         public ImmutableList<Tuple<IFieldSymbol, long>> SortedEnumFIeldsAndValues => _enumValues.Value;
-        public ImmutableList<Tuple<ExpressionStatementSyntax, long>> Cases => _cases.Value;
+        public ImmutableList<Tuple<ExpressionSyntax, long>> Cases => _cases.Value;
 
         [Pure]
         private INamedTypeSymbol GetSymbolType(ISymbol symbol)
@@ -65,22 +65,21 @@ namespace ErrorProne.NET.SwitchAnalysis
             return null;
         }
 
-        private List<Tuple<ExpressionStatementSyntax, long>> GetUsedCases()
+        private List<Tuple<ExpressionSyntax, long>> GetUsedCases()
         {
-            var cases = new List<Tuple<ExpressionStatementSyntax, long>>();
+            var cases = new List<Tuple<ExpressionSyntax, long>>();
             var enums = _enumValues.Value.ToDictionarySafe(e => e.Item1, e => e.Item2);
 
             // Need to exclude default!
-            var caseStatements = _switchStatement.Sections.Select(s => s.Statements.First()).ToList();
-            foreach (var s in caseStatements)
+            var caseExpressions = _switchStatement.Sections.SelectMany(s => s.Labels).OfType<CaseSwitchLabelSyntax>().Select(l => l.Value).ToList();
+            foreach (var expression in caseExpressions)
             {
                 long? caseValue = null;
 
-                var expression = s as ExpressionStatementSyntax;
                 if (expression != null)
                 {
                     // It could be a cast!
-                    var castExpression = expression.Expression as CastExpressionSyntax;
+                    var castExpression = expression as CastExpressionSyntax;
                     // Can cover only if expression inside the cast is constant!
                     var literal = castExpression?.Expression as LiteralExpressionSyntax;
                     if (literal != null)
@@ -89,11 +88,11 @@ namespace ErrorProne.NET.SwitchAnalysis
                     }
                     else
                     {
-                        var symbol = _semanticModel.GetSymbolInfo(expression.Expression).Symbol as IFieldSymbol;
+                        var symbol = _semanticModel.GetSymbolInfo(expression).Symbol as IFieldSymbol;
                         if (symbol != null)
                         {
                             Contract.Assert(enums.ContainsKey(symbol), "Enum case should be present in enum field");
-                            caseValue = (long)enums[symbol];
+                            caseValue = enums[symbol];
                         }
                     }
                 }

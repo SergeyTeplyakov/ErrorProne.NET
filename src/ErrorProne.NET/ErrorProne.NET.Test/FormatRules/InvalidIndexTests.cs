@@ -63,7 +63,7 @@ class C
 {
     private static void Test()
     {
-        string s = string.Format(null, [|""{0}, {4}""|], 42, 3);
+        string s = string.Format(null, [|""{0}, {4}, {1}""|], 42, 3);
     }
 }";
 
@@ -78,7 +78,7 @@ class C
 {
     private static void Test()
     {
-        string s = string.Format(null, [|""{0}, {4}""|], new object[]{42, 3});
+        string s = string.Format(null, [|""{0}, {4}""|], new object[]{42});
     }
 }";
 
@@ -91,7 +91,7 @@ class C
             const string code = @"
 class C
 {
-    const string format = ""{0}, {4}"";
+    const string format = ""{0}, {4}, {1}"";
     private static void Test()
     {
         string s = string.Format(null, [|format|], 42, 3);
@@ -107,7 +107,7 @@ class C
             const string code = @"
 class C
 {
-    private static readonly string format = ""{0}, {4}"";
+    private static readonly string format = ""{0}, {4}, {1}"";
     private static void Test()
     {
         string s = string.Format(null, [|format|], 42, 3);

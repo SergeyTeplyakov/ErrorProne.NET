@@ -26,9 +26,9 @@ class Foo
     {
         [|switch|](se)
         {
-            case: SomeEnum.Case1: break;
-            case: (SomeEnum)42: break;
-            default: throw new System.InvalidOperationException();
+            case SomeEnum.Case1: break;
+            case (SomeEnum)42: break;
+            default: throw new System.InvalidOperationException(); break;
         }
     }
 }";
@@ -37,30 +37,53 @@ class Foo
         }
 
         [Test]
-        public void ShouldWarnOnContractAssertInDefault()
+        public void ShouldNotWarnWhenAllCasesAreCovered()
         {
             const string code = @"
 enum SomeEnum
 {
 	Case1,
 	Case2,
-	Case3 = Case1,
-	Case4
 }
 class Foo
 {
 	public void Test(SomeEnum se)
     {
-        [|switch|](se)
+        switch(se)
         {
-            case: SomeEnum.Case1: break;
-            case: (SomeEnum)42: break;
-            default: System.Diagnostics.Contracts.Contract.Assert(false);
+            case SomeEnum.Case1: break;
+            case SomeEnum.Case2: break;
+            default: throw new System.InvalidOperationException(); break;
         }
     }
 }";
 
-            HasDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
+            NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
+        }
+        
+        [Test]
+        public void NoWarningIfSwitchCoversEverything()
+        {
+            const string code = @"
+enum SomeEnum : byte
+{
+	Case1,
+	Case2,
+}
+class Foo
+{
+	public void Test(SomeEnum se)
+    {
+        switch(se)
+        {
+            case SomeEnum.Case1: break;
+            case SomeEnum.Case2: break;
+            default: System.Diagnostics.Contracts.Contract.Assert(false); break;
+        }
+    }
+}";
+
+            NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
         }
 
         [Test]
@@ -81,9 +104,9 @@ class Foo
         SomeEnum se = SomeEnum.Case1;
         [|switch|](se)
         {
-            case: SomeEnum.Case1: break;
-            case: (SomeEnum)42: break;
-            default: System.Diagnostics.Contracts.Contract.Assert(false);
+            case SomeEnum.Case1: break;
+            case (SomeEnum)42: break;
+            default: System.Diagnostics.Contracts.Contract.Assert(false);break;
         }
     }
 }";
@@ -106,10 +129,10 @@ class Foo
 {
 	public void Test(SomeEnum se)
     {
-        [|switch|](se)
+        switch(se)
         {
-            case: (SomeEnum)0: break;
-            case: (SomeEnum)1: break;
+            case (SomeEnum)0: break;
+            case (SomeEnum)1: break;
             default: throw new System.InvalidOperationException();
         }
     }
@@ -133,11 +156,11 @@ class Foo
 {
 	public void Test(SomeEnum se)
     {
-        [|switch|](se)
+        switch(se)
         {
-            case: SomeEnum.Case1: break;
-            case: (SomeEnum)42: break;
-            default: System.Console.WriteLine(""Missed case"");
+            case SomeEnum.Case1: break;
+            case (SomeEnum)42: break;
+            default: System.Console.WriteLine(""Missed case""); break;
         }
     }
 }";

@@ -27,16 +27,16 @@ namespace RoslynNunitTestRunner
 
         protected void NoDiagnostic(string code, string diagnosticId)
         {
-            var document = TestHelpers.GetDocument(code, LanguageName);
-
-            NoDiagnostic(document, diagnosticId);
+            var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(code, LanguageName);
+            Assert.That(processedDocument.Spans.Count, Is.EqualTo(0), "Expected 0 expected diagnostics in the document!");
+            NoDiagnostic(processedDocument.Document, diagnosticId);
         }
 
         protected void NoDiagnostic(Document document, string diagnosticId)
         {
             var diagnostics = GetDiagnostics(document);
 
-            Assert.That(diagnostics.Any(d => d.Id == diagnosticId), Is.False);
+            Assert.That(diagnostics.Count(d => d.Id == diagnosticId), Is.EqualTo(0), "Expected no diagnostics, but has some!");
         }
 
         protected void HasDiagnostic(string markupCode, string diagnosticId)
