@@ -104,6 +104,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzerTests.cs" />
     <Compile Include="ExceptionHandlingRules\ThrowExAnalyzerTests.cs" />
     <Compile Include="FormatRules\RegexPatternAnalyzerTests.cs" />
     <Compile Include="SideEffectRules\AssignmentFreeObjectConstructionAnalyzer.cs" />

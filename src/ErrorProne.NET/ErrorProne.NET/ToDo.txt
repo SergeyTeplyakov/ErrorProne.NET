@@ -19,13 +19,14 @@ Check for redundant cases on enums
 DONE: Disable (remove) assignment-free object construction (could be if type is pure!!!)
 Enable for structs (default ctors on structs!!) 
 
-Make swallowed exceptions just an info message (this is not even a warning!)
+DONE: Make swallowed exceptions just an info message (this is not even a warning!)
 
 Make rule that will warn if ex.Message was used in catch(Exception)
 
 DONE: Enumerable.Range is working, but Directory.CreateInstance also considered pure! Add checks to cover only immutable/pure type factories.
 
-Add support for Diagnostic.Create for formatting string!
-
 Additional rule:
- - Not call default ctor on struct (one example: immutable array). Add attribute to check!
+ - DONE: Not call default ctor on struct (one example: immutable array). Add attribute to check!
+
+Add support for Diagnostic.Create for formatting string!
+Add a hint for switch rule that will warn if switchable expression doesn't used in error message.
