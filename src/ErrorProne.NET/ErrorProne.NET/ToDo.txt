@@ -22,7 +22,7 @@ Make swallowed exceptions just an info message (this is not even a warning!)
 
 Make rule that will warn if ex.Message was used in catch(Exception)
 
-Enumerable.Range is working, but Directory.CreateInstance also considered pure! Add checks to cover only immutable/pure type factories.
+DONE: Enumerable.Range is working, but Directory.CreateInstance also considered pure! Add checks to cover only immutable/pure type factories.
 
 Add support for Diagnostic.Create for formatting string!
 

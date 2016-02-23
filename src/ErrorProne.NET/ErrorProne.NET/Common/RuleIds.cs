@@ -14,5 +14,8 @@
         public const string IncorrectExceptionPropagation = "ERP021";
         public const string AllExceptionSwalled = "ERP022";
         public const string InvalidExceptionHandling = "ERP023";
+
+        // Other
+        public const string MissingCasesInSwitchStatement = "ERP031";
     }
 }

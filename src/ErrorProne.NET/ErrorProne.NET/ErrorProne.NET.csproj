@@ -83,6 +83,7 @@
     <Compile Include="ExceptionHandlingRules\Helpers.cs" />
     <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzer.cs" />
     <Compile Include="ExceptionHandlingRules\ThrowExAnalyzer.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\NamedSymbolExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
@@ -97,6 +98,7 @@
     </Compile>
     <Compile Include="StringFormatRules\FormatHelper.cs" />
     <Compile Include="StringFormatRules\StringFormatCorrectnessAnalyzer.cs" />
+    <Compile Include="SwitchCompleteness\MissingCasesInSwitchStatementAnalyzer.cs" />
     <Compile Include="Utils\LazyEx.cs" />
   </ItemGroup>
   <ItemGroup>

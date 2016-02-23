@@ -31,6 +31,61 @@ namespace ErrorProne.NET.Extensions
             return BuildQualifiedAssemblyName(null, namedType.ToDisplayString(), namedType.ContainingAssembly);
         }
 
+        public static List<Tuple<IFieldSymbol, long>> GetSortedEnumFieldsAndValues(this INamedTypeSymbol enumType)
+        {
+            Contract.Requires(enumType != null);
+
+            var result = new List<Tuple<IFieldSymbol, long>>();
+            var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
+            foreach (var member in enumType.GetMembers())
+            {
+                if (member.Kind == SymbolKind.Field)
+                {
+                    var field = (IFieldSymbol)member;
+                    if (field.HasConstantValue)
+                    {
+                        var value = (long)ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                        result.Add(Tuple.Create(field, value));
+                    }
+                }
+            }
+
+            return result.OrderBy(e => e.Item2).ToList();
+        }
+
+        internal static ulong ConvertEnumUnderlyingTypeToUInt64(object value, SpecialType specialType)
+        {
+            Contract.Requires(value != null);
+            Contract.Requires(value.GetType().GetTypeInfo().IsPrimitive);
+
+            unchecked
+            {
+                switch (specialType)
+                {
+                    case SpecialType.System_SByte:
+                        return (ulong)(sbyte)value;
+                    case SpecialType.System_Int16:
+                        return (ulong)(short)value;
+                    case SpecialType.System_Int32:
+                        return (ulong)(int)value;
+                    case SpecialType.System_Int64:
+                        return (ulong)(long)value;
+                    case SpecialType.System_Byte:
+                        return (byte)value;
+                    case SpecialType.System_UInt16:
+                        return (ushort)value;
+                    case SpecialType.System_UInt32:
+                        return (uint)value;
+                    case SpecialType.System_UInt64:
+                        return (ulong)value;
+
+                    default:
+                        // not using ExceptionUtilities.UnexpectedValue() because this is used by the Services layer
+                        // which doesn't have those utilities.
+                        throw new InvalidOperationException($"{specialType} is not a valid underlying type for an enum");
+                }
+            }
+        }
 
         private static string BuildQualifiedAssemblyName(string nameSpace, string typeName, IAssemblySymbol assemblySymbol)
         {
