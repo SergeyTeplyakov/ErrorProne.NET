@@ -36,12 +36,7 @@ namespace ErrorProne.NET.ExceptionHandlingRules
         // Called when Roslyn encounters a catch clause.
         private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var catchBlock = context.Node as CatchClauseSyntax;
-
-            if (catchBlock == null)
-            {
-                return;
-            }
+            var catchBlock = (CatchClauseSyntax)context.Node;
 
             if (catchBlock.Declaration == null || catchBlock.Declaration.CatchIsTooGeneric(context.SemanticModel))
             {

@@ -81,6 +81,7 @@
     <Compile Include="Common\WellKnownTypes.cs" />
     <Compile Include="Core\PureMethodExtensions.cs" />
     <Compile Include="Core\PureMethodVerifier.cs" />
+    <Compile Include="ExceptionHandlingRules\InvalidExceptionHandlingAnalyzer.cs" />
     <Compile Include="ExceptionHandlingRules\Helpers.cs" />
     <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzer.cs" />
     <Compile Include="ExceptionHandlingRules\ThrowExAnalyzer.cs" />
@@ -105,6 +106,7 @@
     <Compile Include="SwitchAnalysis\SwitchAnalyzer.cs" />
     <Compile Include="SwitchAnalysis\SwitchExtensions.cs" />
     <Compile Include="Utils\LazyEx.cs" />
+    <Compile Include="Utils\Monadic.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">
@@ -175,7 +177,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ImmutabilityRules\" />
     <Folder Include="OtherRules\" />
     <Folder Include="StructRules\" />
   </ItemGroup>

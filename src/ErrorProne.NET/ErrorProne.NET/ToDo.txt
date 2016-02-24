@@ -5,23 +5,23 @@ For instance: string.Format(Format, GetStableFunction()); will be easily analyze
 string.Format("{0}{1}", 1); if Format is a const and GetStableFunction() is a constant function!
 (OK, function simplification is a next step, but for many cases it would be very helpful!)
 
-if (foo);
+DONE: if (foo); suppored by csc
 
 if (foo)
   s1;
   s2;
 
-Regex validity
+DONE: Regex validity
 
 DONE: Switch completeness (if default throws invalid operation or has Debug/Contract.assert)
-Check for redundant cases on enums
+DONE: Check for redundant cases on enums done by ctor!
 
 DONE: Disable (remove) assignment-free object construction (could be if type is pure!!!)
-Enable for structs (default ctors on structs!!) 
+DONE Enable for structs (default ctors on structs!!) 
 
 DONE: Make swallowed exceptions just an info message (this is not even a warning!)
 
-Make rule that will warn if ex.Message was used in catch(Exception)
+DONE: Make rule that will warn if ex.Message was used in catch(Exception)
 
 DONE: Enumerable.Range is working, but Directory.CreateInstance also considered pure! Add checks to cover only immutable/pure type factories.
 
