@@ -8,7 +8,7 @@ namespace ErrorProne.NET.Test.SideEffectRules
 {
     enum Foo { }
     [TestFixture]
-    public class AssignmentFreeObjectConstructionAnalyzerTests : CSharpAnalyzerTestFixture<AssignmentFreeImmutableObjectConstructionAnalyzer>
+    public class AssignmentFreeObjectConstructionAnalyzerTests : CSharpAnalyzerTestFixture<AssignmentFreePureObjectConstructionAnalyzer>
     {
         [TestCaseSource(nameof(GetWarnTestCases))]
         public void ShouldWarn(string code)

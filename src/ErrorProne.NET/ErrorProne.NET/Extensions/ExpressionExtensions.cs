@@ -26,7 +26,8 @@ namespace ErrorProne.NET.Extensions
                     IFieldSymbol fieldReference = referencedIdentifier.Symbol as IFieldSymbol;
                     if (fieldReference == null)
                     {
-                        return null;
+                        ILocalSymbol localSymbol = referencedIdentifier.Symbol as ILocalSymbol;
+                        return localSymbol?.ConstantValue?.ToString();
                     }
 
                     // Checking if the field is a constant

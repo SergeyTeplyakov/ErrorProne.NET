@@ -71,6 +71,22 @@ class Test
         }
 
         [Test]
+        public void WarningOnConditionalObservation()
+        {
+            string code = @"
+using System;
+class Test
+{
+  public void Foo()
+  {
+    try { Console.WriteLine(); }
+    catch(Exception e) {if (e is System.ArggregateException) throw;[|}|]
+  }
+}";
+            HasDiagnostic(code, RuleIds.AllExceptionSwalled);
+        }
+
+        [Test]
         public void WarnsOnCatchWithExceptionThatWasNotUsed()
         {
             string code = @"

@@ -28,7 +28,6 @@ namespace ErrorProne.NET.ExceptionHandlingRules
     {
         public static List<ExceptionReference> GetExceptionIdentifierUsages(this SemanticModel semanticModel, SyntaxNode searchRoot)
         {
-
             var usages = (searchRoot ?? semanticModel.SyntaxTree.GetRoot())
                 .DescendantNodes()
                 .OfType<IdentifierNameSyntax>()

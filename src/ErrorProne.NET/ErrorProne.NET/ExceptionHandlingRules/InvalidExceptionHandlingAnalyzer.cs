@@ -62,7 +62,8 @@ namespace ErrorProne.NET.ExceptionHandlingRules
                 }
 
                 bool wasObserved =
-                    usages.Select(id => id.Identifier)
+                    usages.
+                    Select(id => id.Identifier)
                     .Except(messageUsages.Select(x => x.Id))
                     .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
                               u.Parent is AssignmentExpressionSyntax || // Was saved to field or local

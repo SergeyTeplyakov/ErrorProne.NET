@@ -20,7 +20,8 @@ namespace ErrorProne.NET.ExceptionHandlingRules
         public const string MessageFormat = "Incorrect exception propagation. Use throw; instead.";
         internal const string Category = "CodeSmell";
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+            DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

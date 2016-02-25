@@ -30,8 +30,7 @@ class C
             yield return "{{0}";
             yield return "{0}{d}";
         }
-
-
+        
         [Test]
         public void ShouldWarnOnInvalidFormatAsConst()
         {

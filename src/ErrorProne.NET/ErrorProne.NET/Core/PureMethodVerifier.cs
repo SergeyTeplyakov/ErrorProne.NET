@@ -119,6 +119,7 @@ namespace ErrorProne.NET.Core
             {
                 model.GetClrType(typeof(Enumerable)),
                 model.GetClrType(typeof(Queryable)),
+                model.GetClrType(typeof(Convert)),
             };
         }
 

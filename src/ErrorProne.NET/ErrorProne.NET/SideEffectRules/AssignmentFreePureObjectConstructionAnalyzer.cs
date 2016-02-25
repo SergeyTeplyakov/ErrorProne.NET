@@ -13,16 +13,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.SideEffectRules
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class AssignmentFreeImmutableObjectConstructionAnalyzer : DiagnosticAnalyzer
+    public sealed class AssignmentFreePureObjectConstructionAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = RuleIds.AssignmentFreeImmutableObjectContructionId;
 
-        private static readonly string Title = "Assignment-free immutable object construction.";
-        private static readonly string Message = "Assignment-free immutable object construction.";
-        private static readonly string Description = "Newly created immutable object was not stored in any form!";
+        private static readonly string Title = "Assignment-free pure object construction.";
+        private static readonly string Message = "Assignment-free pure object construction.";
+        private static readonly string Description = "Newly created object was not stored form!";
 
-        // This is just a warning! Maybe an exception via attributes or something should be added!
-        // TODO: add attribute that will suppress this warning!
         private const string Category = "CodeSmell";
 
         // Disabing this rule, because it leads to tons of false positives

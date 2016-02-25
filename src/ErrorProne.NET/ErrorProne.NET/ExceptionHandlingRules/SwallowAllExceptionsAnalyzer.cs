@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Extensions;
+using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,11 +21,12 @@ namespace ErrorProne.NET.ExceptionHandlingRules
         // Catch is not empty, `catch` or `catch(Exception)` and some return statement exists. 
         public const string DiagnosticId = RuleIds.AllExceptionSwalled;
         internal const string Title = "Catching everything considered harmful.";
-        internal const string MessageFormat = "Exit point '{0}' swallows an exception.";
+        internal const string MessageFormat = "Exit point '{0}' swallows an unobserved exception.";
+        private const string Description = "Generic catch block swallows an exception that was not observed.";
         internal const string Category = "CodeSmell";
 
         internal static readonly DiagnosticDescriptor Rule = 
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Info, isEnabledByDefault: true);
+            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, description: Description, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -41,7 +43,16 @@ namespace ErrorProne.NET.ExceptionHandlingRules
             if (catchBlock.Declaration == null || catchBlock.Declaration.CatchIsTooGeneric(context.SemanticModel))
             {
                 var usages = context.SemanticModel.GetExceptionIdentifierUsages(catchBlock);
-                if (usages.Count != 0)
+
+                bool wasObserved =
+                    usages.
+                        Select(id => id.Identifier)
+                        .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
+                                  u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
+                                  // or Inner exception, Message or other properties were used
+                                  u.Parent is MemberAccessExpressionSyntax);
+
+                if (wasObserved)
                 {
                     // Exception was observed!
                     return;

@@ -30,3 +30,9 @@ Additional rule:
 
 Add support for Diagnostic.Create for formatting string!
 Add a hint for switch rule that will warn if switchable expression doesn't used in error message.
+
+Analyzer for NunitRoslynRunner (check code that should have code markers for HasDiagnostic and no marker for NoDiagnsotic.)
+
+Don't call default constructor on some structs (add Immutable array and your custom attribute).
+
+Add support for pure methods for IObservable interface! But need to think about it!
