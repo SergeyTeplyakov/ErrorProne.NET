@@ -29,6 +29,8 @@ Additional rule:
  - DONE: Not call default ctor on struct (one example: immutable array). Add attribute to check!
 
 Add support for Diagnostic.Create for formatting string!
+(maybe I can analyze even if rule is not marked with readonly but if it is private and nobody changes it in the class?!)
+
 Add a hint for switch rule that will warn if switchable expression doesn't used in error message.
 
 Analyzer for NunitRoslynRunner (check code that should have code markers for HasDiagnostic and no marker for NoDiagnsotic.)
@@ -36,3 +38,11 @@ Analyzer for NunitRoslynRunner (check code that should have code markers for Has
 Don't call default constructor on some structs (add Immutable array and your custom attribute).
 
 Add support for pure methods for IObservable interface! But need to think about it!
+
+Rule for not using default constructor on struct. Add attribute and add well-known types like iterators, immutable array.
+
+Avoid async-void methods (enable them only on forms)
+
+Exception handling: 
+- Invalid preconditions for async and iterator blocks
+- Complex: exceptions in thread.Start methods (required complex analysis + need to analyze external annotation to understand BCL exceptions)

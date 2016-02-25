@@ -147,7 +147,7 @@ namespace ErrorProne.NET.SideEffectRules
 
             return Tuple.Create(formatArgument, rest);
         }
-
+        
         public static ParseResult ParseFormatMethodInvocation(InvocationExpressionSyntax invocation,
             IMethodSymbol symbol, SemanticModel semanticModel)
         {
@@ -156,9 +156,9 @@ namespace ErrorProne.NET.SideEffectRules
 
             var format = arguments.Item1.Expression.GetLiteral(semanticModel);
             HashSet<int> usedIndices;
-
+            
             bool isValid = ParseFormatString(format, out usedIndices);
-
+            
             return new ParseResult()
             {
                 IsValid = isValid,

@@ -2,17 +2,19 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>ErrorProne.NET</id>
-    <version>1.0.0.0</version>
+    <version>0.1.0.0</version>
     <title>ErrorProne.NET</title>
     <authors>seteplia</authors>
     <owners>seteplia</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
-    <projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>
+    <licenseUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET</projectUrl>
     <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>ErrorProne.NET</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
-    <copyright>Copyright</copyright>
+    <releaseNotes>
+      ErrorProne.NET is a set of Roslyn-based analyzers that will help you to write correct code. The idea is similar to Google's error-prone but focusing on correctness (and, maybe, performance) of C# programs.
+    </releaseNotes>
+    <copyright>Copyright seteplia 2016</copyright>
     <tags>ErrorProne.NET, analyzers</tags>
   </metadata>
   <!-- The convention for analyzers is to put language agnostic dlls in analyzers\dotnet and language specific analyzers in either analyzers\dotnet\cs or analyzers\dotnet\vb -->

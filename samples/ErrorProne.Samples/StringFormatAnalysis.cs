@@ -39,8 +39,12 @@ namespace ErrorProne.Samples
             const string format = "{0}, {1}";
             Console.WriteLine(format, 1, 2, 3);
 
+
+
             // Format argument is a valid format string
             s = string.Format("{1\\d(");
+
+
 
             // Regex pattern is invalid: parsing "\d(" - Not enough )'s.
             var regex = new Regex("\\d(");

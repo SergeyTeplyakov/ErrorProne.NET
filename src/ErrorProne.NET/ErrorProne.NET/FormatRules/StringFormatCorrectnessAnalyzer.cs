@@ -30,9 +30,9 @@ namespace ErrorProne.NET.FormatRules
 
         // Diagnostic information for invalid format string
         public const string InvalidFormatId = RuleIds.StringFormatInvalidId;
-        private static readonly string InvalidFormatTitle = "Format argument is a valid format string.";
-        private static readonly string InvalidFormatMessage = "Format argument is a valid format string.";
-        private static readonly string InvalidFormatDescription = "Format argument is a valid format string.";
+        private static readonly string InvalidFormatTitle = "Format argument is not a valid format string.";
+        private static readonly string InvalidFormatMessage = "Format argument is not a valid format string.";
+        private static readonly string InvalidFormatDescription = "Format argument is not a valid format string.";
         private static readonly DiagnosticDescriptor InvalidFormatRule = new DiagnosticDescriptor(InvalidFormatId, InvalidFormatTitle, InvalidFormatMessage, Category,
             DiagnosticSeverity.Error, isEnabledByDefault: true, description: InvalidFormatDescription);
 

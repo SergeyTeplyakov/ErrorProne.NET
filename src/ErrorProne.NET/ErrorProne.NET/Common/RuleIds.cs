@@ -4,8 +4,8 @@ namespace ErrorProne.NET.Common
 {
     public static class RuleIds
     {
-        public const string SideEffectFreeExceptionContructionId = "ERP001";
-        public const string UnobservedPureMethodInvocationId = "ERP002";
+        public const string UnobservedPureMethodInvocationId = "ERP001";
+        public const string SideEffectFreeExceptionContructionId = "ERP002";
         public const string AssignmentFreeImmutableObjectContructionId = "ERP003";
 
         public const string StringFormatInvalidIndexId = "ERP011";
