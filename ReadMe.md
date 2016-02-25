@@ -2,11 +2,11 @@
 
 ErrorProne.NET is a set of Roslyn-based analyzers that will help you to write correct code. The idea is similar to Google's [error-prone](https://github.com/google/error-prone) but focusing on correctness (and, maybe, performance) of C# programs.
 
-Current implementation supports various rules that helps to prevent common coding errros.
+Current implementation supports various rules that helps to prevent common coding errors.
 
 ## Non-observed return value for pure methods
 
-Result for every call to side-effect free method should be observed in one or another way. If such a method is invoked without observing the result, then it could lead to undesired behaviour of the program.
+Result for every call to side-effect free method should be observed in one or another way. If such a method is invoked without observing the result, then it could lead to undesired behavior of the program.
 ErrorProne.NET has some special rules and heuristics to detect such invocations. For instance, calls to method marked with `PureAttribute` should be observed. The same is true for well-known immutable types like `object`, `IEnumerable` etc. All method invocations for extensions method of such immutable types considered pure as well.
 
 Here is a short list that shows this rule on practice. Every line ended with `// Non-Observed return value` produces the warning: 
@@ -68,7 +68,7 @@ new List<int>();
 ```
 
 ## Assignment-free exception creation
-Exception creation could be considered side-effect free as well, but because of its special nature it deserves it's own rule. Assignment-free, throw-free excpeption creation will lead to an error by this tool:
+Exception creation could be considered side-effect free as well, but because of its special nature it deserves it's own rule. Assignment-free, throw-free exception creation will lead to an error by this tool:
 
 ```csharp
 // Standalone exception creation is an error!
@@ -132,7 +132,7 @@ var regex = new Regex("\\d(");
 ```
 
 ## Switch completeness analysis
-ErrorProne.NET has special rule that enforces completeness of the switch staement over variable of enum type. Consider following example:
+ErrorProne.NET has special rule that enforces completeness of the switch statement over variable of enum type. Consider following example:
 
 ```csharp
 enum ShapeType
@@ -145,7 +145,7 @@ abstract class Shape
 {
     public static Shape CreateShape(ShapeType shapeType)
     {
-        // Warning: Possible missed enum case(s) 'Square' int the switch statemet
+        // Warning: Possible missed enum case(s) 'Square' int the switch statement
         switch(shapeType)
         {
             case ShapeType.Circle: return new Circle();
@@ -158,7 +158,7 @@ class Circle : Shape { }
 class Rectangle : Shape { }
 ``` 
 
-ErrorProne.NET recognizes that default section of the switch statement throws `InvalidOperationException` that could be a marker that all the cases are checked by the switch. If this is not the case warning would be emmitted that some cases were potentially missed.
+ErrorProne.NET recognizes that default section of the switch statement throws `InvalidOperationException` that could be a marker that all the cases are checked by the switch. If this is not the case warning would be emitted that some cases were potentially missed.
 
 ## Exception handling rules
 ErrorProne.NET has few rules that enforces exception handling best practices.
@@ -175,7 +175,7 @@ catch (Exception e)
 ```
 
 ### Suspicious exception observation
-Another common mistake that can significantly complicate production postmortem is related to incorrect observation of the exception. Catching `System.Exception` considered harmful because it can leave system in unpredictable state, but even when base exception is cought it is very important that full exception object (including stack trace and inner exception) is observed.
+Another common mistake that can significantly complicate production postmortem is related to incorrect observation of the exception. Catching `System.Exception` considered harmful because it can leave system in unpredictable state, but even when base exception is caught it is very important that full exception object (including stack trace and inner exception) is observed.
 
 Consider following case:
 
@@ -218,7 +218,7 @@ catch (Exception e)
 Please note, that this rule will warn only when exception object was not observed (like printed to console, log etc).
 
 # Contributions
-Are highly appreciated. You may send a pull requrest with various fixes or you can suggest some interesting rule that can prevent from some nasty bugs!
+Are highly appreciated. You may send a pull request with various fixes or you can suggest some interesting rule that can prevent from some nasty bugs in your app!
 
 # Roadmap
 
