@@ -76,7 +76,7 @@ new Exception();
 ``` 
 
 ## Rules for validating formatting string
-Another common source of errors - invalid format argument for such methods like `string.Format`, `Console.WriteLie` etc. There is 3 types of errors: 1) expected argument was not provided 2) argument was provided but was not used in the format string and 3) format string is invalid. ErrorProne.NET checks all of them (please keep in mind, that excessive arguments will not lead to runtime failure but they're considered very suspicious as well).
+Another common source of errors - invalid format argument for such methods like `string.Format`, `Console.WriteLine` etc. There is 3 types of errors: 1) expected argument was not provided 2) argument was provided but was not used in the format string and 3) format string is invalid. ErrorProne.NET checks all of them (please keep in mind, that excessive arguments will not lead to runtime failure but they're considered very suspicious as well).
 
 ```csharp
 // Format argument was not provided
