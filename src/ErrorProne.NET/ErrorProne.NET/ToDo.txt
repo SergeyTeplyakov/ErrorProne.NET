@@ -7,10 +7,6 @@ string.Format("{0}{1}", 1); if Format is a const and GetStableFunction() is a co
 
 DONE: if (foo); suppored by csc
 
-if (foo)
-  s1;
-  s2;
-
 DONE: Regex validity
 
 DONE: Switch completeness (if default throws invalid operation or has Debug/Contract.assert)
@@ -46,3 +42,21 @@ Avoid async-void methods (enable them only on forms)
 Exception handling: 
 - Invalid preconditions for async and iterator blocks
 - Complex: exceptions in thread.Start methods (required complex analysis + need to analyze external annotation to understand BCL exceptions)
+
+Rules for suggesting some interesting stuff about internal representation of the class/struct:
+- If struct has no non-readonly fields, suggest to mark it with 'immutable' attribute.
+- Warn if struct is mark with immutable attribute but has non-readonly fields that are non-readonly
+
+Scoping
+ Add attributes that can enforce some rules. Like DisallowExceptionSwallowing and the rule will fail as error (it sounds like more general stuff. Maybe one attribute: EnforceRule that will enforce the rule?)
+
+Find identical subexpressions in condition
+Find identical blocks in if-else
+
+if (foo)
+  s1;
+  s2;
+
+Expression simplifier (const expression folder + simplification of the analysis)
+
+Warn on default constructors on structs

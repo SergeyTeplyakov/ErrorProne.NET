@@ -7,6 +7,7 @@ namespace ErrorProne.NET.Common
         public const string UnobservedPureMethodInvocationId = "ERP001";
         public const string SideEffectFreeExceptionContructionId = "ERP002";
         public const string AssignmentFreeImmutableObjectContructionId = "ERP003";
+        public const string NonPureMethodsOnReadonlyStructs = "ERP004";
 
         public const string StringFormatInvalidIndexId = "ERP011";
         public const string StringFormatHasEcessiveArgumentId = "ERP012";
@@ -20,5 +21,6 @@ namespace ErrorProne.NET.Common
 
         // Other
         public const string MissingCasesInSwitchStatement = "ERP031";
+        
     }
 }

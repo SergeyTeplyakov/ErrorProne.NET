@@ -91,6 +91,7 @@
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
     <Compile Include="FormatRules\RegexPatternAnalyzer.cs" />
+    <Compile Include="SideEffectRules\NonPureMethodsOnReadonlyStructs.cs" />
     <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzer.cs" />
     <Compile Include="SideEffectRules\AssignmentFreePureObjectConstructionAnalyzer.cs" />
     <Compile Include="SideEffectRules\SideEffectFreeExceptionConstructionAnalyzer.cs" />
