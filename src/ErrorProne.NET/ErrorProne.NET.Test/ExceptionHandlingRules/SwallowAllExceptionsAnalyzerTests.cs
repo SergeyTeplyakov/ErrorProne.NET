@@ -134,6 +134,21 @@ class Test
             NoDiagnostic(code, RuleIds.AllExceptionSwalled);
         }
 
+        [Test]
+        public void NoWarnWhenExceptionObservedInInterpolatedString()
+        {
+            string code = @"
+using System;
+class Test
+{
+  public void Foo()
+  {
+    try { Console.WriteLine(); }
+    catch(Exception e) {Console.WriteLine($""Error: {e}""); } // should be another warning when only e.Message was observed!
+  }
+}";
+            NoDiagnostic(code, RuleIds.AllExceptionSwalled);
+        }
 
         [Test]
         public void NoWarnsOnNonSystemException()

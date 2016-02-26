@@ -85,5 +85,46 @@ struct Immutable
 
             NoDiagnostic(code, RuleIds.NonPureMethodsOnReadonlyStructs);
         }
+
+        [Test]
+        public void ShouldNotWarnOnWellDefinedPureMethods()
+        {
+            const string code = @"
+struct PotentiallyMutable
+{
+	private string s;
+    public override string ToString() {return 1.ToString();}
+}
+    class Foo
+    {
+        public readonly PotentiallyMutable m;
+        public static void Test()
+        {
+            var foo = new Foo();
+            var x = foo.m.ToString();
+            //foo.m.Warn();
+        }
+    }";
+
+            NoDiagnostic(code, RuleIds.NonPureMethodsOnReadonlyStructs);
+        }
+
+        [Test]
+        public void ShouldNotWarnOnPrimitiveTypes()
+        {
+            const string code = @"
+struct Immutable
+        {
+            public readonly int s;
+
+            public void PrintToConsole()
+            {
+                int f = s.CompareTo(42);
+            }
+            public int S => s;
+        }";
+
+            NoDiagnostic(code, RuleIds.NonPureMethodsOnReadonlyStructs);
+        }
     }
 }

@@ -26,7 +26,7 @@ namespace ErrorProne.NET.SideEffectRules
 
         // Disabing this rule, because it leads to tons of false positives
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, Message, Category,
-            DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
+            DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -56,7 +56,8 @@ namespace ErrorProne.NET.SideEffectRules
             // Interested only in structs!
             if (methodSymbol == null || !methodSymbol.ContainingType.IsValueType) return;
 
-            if (IsStructMutable(methodSymbol.ReceiverType))
+            var pureVerifier = new PureMethodVerifier(context.SemanticModel);
+            if (!pureVerifier.IsPure(methodSymbol) && IsStructMutable(methodSymbol.ReceiverType))
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, invocationExpression.GetLocation(), methodSymbol.Name));
             }
@@ -66,10 +67,10 @@ namespace ErrorProne.NET.SideEffectRules
         {
             Contract.Requires(type.IsValueType);
 
-            var members = type.GetMembers().OfType<IFieldSymbol>();
+            var members = type.GetMembers().OfType<IFieldSymbol>().ToList();
             
             // If all members are immutable, then the struct could be considered as shallow immutable
-            if (members.All(m => m.IsReadOnly))
+            if (members.All(m => (m.IsReadOnly || m.IsStatic || m.IsConst)))
             {
                 return false;
             }

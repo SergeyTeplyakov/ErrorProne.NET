@@ -28,14 +28,15 @@ namespace RoslynNunitTestRunner
         {
             var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(code, LanguageName);
             Assert.That(processedDocument.Spans.Count, Is.EqualTo(0), "Expected 0 expected diagnostics in the document!");
-            NoDiagnostic(processedDocument.Document, diagnosticId);
+            NoDiagnostic(processedDocument.Document, diagnosticId, processedDocument);
         }
 
-        protected void NoDiagnostic(Document document, string diagnosticId)
+        protected void NoDiagnostic(Document document, string diagnosticId, ProcessedCode processedDocument)
         {
             var diagnostics = GetDiagnostics(document);
+            string expected = processedDocument.GetCodeWithMarkers(diagnostics.Select(d => d.Location.SourceSpan).ToList());
 
-            Assert.That(diagnostics.Count(d => d.Id == diagnosticId), Is.EqualTo(0), "Expected no diagnostics, but has some!");
+            Assert.That(diagnostics.Count(d => d.Id == diagnosticId), Is.EqualTo(0), $"Expected no diagnostics, but has some:\r\n{expected}");
         }
 
         protected void HasDiagnostic(string markupCode, string diagnosticId)

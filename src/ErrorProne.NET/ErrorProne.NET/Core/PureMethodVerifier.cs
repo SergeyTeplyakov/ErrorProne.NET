@@ -56,10 +56,17 @@ namespace ErrorProne.NET.Core
             Contract.Requires(methodInvocation != null);
 
             var symbol = _semanticModel.GetSymbolInfo(methodInvocation).Symbol as IMethodSymbol;
-            
+
+            return symbol != null && IsPure(symbol);
+        }
+
+        public bool IsPure(IMethodSymbol symbol)
+        {
+            Contract.Requires(symbol != null);
+
             // If method has out or ref param the return value could be ignored!
 
-            if (symbol == null || symbol.ReturnsVoid || symbol.Parameters.Any(p => p.RefKind == RefKind.Out || p.RefKind == RefKind.Ref))
+            if (symbol.ReturnsVoid || symbol.Parameters.Any(p => p.RefKind == RefKind.Out || p.RefKind == RefKind.Ref))
             {
                 return false;
             }

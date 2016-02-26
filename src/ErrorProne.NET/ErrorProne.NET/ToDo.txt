@@ -60,3 +60,6 @@ if (foo)
 Expression simplifier (const expression folder + simplification of the analysis)
 
 Warn on default constructors on structs
+
+Readonly property was never assigned
+Readonly field was never assigned

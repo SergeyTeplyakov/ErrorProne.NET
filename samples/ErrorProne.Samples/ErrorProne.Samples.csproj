@@ -79,6 +79,7 @@
     <Compile Include="ExceptionHandling\IncorrectExceptionObservation.cs" />
     <Compile Include="ExceptionHandling\IncorrectExceptionPropagation.cs" />
     <Compile Include="ExceptionHandling\SwallowException.cs" />
+    <Compile Include="NonPureMethodOnReadonlyStructs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SideEffectAnalysis.cs" />
@@ -90,6 +91,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Analyzer Include="..\..\src\ErrorProne.NET\ErrorProne.NET\bin\Debug\ErrorProne.NET.dll" />
     <Analyzer Include="packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
