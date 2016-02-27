@@ -68,4 +68,9 @@ Readonly field was never assigned (this one built-in into the compiler!)
 Add ReadOnly attribute that will enforce all the existing rules but will not require field to be actually readonly.
 Another thing, this attribute could be used instead of readonly fields and it will prevent from redunant copies!
 Could be useful to avoid perf impact on accessing readonly structs!!!
+Private field was never used
 
+Infrastructure:
+Unit test should fail if the sample will fail to compile!
+
+Add statistic to cli tool!

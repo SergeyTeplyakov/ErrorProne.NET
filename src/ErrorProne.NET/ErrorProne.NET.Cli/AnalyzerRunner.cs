@@ -58,6 +58,8 @@ namespace ErrorProne.NET.Cli
 
             public void PrintToConsole()
             {
+                Enumerable.Range(1, 10);
+
                 int f = s.CompareTo(42);
             }
             public int S => s;

@@ -23,5 +23,8 @@ namespace ErrorProne.NET.Common
 
         // Other
         public const string MissingCasesInSwitchStatement = "ERP031";
+
+        public const string ReadonlyPropertyWasNeverAssignmed = "ERP032";
+        public const string PropertyWithPrivateSetterWasNeverAssigned = "ERP033";
     }
 }
