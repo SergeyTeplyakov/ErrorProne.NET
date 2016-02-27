@@ -77,6 +77,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Annotations\ImmutableAttribute.cs" />
+    <Compile Include="Annotations\ReadOnlyAttribute.cs" />
+    <Compile Include="Annotations\StringFormatMethodAttribute.cs" />
+    <Compile Include="Annotations\UseReturnValueAttribute.cs" />
     <Compile Include="Common\RuleIds.cs" />
     <Compile Include="Common\WellKnownTypes.cs" />
     <Compile Include="Core\PureMethodExtensions.cs" />

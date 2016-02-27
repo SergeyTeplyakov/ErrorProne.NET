@@ -1,9 +1,11 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ErrorProne.NET.Common
 {
     public static class RuleIds
     {
+        // 
         public const string UnobservedPureMethodInvocationId = "ERP001";
         public const string SideEffectFreeExceptionContructionId = "ERP002";
         public const string AssignmentFreeImmutableObjectContructionId = "ERP003";
@@ -21,6 +23,5 @@ namespace ErrorProne.NET.Common
 
         // Other
         public const string MissingCasesInSwitchStatement = "ERP031";
-        
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Linq;
+using ErrorProne.NET.Annotations;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
@@ -15,6 +16,7 @@ namespace ErrorProne.NET.SideEffectRules
     /// This could be a relatively tough rule but very helpful.
     /// Few heuristics:
     /// - method with Pure attribute considered pure
+    /// - method with <see cref="UseReturnValueAttribute"/>
     /// - method that returns IEnumerable, that is static and is an extension method considered pure
     /// - methods from Roslyn API are known to be pure
     /// - methods from the type that marked as [Immutable] considered pure
@@ -22,9 +24,17 @@ namespace ErrorProne.NET.SideEffectRules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class UnobservedPureMethodInvocationAnalyzer : DiagnosticAnalyzer
     {
+        private readonly string _s;
+        public string S { get; }
         public const string DiagnosticId = RuleIds.UnobservedPureMethodInvocationId;
 
         private static readonly string Title = "Non-observed return value of the pure method.";
+        // candidates:
+        // Unobserved invocation of pure method '{0}'
+        // Avoid unobserved invocation of the pure method '{0}'
+
+        // for UseReturnValueAttribute
+        // Unobserved invocation of the method '{0}' marked with 'UseReturnValueAttribute'
         private static readonly string Message = "Non-observed return value of the pure method.";
         private static readonly string Description = "Return value of pure method should be observed.";
 
@@ -37,6 +47,9 @@ namespace ErrorProne.NET.SideEffectRules
 
         public override void Initialize(AnalysisContext context)
         {
+            Enumerable.Range(1, 10);
+            var x = _s;
+            //S = "f";
             context.RegisterSyntaxNodeAction(AnalyzeMethodInvocation, SyntaxKind.InvocationExpression);
         }
 
@@ -44,6 +57,7 @@ namespace ErrorProne.NET.SideEffectRules
         {
             var invocation = (InvocationExpressionSyntax) context.Node;
 
+            // TODO: different error message should be used for UseReturnValueAttribute
             if (invocation.Parent is ExpressionStatementSyntax && invocation.IsPure(context.SemanticModel))
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
