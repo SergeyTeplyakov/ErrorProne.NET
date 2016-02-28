@@ -92,9 +92,11 @@
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\ExpressionExtensions.cs" />
     <Compile Include="Extensions\NamedSymbolExtensions.cs" />
+    <Compile Include="Extensions\PropertyDeclarationExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
     <Compile Include="FormatRules\RegexPatternAnalyzer.cs" />
+    <Compile Include="OtherRules\FieldAssignmentAnalyzer.cs" />
     <Compile Include="OtherRules\PropertyAssignmentAnalyser.cs" />
     <Compile Include="SideEffectRules\NonPureMethodsOnReadonlyStructs.cs" />
     <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzer.cs" />

@@ -1,29 +1,60 @@
-﻿using ErrorProne.NET.Common;
+﻿using System.Collections.Generic;
+using ErrorProne.NET.Common;
 using ErrorProne.NET.OtherRules;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
 namespace ErrorProne.NET.Test.OtherRules
 {
+    class Base
+    {
+        public virtual string Foo { get; }
+    }
+    // Should be warning on the sealed case!!!
+    class Derived : Base
+    {
+        public sealed override string Foo { get; }
+    }
+
     [TestFixture]
     public class PropertyAssignmentAnalyzer : CSharpAnalyzerTestFixture<PropertyAssignmentAnalyser>
     {
-        [Test]
-        public void ShouldWarnOnReadonlyProperty()
+        [TestCaseSource(nameof(ShouldWarnForUnassignedPropertyTestCases))]
+        public void ShouldWarnForUnassignedProperty(string code)
         {
-            const string code = @"
+            HasDiagnostic(code, RuleIds.ReadonlyPropertyWasNeverAssigned);
+        }
+
+        public static IEnumerable<string> ShouldWarnForUnassignedPropertyTestCases()
+        {
+            yield return @"
 class Foo
 {
 	public int [|M|] { get; }
 }";
 
-            HasDiagnostic(code, RuleIds.ReadonlyPropertyWasNeverAssignmed);
+            yield return @"
+class Base
+{
+    public virtual string Foo { get; }
+}
+// Should be warning on the sealed case!!!
+class Derived : Base
+{
+    public sealed override string [|Foo|] { get; }
+}";
         }
 
-        [Test]
-        public void ShouldNotWarnIfInitialized()
+        [TestCaseSource(nameof(ShouldNotWarnForUnassignedPropertyTestCases))]
+        public void ShouldNotWarnForUnassignedProperty(string code)
         {
-            const string code = @"
+            NoDiagnostic(code, RuleIds.ReadonlyPropertyWasNeverAssigned);
+        }
+
+        public static IEnumerable<string> ShouldNotWarnForUnassignedPropertyTestCases()
+        {
+            // Should not warn when initialized in constructor
+            yield return @"
 class Foo
 {
     public Foo(stirng s)
@@ -33,7 +64,53 @@ class Foo
 	public int M { get; }
 }";
 
-            NoDiagnostic(code, RuleIds.ReadonlyPropertyWasNeverAssignmed);
+            // No warning when initialized inplace
+            yield return @"
+class Foo
+{
+	public int M { get; } = 42;
+}";
+            
+            // No warning when property getter is implemented
+            yield return @"
+class Foo
+{
+	public int M { get {return 42;} }
+}";
+            
+            // No warning on automatic get-only property
+            yield return @"
+class Foo
+{
+	public int M => 42
+}";
+
+            // No warning on abstract get-only
+            yield return @"
+abstract class Foo
+{
+	public abstract int M { get; } 
+}";
+            
+            // No warning on virtual property.
+            // BTW, R# incorrectly emits a warning in this case.
+            // But warning should not be there, because derived class can easily provide the value!
+            yield return @"
+class Base
+{
+    public virtual string Foo { get; }
+}";
+
+            // should not warn when override method is still virtual (i.e. not sealed)
+            yield return @"
+class Base
+{
+    public virtual string Foo { get; }
+}
+class Derived : Base
+{
+    public override string Foo { get; }
+}";
         }
 
         [Test]

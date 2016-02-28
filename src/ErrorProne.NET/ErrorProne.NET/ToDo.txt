@@ -61,9 +61,9 @@ Expression simplifier (const expression folder + simplification of the analysis)
 
 Warn on default constructors on structs
 
-Readonly property was never assigned
-  Should the same rule be applied for public X {get; private set;} ? I think so!
-Readonly field was never assigned (this one built-in into the compiler!)
+DONE: Readonly property was never assigned
+DONE:   Should the same rule be applied for public X {get; private set;} ? I think so!
+DONE: Readonly field was never assigned (this one built-in into the compiler!)
 
 Add ReadOnly attribute that will enforce all the existing rules but will not require field to be actually readonly.
 Another thing, this attribute could be used instead of readonly fields and it will prevent from redunant copies!

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.OtherRules
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class PropertyAssignmentAnalyser : DiagnosticAnalyzer
+    public sealed class FieldAssignmentAnalyzer : DiagnosticAnalyzer
     {
         private static readonly string Title = "Readonly property was never assigned.";
         private static readonly string Message = "Readonly property '{0} is never assigned to, and will always have its default value '{1}'.";
@@ -63,29 +63,16 @@ namespace ErrorProne.NET.OtherRules
                 .ToList();
 
             var defaultValue = propertySymbol.Type.Defaultvalue();
-            // ReadOnly auto property will hold default value if
-            // - not abstract
-            // - get only auto property (i.e. doesn't have setter, and getter body is absent: int x {get;}
-            // - don't have initializer
-            if (!propertySymbol.IsAbstract &&
-                !propertySymbol.IsVirtual &&
-                propertySymbol.IsGetOnlyAutoProperty(propertyDeclaration) && 
-                !propertyDeclaration.HasInitializer() && 
-                writes.Count == 0)
+            
+            if (propertySymbol.IsReadOnly && writes.Count == 0)
             {
-                // Splitted checks to simplify this stuff!
-                // If property is override, then it should be sealed
-                if ((propertySymbol.IsOverride && propertySymbol.IsSealed) || 
-                    (!propertySymbol.IsOverride && !propertySymbol.IsSealed))
-                {
-                    context.ReportDiagnostic(
+                context.ReportDiagnostic(
                     Diagnostic.Create(ReadonlyPropertyWasNeverAssignedRule, propertyDeclaration.Identifier.GetLocation(),
                     propertySymbol.Name, defaultValue));
-                }
             }
             else if (propertySymbol.SetMethod?.DeclaredAccessibility == Accessibility.Private && writes.Count == 0)
             {
-                var setter = propertyDeclaration.Setter();
+                var setter = propertyDeclaration.DescendantNodes().OfType<AccessorDeclarationSyntax>().First(d => d.IsKind(SyntaxKind.SetAccessorDeclaration));
                 context.ReportDiagnostic(
                     Diagnostic.Create(PropertyWithPrivateSetterWasNeverAssigned, setter.GetLocation(), propertySymbol.Name, defaultValue));
             }
