@@ -4,7 +4,7 @@ using System.Diagnostics.Contracts;
 
 namespace ErrorProne.NET.Extensions
 {
-    internal static class EnumerableExtensions
+    public static class EnumerableExtensions
     {
         public static HashSet<T> ToHashSet<T>(this IEnumerable<T> sequence)
         {

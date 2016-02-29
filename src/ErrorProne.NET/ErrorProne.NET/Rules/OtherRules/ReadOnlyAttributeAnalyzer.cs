@@ -20,7 +20,7 @@ namespace ErrorProne.NET.Rules.OtherRules
         private const string Category = "CodeSmell";
 
         private static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(RuleIds.ReadonlyPropertyWasNeverAssigned, Title, Message, Category,
+            new DiagnosticDescriptor(RuleIds.ReadonlyFieldWasNeverAssigned, Title, Message, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);

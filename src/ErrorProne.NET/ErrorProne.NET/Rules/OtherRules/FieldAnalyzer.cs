@@ -28,7 +28,11 @@ namespace ErrorProne.NET.Rules.OtherRules
         private static readonly string ReadOnlyFieldWasAssignedOutsideConstructorDescription = "A readonly field cannot be assigned in an invalid context.";
 
         private static readonly DiagnosticDescriptor ReadOnlyFieldWasAssignedOutsideConstructorRule = 
-            new DiagnosticDescriptor(RuleIds.ReadOnlyFieldWasAssignedOutsideConstructor, ReadOnlyFieldWasAssignedOutsideConstructorTitle, ReadOnlyFieldWasAssignedOutsideConstructorMessage, Category,
+            new DiagnosticDescriptor(
+                RuleIds.ReadOnlyFieldWasAssignedOutsideConstructor, 
+                ReadOnlyFieldWasAssignedOutsideConstructorTitle, 
+                ReadOnlyFieldWasAssignedOutsideConstructorMessage, 
+                Category,
                 DiagnosticSeverity.Error, isEnabledByDefault: true, description: ReadOnlyFieldWasAssignedOutsideConstructorDescription);
 
         // Readonly fiedl was never assigned
