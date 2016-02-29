@@ -57,6 +57,13 @@ class Foo
 {
 	public int [|M|] { get; }
 }";
+            // Should warn if property was used but not assigned
+            yield return @"
+class Foo
+{
+	public int [|M|] { get; }
+    public void Test() { System.Console.WriteLine(M); }
+}";
 
             // Should warn on protected getter!
             yield return @"

@@ -85,6 +85,7 @@
     <Compile Include="SideEffectAnalysis.cs" />
     <Compile Include="StringFormatAnalysis.cs" />
     <Compile Include="SwitchOverEnum.cs" />
+    <Compile Include="WorkInProgress.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

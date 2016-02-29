@@ -138,6 +138,7 @@ namespace ErrorProne.NET.OtherRules
 
                 var writesViaOutputParams = allNodes
                     .OfType<ArgumentSyntax>()
+                    .Where(a => a.RefOrOutKeyword != default(SyntaxToken))
                     .Select(id => new {Symbol = semanticModel.GetSymbolInfo(id.Expression).Symbol, Id = id})
                     .Where(x => x.Symbol != null && x.Symbol.Equals(fieldSymbol))
                     .ToList();

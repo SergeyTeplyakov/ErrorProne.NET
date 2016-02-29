@@ -22,6 +22,13 @@ class Foo
 {
 	public readonly int [|_m|];
 }";
+            // Should warn if field was used but not initialized
+            yield return @"
+class Foo
+{
+	public readonly int [|_m|];
+    public void Method() { System.Console.WriteLine(_m); }
+}";
 
             // Should warn on protected fields as well!
             yield return @"

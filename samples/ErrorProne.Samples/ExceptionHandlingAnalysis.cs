@@ -19,8 +19,8 @@ namespace ErrorProne.Samples
 
             Enumerable.Range(1, 10).ToImmutableList();
 
-            s = string.Format("{0}\{", 1, 3);
-            var regex = new Regex("\\d(");
+            //s = string.Format("{0}{", 1, 3);
+            //var regex = new Regex("\\d(");
         }
     }
 }

@@ -25,11 +25,11 @@ namespace ErrorProne.Samples
             // Format argument was not provided
 
             // Argument 3 was not provided
-            Console.WriteLine("{0}, {3}", 1);
+            //Console.WriteLine("{0}, {3}", 1);
             // Argument 2 was not provided
-            var s = string.Format(format: "{2}", arg0: 1);
+            //var s = string.Format(format: "{2}", arg0: 1);
             // Argument 1 was not provided
-            WriteLog("{1}", 1);
+            //WriteLog("{1}", 1);
 
             // Excessive arguments
 
@@ -40,14 +40,11 @@ namespace ErrorProne.Samples
             Console.WriteLine(format, 1, 2, 3);
 
 
-
             // Format argument is a valid format string
-            s = string.Format("{1\\d(");
-
-
+            //s = string.Format("{1\\d(");
 
             // Regex pattern is invalid: parsing "\d(" - Not enough )'s.
-            var regex = new Regex("\\d(");
+            //var regex = new Regex("\\d(");
         }
     }
 }

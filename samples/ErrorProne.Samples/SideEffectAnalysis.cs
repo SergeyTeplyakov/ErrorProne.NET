@@ -77,7 +77,7 @@ namespace ErrorProne.Samples
         {
             // Special rule for side effect free exception construction
             // This is considered an error!
-            new Exception();
+            //new Exception();
         }
     }
 }
