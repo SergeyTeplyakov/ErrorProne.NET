@@ -49,6 +49,11 @@ namespace ErrorProne.NET.Cli
                 FileUtilities.TryDeleteIfNeeded(options.LogFile);
             }
 
+            if (options.DisabledDiagnostics != null && options.DisabledDiagnostics.Length != 0)
+            {
+                WriteInfo($"Disabled diagnostics: {string.Join(", ", options.DisabledDiagnostics)}");
+            }
+
             try
             {
                 var executablePath = Assembly.GetExecutingAssembly().Location;

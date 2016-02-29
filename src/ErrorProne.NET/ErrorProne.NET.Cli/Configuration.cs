@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Reflection;
 
@@ -20,7 +22,7 @@ namespace ErrorProne.NET.Cli
             Solution = options.Solution;
             LogFile = options.LogFile;
             RunInfoLevelDiagnostics = options.RunInfoLevelDiagnostics;
-            DisabledDiagnostics = options.DisabledDiagnostics ?? new string[] {};
+            DisabledDiagnostics = (options.DisabledDiagnostics ?? new string[] {}).ToImmutableHashSet();
             Analyzer = analyzer;
         }
 
@@ -32,7 +34,7 @@ namespace ErrorProne.NET.Cli
 
         public bool RunInfoLevelDiagnostics { get; }
 
-        public string[] DisabledDiagnostics { get; }
+        public ImmutableHashSet<string> DisabledDiagnostics { get; }
 
         public Assembly Analyzer { get; }
     }

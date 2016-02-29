@@ -16,7 +16,7 @@ namespace ErrorProne.NET.Cli
         [Option('i', "info", Required = false, HelpText = "Enable information-level diagnostics", DefaultValue = true)]
         public bool RunInfoLevelDiagnostics { get; set; }
         
-        [Option('d', "disable", Required = false, HelpText = "List of diagnostics that should be excluded from the analysis")]
+        [OptionArray('d', "disable", Required = false, HelpText = "List of diagnostics that should be excluded from the analysis")]
         public string[] DisabledDiagnostics { get; set; }
     }
 }

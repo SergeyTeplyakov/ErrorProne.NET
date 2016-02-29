@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using ErrorProne.NET.Cli.Extensions;
 using ErrorProne.NET.Cli.Utilities;
+using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -55,7 +56,10 @@ namespace ErrorProne.NET.Cli
 
         private async Task<List<ProjectAnalysisResult>> AnalyseSolutionAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, Configuration configuration)
         {
-            var ruleIds = analyzers.SelectMany(a => a.SupportedDiagnostics.Select(d => d.Id)).ToImmutableHashSet();
+            var ruleIds = analyzers
+                .SelectMany(a => a.SupportedDiagnostics.Select(d => d.Id))
+                .Where(d => !_configuration.DisabledDiagnostics.Contains(d))
+                .ToImmutableHashSet();
 
             var projectAnalysisTasks = solution.Projects
                 // First, Running analysis
@@ -120,6 +124,8 @@ namespace ErrorProne.NET.Cli
             var diagnostics = await AnalyseSolutionAsync(solution, analyzers, configuration);
 
             WriteInfo($"Found {diagnostics.SelectMany(d => d.Diagnostics).Count()} diagnostics in {sw.ElapsedMilliseconds}ms");
+
+            PrintStatistics(diagnostics, analyzers);
         }
 
         private static List<DiagnosticAnalyzer> GetAnalyzers(Assembly assembly)
