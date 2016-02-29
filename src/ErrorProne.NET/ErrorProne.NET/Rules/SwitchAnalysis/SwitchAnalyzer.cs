@@ -8,7 +8,7 @@ using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.SwitchAnalysis
+namespace ErrorProne.NET.Rules.SwitchAnalysis
 {
     /// <summary>
     /// Helper class that provides useful information regarding the switch statements.

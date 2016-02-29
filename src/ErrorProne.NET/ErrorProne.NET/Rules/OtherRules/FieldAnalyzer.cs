@@ -1,40 +1,15 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
+﻿using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using ErrorProne.NET.Common;
-using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.OtherRules
+namespace ErrorProne.NET.Rules.OtherRules
 {
-    class Foo
-    {
-        protected readonly int Y1111;
-
-        public void Foo2()
-        {
-            //Y1111 = 42;
-        }
-    }
-
-    class Blah : Foo
-    {
-        public Blah()
-        {
-            //X = 2;
-            //X = 42;
-        }
-    }
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class FieldAnalyzer : DiagnosticAnalyzer
     {

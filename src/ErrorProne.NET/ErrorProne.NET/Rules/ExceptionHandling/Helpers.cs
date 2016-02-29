@@ -5,9 +5,8 @@ using System.Linq;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.ExceptionHandlingRules
+namespace ErrorProne.NET.Rules.ExceptionHandling
 {
     internal struct ExceptionReference
     {

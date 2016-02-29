@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Extensions;
@@ -8,14 +7,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.ExceptionHandlingRules
+namespace ErrorProne.NET.Rules.ExceptionHandling
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ThrowExAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = RuleIds.IncorrectExceptionPropagation;
 
-        // TODO: extract all messages somewhere to be able to add errogant messages
         internal const string Title = "Incorrect exception propagation. Use throw; instead.";
         public const string MessageFormat = "Incorrect exception propagation. Use throw; instead.";
         internal const string Category = "CodeSmell";

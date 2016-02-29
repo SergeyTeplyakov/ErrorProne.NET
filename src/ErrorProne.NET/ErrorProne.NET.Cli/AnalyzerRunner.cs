@@ -52,28 +52,6 @@ namespace ErrorProne.NET.Cli
                 WriteError($"Failed to analyze solution: {Environment.NewLine}{e}");
             }
         }
-        struct Immutable
-        {
-            public readonly int s;
-
-            public void PrintToConsole()
-            {
-                Enumerable.Range(1, 10);
-
-                s.CompareTo(42);
-            }
-            public int S => s;
-        }
-
-        public class Test
-        {
-            private readonly Immutable i;
-
-            public void Show()
-            {
-                var x = i.s.CompareTo(42);
-            }
-        }
 
         private async Task<List<ProjectAnalysisResult>> AnalyseSolutionAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, Configuration configuration)
         {

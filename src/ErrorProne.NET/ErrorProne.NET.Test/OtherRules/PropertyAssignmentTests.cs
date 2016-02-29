@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using ErrorProne.NET.Common;
-using ErrorProne.NET.OtherRules;
+using ErrorProne.NET.Rules.OtherRules;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 

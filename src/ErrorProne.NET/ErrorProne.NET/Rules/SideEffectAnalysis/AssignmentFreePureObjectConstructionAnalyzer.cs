@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection.Metadata;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
@@ -10,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.SideEffectRules
+namespace ErrorProne.NET.Rules.SideEffectAnalysis
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class AssignmentFreePureObjectConstructionAnalyzer : DiagnosticAnalyzer

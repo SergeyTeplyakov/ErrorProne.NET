@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Common;
-using ErrorProne.NET.Extensions;
-using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.ExceptionHandlingRules
+namespace ErrorProne.NET.Rules.ExceptionHandling
 {
     /// <summary>
     /// Detects `catch` blocks that swallow an exception.

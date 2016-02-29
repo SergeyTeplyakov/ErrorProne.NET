@@ -9,7 +9,7 @@ using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.SideEffectRules
+namespace ErrorProne.NET.Rules.Formatting
 {
     internal sealed class ParseResult
     {
@@ -19,12 +19,6 @@ namespace ErrorProne.NET.SideEffectRules
         public ArgumentSyntax FormatArgument;
         public string Format;
         public ExpressionSyntax[] Args;
-
-        //public ParseResult(string format, ArgumentSyntax[] args)
-        //{
-        //    Format = format;
-        //    Args = args;
-        //}
     }
 
     internal static class FormatHelper

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text.RegularExpressions;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Extensions;
@@ -9,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
-namespace ErrorProne.NET.SideEffectRules
+namespace ErrorProne.NET.Rules.Formatting
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RegexPatternAnalyzer : DiagnosticAnalyzer

@@ -85,10 +85,10 @@
     <Compile Include="Common\WellKnownTypes.cs" />
     <Compile Include="Core\PureMethodExtensions.cs" />
     <Compile Include="Core\PureMethodVerifier.cs" />
-    <Compile Include="ExceptionHandlingRules\InvalidExceptionHandlingAnalyzer.cs" />
-    <Compile Include="ExceptionHandlingRules\Helpers.cs" />
-    <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzer.cs" />
-    <Compile Include="ExceptionHandlingRules\ThrowExAnalyzer.cs" />
+    <Compile Include="Rules\ExceptionHandling\InvalidExceptionHandlingAnalyzer.cs" />
+    <Compile Include="Rules\ExceptionHandling\Helpers.cs" />
+    <Compile Include="Rules\ExceptionHandling\SwallowAllExceptionsAnalyzer.cs" />
+    <Compile Include="Rules\ExceptionHandling\ThrowExAnalyzer.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\ExpressionExtensions.cs" />
     <Compile Include="Extensions\FieldInfoExtensions.cs" />
@@ -97,26 +97,25 @@
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\SyntaxNodeExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
-    <Compile Include="FormatRules\RegexPatternAnalyzer.cs" />
-    <Compile Include="OtherRules\ReadOnlyAttributeAnalyzer.cs" />
-    <Compile Include="OtherRules\FieldAnalyzer.cs" />
-    <Compile Include="OtherRules\PropertyAnalyser.cs" />
-    <Compile Include="SideEffectRules\InvocationExpressionExtensions.cs" />
-    <Compile Include="SideEffectRules\NonPureMethodsOnReadonlyStructs.cs" />
-    <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzer.cs" />
-    <Compile Include="SideEffectRules\AssignmentFreePureObjectConstructionAnalyzer.cs" />
-    <Compile Include="SideEffectRules\SideEffectFreeExceptionConstructionAnalyzer.cs" />
+    <Compile Include="Rules\Formatting\RegexPatternAnalyzer.cs" />
+    <Compile Include="Rules\OtherRules\ReadOnlyAttributeAnalyzer.cs" />
+    <Compile Include="Rules\OtherRules\FieldAnalyzer.cs" />
+    <Compile Include="Rules\OtherRules\PropertyAnalyser.cs" />
+    <Compile Include="Rules\SideEffectAnalysis\InvocationExpressionExtensions.cs" />
+    <Compile Include="Rules\SideEffectAnalysis\NonPureMethodsOnReadonlyStructs.cs" />
+    <Compile Include="Rules\SideEffectAnalysis\UnobservedPureMethodInvocationAnalyzer.cs" />
+    <Compile Include="Rules\SideEffectAnalysis\AssignmentFreePureObjectConstructionAnalyzer.cs" />
+    <Compile Include="Rules\SideEffectAnalysis\SideEffectFreeExceptionConstructionAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="FormatRules\FormatHelper.cs" />
-    <Compile Include="FormatRules\StringFormatCorrectnessAnalyzer.cs" />
-    <Compile Include="SwitchAnalysis\MissingCasesInSwitchStatementAnalyzer.cs" />
-    <Compile Include="SwitchAnalysis\SwitchAnalyzer.cs" />
-    <Compile Include="SwitchAnalysis\SwitchExtensions.cs" />
+    <Compile Include="Rules\Formatting\FormatHelper.cs" />
+    <Compile Include="Rules\Formatting\StringFormatCorrectnessAnalyzer.cs" />
+    <Compile Include="Rules\SwitchAnalysis\MissingCasesInSwitchStatementAnalyzer.cs" />
+    <Compile Include="Rules\SwitchAnalysis\SwitchAnalyzer.cs" />
     <Compile Include="Utils\LazyEx.cs" />
     <Compile Include="Utils\Monadic.cs" />
   </ItemGroup>
@@ -188,10 +187,7 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ReadOnlyAnalysis\" />
-    <Folder Include="StructRules\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />

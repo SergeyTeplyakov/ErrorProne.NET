@@ -1,16 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using ErrorProne.NET.Annotations;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Core;
-using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.SideEffectRules
+namespace ErrorProne.NET.Rules.SideEffectAnalysis
 {
     /// <summary>
     /// This could be a relatively tough rule but very helpful.

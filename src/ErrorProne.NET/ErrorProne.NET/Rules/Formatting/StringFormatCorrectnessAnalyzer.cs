@@ -1,13 +1,12 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Common;
-using ErrorProne.NET.SideEffectRules;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.FormatRules
+namespace ErrorProne.NET.Rules.Formatting
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class StringFormatCorrectnessAnalyzer : DiagnosticAnalyzer

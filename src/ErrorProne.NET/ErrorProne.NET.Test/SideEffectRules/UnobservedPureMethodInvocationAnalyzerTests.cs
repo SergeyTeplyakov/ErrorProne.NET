@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ErrorProne.NET.Common;
-using ErrorProne.NET.SideEffectRules;
+using ErrorProne.NET.Rules.SideEffectAnalysis;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 

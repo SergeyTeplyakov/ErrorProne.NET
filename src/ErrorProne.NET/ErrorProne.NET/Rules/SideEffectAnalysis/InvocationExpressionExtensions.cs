@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.SideEffectRules
+namespace ErrorProne.NET.Rules.SideEffectAnalysis
 {
     public static class InvocationExpressionExtensions
     {

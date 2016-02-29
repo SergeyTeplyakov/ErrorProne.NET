@@ -1,6 +1,6 @@
 ﻿using System;
 using ErrorProne.NET.Common;
-using ErrorProne.NET.ExceptionHandlingRules;
+using ErrorProne.NET.Rules.ExceptionHandling;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
