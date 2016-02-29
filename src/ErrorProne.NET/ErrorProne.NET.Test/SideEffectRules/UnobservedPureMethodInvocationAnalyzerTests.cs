@@ -25,7 +25,7 @@ class C
 {
     public C()
     {
-        [|Enumerable.Range(1, 10)|];
+        Enumerable.[|Range|](1, 10);
     }
 }";
 
@@ -34,7 +34,7 @@ class C
 {
     public C()
     {
-        [|object.ReferenceEquals(null, null)|];
+        object.[|ReferenceEquals|](null, null);
     }
 }";
 
@@ -43,7 +43,7 @@ class C
 {
     public C()
     {
-        [|System.Type.GetType(""object"")|];
+        System.Type.[|GetType|](""object"");
     }
 }";
             // TODO: add more cases
@@ -59,7 +59,7 @@ class C
     public C()
     {
         var x1 = Enumerable.Range(1, 10);
-        [|x1.Select(x => x.ToString())|];
+        x1.[|Select|](x => x.ToString());
     }
 }";
 
@@ -75,7 +75,7 @@ class C
 {
     public C()
     {
-        [|Enumerable.Range(1, 10).First()|];
+        Enumerable.Range(1, 10).[|First|]();
     }
 }";
 
@@ -92,7 +92,7 @@ class C
     public C()
     {
         var x = ""foo"";
-        [|x.Substring(1)|];
+        x.[|Substring|](1);
     }
 }";
 
@@ -108,7 +108,7 @@ class C
 {
     public C()
     {
-        [|GetHashCode()|];
+        [|GetHashCode|]();
     }
     public override int GetHashCode() {return 42;}
 }";
@@ -130,7 +130,7 @@ class C : System.IEquatable<C>
     public static void Test()
     {
         C c = new C();
-        [|c.Equals(new C())|];
+        c.[|Equals|](new C());
     }
 }";
 
@@ -151,7 +151,7 @@ class C : System.IEquatable<C>
     public static void Test()
     {
         System.IEquatable<C> c = new C();
-        [|c.Equals(new C())|];
+        c.[|Equals|](new C());
     }
 }";
 
@@ -168,7 +168,7 @@ class C
     public int Foo() {return 42;}
     public C()
     {
-        [|Foo()|];
+        [|Foo|]();
     }
 }";
 
@@ -184,7 +184,7 @@ class C
 {
     public C()
     {
-        [|System.Char.IsUpper('c')|];
+        System.Char.[|IsUpper|]('c');
     }
 }";
 
@@ -202,7 +202,7 @@ class C
     private static void Test()
     {
         var c = new C();
-        [|c.Update(42)|];
+        c.[|Update|](42);
     }
    
     public C Update(int number) {return this;}
@@ -221,7 +221,7 @@ class C
     private static void Test()
     {
         var c = new C();
-        [|c.WithX(42)|];
+        c.[|WithX|](42);
     }
    
     public C WithX(int number) {return this;}
@@ -246,7 +246,7 @@ class Derived : Base
   public static void Test()
   {
      var d = new Derived();
-     [|d.Foo()|];
+     d.[|Foo|]();
   }
 }";
 
@@ -269,7 +269,7 @@ class Derived : IFoo<int>
   public static void Test()
   {
      var d = new Derived();
-     [|d.Foo()|];
+     d.[|Foo|]();
   }
 }";
 

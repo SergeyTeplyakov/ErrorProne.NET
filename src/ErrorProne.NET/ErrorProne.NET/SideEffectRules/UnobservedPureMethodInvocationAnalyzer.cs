@@ -47,9 +47,6 @@ namespace ErrorProne.NET.SideEffectRules
 
         public override void Initialize(AnalysisContext context)
         {
-            Enumerable.Range(1, 10);
-            var x = _s;
-            //S = "f";
             context.RegisterSyntaxNodeAction(AnalyzeMethodInvocation, SyntaxKind.InvocationExpression);
         }
 
@@ -60,8 +57,8 @@ namespace ErrorProne.NET.SideEffectRules
             // TODO: different error message should be used for UseReturnValueAttribute
             if (invocation.Parent is ExpressionStatementSyntax && invocation.IsPure(context.SemanticModel))
             {
-                context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(Rule, invocation.GetNodeLocationForDiagnostic()));
             }
-        }
+        } 
     }
 }

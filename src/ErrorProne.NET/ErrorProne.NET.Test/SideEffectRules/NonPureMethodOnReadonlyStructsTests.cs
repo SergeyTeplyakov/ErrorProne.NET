@@ -35,7 +35,7 @@ struct Mutable
         public static void Test()
         {
             var foo = new Foo();
-            [|foo.m.Mutate()|];
+            foo.m.[|Mutate|]();
         }
     }";
 
@@ -53,8 +53,8 @@ class Test
 
         public void Warn()
         {
-            [|e.MoveNext()|];
-            [|e.Dispose()|];
+            e.[|MoveNext|]();
+            e.[|Dispose|]();
         }
     }";
 
@@ -114,15 +114,15 @@ struct PotentiallyMutable
         {
             const string code = @"
 struct Immutable
-        {
-            public readonly int s;
+{
+    public readonly int s;
 
-            public void PrintToConsole()
-            {
-                int f = s.CompareTo(42);
-            }
-            public int S => s;
-        }";
+    public void PrintToConsole()
+    {
+        int f = s.CompareTo(42);
+    }
+    public int S => s;
+}";
 
             NoDiagnostic(code, RuleIds.NonPureMethodsOnReadonlyStructs);
         }

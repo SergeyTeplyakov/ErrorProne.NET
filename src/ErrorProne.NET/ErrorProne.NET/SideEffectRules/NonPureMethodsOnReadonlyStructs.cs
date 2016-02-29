@@ -59,7 +59,7 @@ namespace ErrorProne.NET.SideEffectRules
             var pureVerifier = new PureMethodVerifier(context.SemanticModel);
             if (!pureVerifier.IsPure(methodSymbol) && IsStructMutable(methodSymbol.ReceiverType))
             {
-                context.ReportDiagnostic(Diagnostic.Create(Rule, invocationExpression.GetLocation(), methodSymbol.Name));
+                context.ReportDiagnostic(Diagnostic.Create(Rule, invocationExpression.GetNodeLocationForDiagnostic(), methodSymbol.Name));
             }
         }
 

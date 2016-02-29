@@ -101,6 +101,7 @@
     <Compile Include="OtherRules\ReadOnlyAttributeAnalyzer.cs" />
     <Compile Include="OtherRules\FieldAnalyzer.cs" />
     <Compile Include="OtherRules\PropertyAnalyser.cs" />
+    <Compile Include="SideEffectRules\InvocationExpressionExtensions.cs" />
     <Compile Include="SideEffectRules\NonPureMethodsOnReadonlyStructs.cs" />
     <Compile Include="SideEffectRules\UnobservedPureMethodInvocationAnalyzer.cs" />
     <Compile Include="SideEffectRules\AssignmentFreePureObjectConstructionAnalyzer.cs" />
