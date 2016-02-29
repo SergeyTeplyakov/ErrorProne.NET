@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.OtherRules
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class PropertyAssignmentAnalyser : DiagnosticAnalyzer
+    public sealed class PropertyAnalyser : DiagnosticAnalyzer
     {
         private static readonly string Title = "Readonly property was never assigned.";
         private static readonly string Message = "Readonly property '{0} is never assigned to, and will always have its default value '{1}'.";

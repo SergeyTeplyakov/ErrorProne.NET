@@ -1,9 +1,9 @@
-﻿using System;
-using ErrorProne.NET.Common;
+﻿using ErrorProne.NET.Common;
 using ErrorProne.NET.ExceptionHandlingRules;
 using NUnit.Framework;
+using RoslynNunitTestRunner;
 
-namespace RoslynNunitTestRunner.Reflection
+namespace ErrorProne.NET.Test.ExceptionHandlingRules
 {
     [TestFixture]
     public class InvalidExceptionHandlingAnalyzerTests : CSharpAnalyzerTestFixture<ExceptionHandlingAnalyer>

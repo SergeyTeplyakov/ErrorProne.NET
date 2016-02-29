@@ -17,7 +17,7 @@ namespace ErrorProne.NET.Test.OtherRules
     }
 
     [TestFixture]
-    public class PropertyAssignmentAnalyzer : CSharpAnalyzerTestFixture<PropertyAssignmentAnalyser>
+    public class PropertyAssignmentTests : CSharpAnalyzerTestFixture<PropertyAnalyser>
     {
         [TestCaseSource(nameof(ShouldWarnForUnassignedPropertyTestCases))]
         public void ShouldWarnForUnassignedProperty(string code)
@@ -31,6 +31,13 @@ namespace ErrorProne.NET.Test.OtherRules
 class Foo
 {
 	public int [|M|] { get; }
+}";
+
+            // Should warn on protected getter!
+            yield return @"
+class Foo
+{
+	protected int [|M|] { get; }
 }";
 
             yield return @"

@@ -32,10 +32,9 @@ Add a hint for switch rule that will warn if switchable expression doesn't used 
 Analyzer for NunitRoslynRunner (check code that should have code markers for HasDiagnostic and no marker for NoDiagnsotic.)
 
 Don't call default constructor on some structs (add Immutable array and your custom attribute).
+Rule for not using default constructor on struct. Add attribute and add well-known types like iterators, immutable array.
 
 Add support for pure methods for IObservable interface! But need to think about it!
-
-Rule for not using default constructor on struct. Add attribute and add well-known types like iterators, immutable array.
 
 Avoid async-void methods (enable them only on forms)
 
@@ -59,8 +58,6 @@ if (foo)
 
 Expression simplifier (const expression folder + simplification of the analysis)
 
-Warn on default constructors on structs
-
 DONE: Readonly property was never assigned
 DONE:   Should the same rule be applied for public X {get; private set;} ? I think so!
 DONE: Readonly field was never assigned (this one built-in into the compiler!)
@@ -69,6 +66,7 @@ Add ReadOnly attribute that will enforce all the existing rules but will not req
 Another thing, this attribute could be used instead of readonly fields and it will prevent from redunant copies!
 Could be useful to avoid perf impact on accessing readonly structs!!!
 Private field was never used
+Q: WTF I see compilation warning for unassigned field, but I can't see a warning before running the compilation!
 
 Infrastructure:
 Unit test should fail if the sample will fail to compile!

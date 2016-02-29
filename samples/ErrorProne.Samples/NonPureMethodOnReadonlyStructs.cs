@@ -13,6 +13,7 @@ namespace ErrorProne.Samples
 
         public void PrintToConsole()
         {
+            //Enumerable.Range(1, 10).Any(a => a == 4);
         }
     }
 

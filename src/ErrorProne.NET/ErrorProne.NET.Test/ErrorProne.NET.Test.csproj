@@ -108,7 +108,9 @@
     <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzerTests.cs" />
     <Compile Include="ExceptionHandlingRules\ThrowExAnalyzerTests.cs" />
     <Compile Include="FormatRules\RegexPatternAnalyzerTests.cs" />
-    <Compile Include="OtherRules\PropertyAssignmentAnalyzer.cs" />
+    <Compile Include="OtherRules\ReadonlyFieldAssignmentValidityTests.cs" />
+    <Compile Include="OtherRules\ReadonlyFieldAssignmentTests.cs" />
+    <Compile Include="OtherRules\PropertyAssignmentTests.cs" />
     <Compile Include="SideEffectRules\AssignmentFreeObjectConstructionAnalyzer.cs" />
     <Compile Include="SideEffectRules\NonPureMethodOnReadonlyStructsTests.cs" />
     <Compile Include="SideEffectRules\SideEffectFreeExceptionCreationConstructionAnalyzerTests.cs" />

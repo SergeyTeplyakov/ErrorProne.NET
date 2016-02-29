@@ -60,7 +60,7 @@ namespace ErrorProne.NET.Cli
             {
                 Enumerable.Range(1, 10);
 
-                int f = s.CompareTo(42);
+                s.CompareTo(42);
             }
             public int S => s;
         }

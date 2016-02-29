@@ -21,11 +21,15 @@ namespace ErrorProne.NET.Common
         public const string AllExceptionSwalled = "ERP022";
         public const string OnlyExceptionMessageWasObserved = "ERP023";
 
-        // Other
-        public const string MissingCasesInSwitchStatement = "ERP031";
+        // ReadOnly attribute an readonly releated analysis
+        public const string ReadonlyPropertyWasNeverAssigned = "ERP031";
+        public const string PropertyWithPrivateSetterWasNeverAssigned = "ERP032";
+        public const string ReadonlyFieldWasNeverAssigned = "ERP033";
+        public const string ReadOnlyFieldWasAssignedOutsideConstructor = "ERP034";
+        public const string PrivateFieldWasNeverUsed = "ERP035";
 
-        public const string ReadonlyPropertyWasNeverAssigned = "ERP032";
-        public const string PropertyWithPrivateSetterWasNeverAssigned = "ERP033";
-        public const string ReadonlyFieldWasNeverAssigned = "ERP034";
+        // Other
+        public const string MissingCasesInSwitchStatement = "ERP101";
+
     }
 }
