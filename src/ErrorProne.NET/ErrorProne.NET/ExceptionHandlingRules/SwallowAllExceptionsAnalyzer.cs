@@ -44,11 +44,13 @@ namespace ErrorProne.NET.ExceptionHandlingRules
             {
                 var usages = context.SemanticModel.GetExceptionIdentifierUsages(catchBlock);
 
-                bool wasObserved =
+                    bool wasObserved =
                     usages.
                         Select(id => id.Identifier)
                         .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
                                   u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
+                                  // For instance in Console.WriteLine($"e = {e}");
+                                  u.Parent is InterpolationSyntax ||
                                   // or Inner exception, Message or other properties were used
                                   u.Parent is MemberAccessExpressionSyntax);
 
