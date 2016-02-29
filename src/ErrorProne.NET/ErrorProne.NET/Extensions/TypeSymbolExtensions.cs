@@ -50,13 +50,64 @@ namespace ErrorProne.NET.Extensions
             return named != null ? named.ConstructedFrom : type;
         }
 
-        public static bool IsEnum(this ITypeSymbol type, SemanticModel semanticModel = null)
+        public static bool IsEnum(this ITypeSymbol type)
         {
             Contract.Requires(type != null);
-            //Contract.Requires(semanticModel != null);
             return type?.IsValueType == true &&
                    type.BaseType.SpecialType == SpecialType.System_Enum;
-                //type.BaseType.Equals(semanticModel.GetClrType(typeof (System.Enum)));
+        }
+
+        public static bool IsNullableEnum(this ITypeSymbol type, SemanticModel semanticModel)
+        {
+            Contract.Requires(type != null);
+            Contract.Requires(semanticModel != null);
+
+            return type.UnwrapFromNullableType(semanticModel)?.IsEnum() == true;
+        }
+
+        public static bool IsNullablePrimitiveType(this ITypeSymbol type, SemanticModel semanticModel)
+        {
+            Contract.Requires(type != null);
+            Contract.Requires(semanticModel != null);
+
+            return type.UnwrapFromNullableType(semanticModel)?.IsPrimitiveType() == true;
+        }
+
+        public static ITypeSymbol UnwrapFromNullableType(this ITypeSymbol type, SemanticModel semanticModel)
+        {
+            var namedType = type as INamedTypeSymbol;
+            if (namedType == null) return null;
+            if (type.UnwrapGenericIfNeeded().Equals(semanticModel.GetClrType(typeof (Nullable<>))))
+            {
+                return namedType.TypeArguments[0];
+            }
+
+            return null;
+        }
+
+        public static bool IsPrimitiveType(this ITypeSymbol type)
+        {
+            Contract.Requires(type != null);
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Decimal:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                case SpecialType.System_DateTime:
+                    return true;
+            }
+
+            return false;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ErrorProne.NET.Common;
@@ -98,8 +99,8 @@ namespace ErrorProne.NET.Rules.OtherRules
 
                 var symbol = context.SemanticModel.GetDeclaredSymbol(fieldDeclaration);
                 var fieldSymbol = symbol as IFieldSymbol;
-                // I've used Contract.Assert here, but it failed from time to time:(
-                if (fieldSymbol == null) return;
+
+                Contract.Assert(fieldSymbol != null);
 
                 // Structs with explicit layout attribute should be ignored!
                 if (fieldSymbol.ContainingType.HasAttribute(typeof (StructLayoutAttribute))) continue;

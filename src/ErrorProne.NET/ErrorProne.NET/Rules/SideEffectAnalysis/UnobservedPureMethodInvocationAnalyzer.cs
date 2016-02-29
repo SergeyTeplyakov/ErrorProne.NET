@@ -21,8 +21,6 @@ namespace ErrorProne.NET.Rules.SideEffectAnalysis
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class UnobservedPureMethodInvocationAnalyzer : DiagnosticAnalyzer
     {
-        private readonly string _s;
-        public string S { get; }
         public const string DiagnosticId = RuleIds.UnobservedPureMethodInvocationId;
 
         private static readonly string Title = "Non-observed return value of the pure method.";

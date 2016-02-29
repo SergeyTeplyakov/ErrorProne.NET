@@ -13,14 +13,14 @@ namespace ErrorProne.NET.Rules.OtherRules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ReadOnlyAttributeAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly string Title = "Readonly field was never assigned.";
-        private static readonly string Message = "Readonly field '{0} is never assigned to, and will always have its default value '{1}'.";
-        private static readonly string Description = "Readonly field was never assigned.";
+        private static readonly string Title = "ReadOnly attribute should only be applied on non-readonly fields with custom structs.";
+        private static readonly string Message = "ReadOnly attribute should only be applied on non-readonly fields with custom structs.";
+        private static readonly string Description = "ReadOnly attribute should only be applied on non-readonly fields with custom structs.";
 
         private const string Category = "CodeSmell";
 
         private static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(RuleIds.ReadonlyFieldWasNeverAssigned, Title, Message, Category,
+            new DiagnosticDescriptor(RuleIds.ReadonlyAttributeNotOnCustomStructs, Title, Message, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
@@ -32,31 +32,23 @@ namespace ErrorProne.NET.Rules.OtherRules
 
         private void AnalyzeFieldDeclaration(SyntaxNodeAnalysisContext context)
         {
-            var fieldDeclaration = (FieldDeclarationSyntax) context.Node;
-            var fieldSymbol = context.SemanticModel.GetDeclaredSymbol(fieldDeclaration) as IFieldSymbol;
-
-            Contract.Assert(fieldSymbol != null);
-
-            var semanticModel = context.SemanticModel;
-            var syntax = fieldSymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree;
-            Contract.Assert(syntax != null);
-
-            var writes = syntax.GetRoot()
-                .DescendantNodes()
-                .OfType<AssignmentExpressionSyntax>()
-                .Select(id => new { Symbol = semanticModel.GetSymbolInfo(id.Left).Symbol, Id = id })
-                .Where(x => x.Symbol != null && x.Symbol.Equals(fieldSymbol))
-                .ToList();
-
-            var defaultValue = fieldSymbol.Type.Defaultvalue();
-            
-            // This rule will trigger warning even for regular readonly fields,
-            // because it seems that IDE will show warning only after the build, but not
-            // during editing the file!
-            if ((fieldSymbol.IsReadOnly || fieldSymbol.HasReadOnlyAttribute()) && writes.Count == 0)
+            var fieldDeclarations = (FieldDeclarationSyntax)context.Node;
+            foreach (var fieldDeclaration in fieldDeclarations.Declaration.Variables)
             {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(Rule, fieldDeclaration.GetLocation(), fieldSymbol.Name, defaultValue));
+                var fieldSymbol = context.SemanticModel.GetDeclaredSymbol(fieldDeclaration) as IFieldSymbol;
+
+                Contract.Assert(fieldSymbol != null);
+
+                if (!fieldSymbol.HasReadOnlyAttribute()) continue;
+
+                if (fieldSymbol.IsReadOnly || 
+                    fieldSymbol.Type.IsReferenceType ||
+                    fieldSymbol.Type.IsEnum() || fieldSymbol.Type.IsNullableEnum(context.SemanticModel) ||
+                    fieldSymbol.Type.IsPrimitiveType() || fieldSymbol.Type.IsNullablePrimitiveType(context.SemanticModel))
+                {
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(Rule, fieldDeclaration.GetLocation()));
+                }
             }
         }
     }

@@ -35,7 +35,7 @@ namespace ErrorProne.NET.Rules.SwitchAnalysis
 
             var expressionSymbol = semanticModel.GetSymbolInfo(switchStatement.Expression).Symbol;
             _expressionType = LazyEx.Create(() => GetSymbolType(expressionSymbol));
-            _switchOverEnum = LazyEx.Create(() => _expressionType.Value.IsEnum(semanticModel));
+            _switchOverEnum = LazyEx.Create(() => _expressionType.Value.IsEnum());
             _enumValues = LazyEx.Create(() => _expressionType.Value.GetSortedEnumFieldsAndValues().ToImmutableList());
             _cases = LazyEx.Create(() => GetUsedCases().ToImmutableList());
         }
