@@ -44,9 +44,44 @@ class Base
         {
             NoDiagnostic(code, RuleIds.ReadonlyFieldWasNeverAssigned);
         }
-
+        
         public static IEnumerable<string> ShouldNotWarnOnUnassignedReadOnlyFieldTestCases()
         {
+            // Should not warn for struct fields marked with StructLayoutAttribute
+            yield return @"
+[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+internal struct VariantPadding
+{
+    public readonly System.IntPtr Data2;
+    public readonly System.IntPtr Data3;
+}";
+            
+            // Should not warn if readonly field was used in another part of partial declaration
+            yield return @"
+partial class Foo
+{
+    private readonly int _m;
+}
+
+partial class Foo
+{
+    public Foo()
+    {
+        _m = 42;
+    }
+}";
+
+            // Should not warn if readonly field was initialized via out param
+            yield return @"
+class Foo
+{
+    public Foo()
+    {
+       Initialize(out _m);
+    }
+	public readonly string _m;
+    private void Initialize(out string s) {s = null;}
+}";
             // Should not warn when initialized in constructor
             yield return @"
 class Foo

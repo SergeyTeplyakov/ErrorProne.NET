@@ -9,6 +9,14 @@ namespace ErrorProne.NET.Extensions
 {
     public static class NamedSymbolExtensions
     {
+        public static bool HasAttribute(this INamedTypeSymbol symbol, Type attributeType)
+        {
+            Contract.Requires(symbol != null);
+            Contract.Requires(attributeType != null);
+
+            return symbol.GetAttributes().Any(a => a.AttributeClass.FullName() == attributeType.FullName);
+        }
+
         public static IEnumerable<INamedTypeSymbol> TraverseTypeAndItsBaseTypes(this INamedTypeSymbol symbol)
         {
             Contract.Requires(symbol != null);

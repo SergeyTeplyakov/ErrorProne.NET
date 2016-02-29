@@ -1,8 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
@@ -117,15 +120,25 @@ namespace ErrorProne.NET.OtherRules
                 var symbol = context.SemanticModel.GetDeclaredSymbol(fieldDeclaration);
                 var fieldSymbol = symbol as IFieldSymbol;
                 Contract.Assert(fieldSymbol != null);
-                
-                var semanticModel = context.SemanticModel;
-                var syntax = fieldSymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree;
-                Contract.Assert(syntax != null);
 
-                var writes = syntax.GetRoot()
-                    .DescendantNodes()
-                    .OfType<AssignmentExpressionSyntax>()
-                    .Select(id => new { Symbol = semanticModel.GetSymbolInfo(id.Left).Symbol, Id = id })
+                // Structs with explicit layout attribute should be ignored!
+                if (fieldSymbol.ContainingType.HasAttribute(typeof (StructLayoutAttribute))) continue;
+
+                var semanticModel = context.SemanticModel;
+
+                var allNodes =
+                    fieldSymbol.ContainingType.DeclaringSyntaxReferences.SelectMany(
+                        s => s.SyntaxTree.GetRoot().DescendantNodes());
+
+                var writes = allNodes.OfType<AssignmentExpressionSyntax>()
+                    .Select(id => new { Symbol = semanticModel.GetSymbolInfo(id.Left).Symbol, Syntax = id })
+                    .Where(s => s.Symbol != null && s.Symbol.Equals(fieldSymbol))
+                    .Select(s => s.Syntax)
+                    .ToList();
+
+                var writesViaOutputParams = allNodes
+                    .OfType<ArgumentSyntax>()
+                    .Select(id => new {Symbol = semanticModel.GetSymbolInfo(id.Expression).Symbol, Id = id})
                     .Where(x => x.Symbol != null && x.Symbol.Equals(fieldSymbol))
                     .ToList();
 
@@ -134,7 +147,7 @@ namespace ErrorProne.NET.OtherRules
                 // This rule will trigger warning even for regular readonly fields,
                 // because it seems that IDE will show warning only after the build, but not
                 // during editing the file!
-                if ((fieldSymbol.IsReadOnly || fieldSymbol.HasReadOnlyAttribute()) && writes.Count == 0)
+                if ((fieldSymbol.IsReadOnly || fieldSymbol.HasReadOnlyAttribute()) && (writes.Count + writesViaOutputParams.Count) == 0)
                 {
                     context.ReportDiagnostic(
                         Diagnostic.Create(ReadOnlyFieldWasNeverAssignedRule, fieldDeclaration.GetLocation(), fieldSymbol.Name, defaultValue));

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.OtherRules;
 using NUnit.Framework;
@@ -8,11 +9,35 @@ namespace ErrorProne.NET.Test.OtherRules
 {
     class Base
     {
+        private readonly int _field;
+        private int prop { get; }
+
+        public Base()
+        {
+            GetField(out _field);
+            //GetField(out prop);
+        }
+
         public virtual string Foo { get; }
+
+        public void Foo2()
+        {
+            Console.WriteLine(_field);
+        }
+
+        private void GetField(out int f)
+        {
+            f = 42;
+        }
     }
     // Should be warning on the sealed case!!!
     class Derived : Base
     {
+        public Derived()
+        {
+            
+        }
+
         public sealed override string Foo { get; }
     }
 

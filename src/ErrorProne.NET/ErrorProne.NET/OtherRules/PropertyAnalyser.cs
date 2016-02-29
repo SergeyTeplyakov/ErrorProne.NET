@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace ErrorProne.NET.OtherRules
     public sealed class PropertyAnalyser : DiagnosticAnalyzer
     {
         private static readonly string Title = "Readonly property was never assigned.";
-        private static readonly string Message = "Readonly property '{0} is never assigned to, and will always have its default value '{1}'.";
+        private static readonly string Message = "Readonly property '{0}' is never assigned to, and will always have its default value '{1}'.";
         private static readonly string Description = "Readonly property was never assigned.";
 
         private const string Category = "CodeSmell";
@@ -52,15 +54,17 @@ namespace ErrorProne.NET.OtherRules
             var semanticModel = context.SemanticModel;
             // For readonly properties this stuff could be much more efficient, because only constructors
             // needs to be analyzed!
-            var syntax = propertySymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree;
-            Contract.Assert(syntax != null);
 
-            var writes = syntax.GetRoot()
+            Func<SyntaxTree, List<AssignmentExpressionSyntax>> func = 
+                syntaxTree => syntaxTree.GetRoot()
                 .DescendantNodes()
                 .OfType<AssignmentExpressionSyntax>()
-                .Select(id => new { Symbol = semanticModel.GetSymbolInfo(id.Left).Symbol, Id = id })
-                .Where(x => x.Symbol != null && x.Symbol.Equals(propertySymbol))
+                .Select(id => new {Symbol = semanticModel.GetSymbolInfo(id.Left).Symbol, Syntax = id})
+                .Where(symbol => symbol.Symbol != null && symbol.Symbol.Equals(propertySymbol))
+                .Select(s => s.Syntax)
                 .ToList();
+
+            var writes = propertySymbol.ContainingType.DeclaringSyntaxReferences.SelectMany(s => func(s.SyntaxTree)).ToList();
 
             var defaultValue = propertySymbol.Type.Defaultvalue();
             // ReadOnly auto property will hold default value if

@@ -58,6 +58,8 @@ namespace ErrorProne.NET.Cli
         };
 
         private static readonly object _consoleLock = new object();
+        // Need to lock around writing to the file to avoid sharing violation
+        private static readonly object _fileLockEnabled = new object();
 
         public static void LogDiagnostics(Project project, ImmutableArray<Diagnostic> diagnostics)
         {
@@ -82,14 +84,17 @@ namespace ErrorProne.NET.Cli
 
             if (_fileLoggerEnabled)
             {
-                string logEntry = $"{caption}\r\n{string.Join("\r\n", orderedDiagnostics)}";
-                try
+                lock (_fileLockEnabled)
                 {
-                    File.AppendAllText(_logFileName, logEntry);
-                }
-                catch (Exception e)
-                {
-                    WriteError($"Failed to write a log file:{Environment.NewLine}:{e}");
+                    string logEntry = $"{caption}\r\n{string.Join("\r\n", orderedDiagnostics)}";
+                    try
+                    {
+                        File.AppendAllText(_logFileName, logEntry);
+                    }
+                    catch (Exception e)
+                    {
+                        WriteError($"Failed to write a log file:{Environment.NewLine}:{e}");
+                    }
                 }
             }
         }
