@@ -119,7 +119,8 @@ namespace ErrorProne.NET.OtherRules
 
                 var symbol = context.SemanticModel.GetDeclaredSymbol(fieldDeclaration);
                 var fieldSymbol = symbol as IFieldSymbol;
-                Contract.Assert(fieldSymbol != null);
+                // I've used Contract.Assert here, but it failed from time to time:(
+                if (fieldSymbol == null) return;
 
                 // Structs with explicit layout attribute should be ignored!
                 if (fieldSymbol.ContainingType.HasAttribute(typeof (StructLayoutAttribute))) continue;

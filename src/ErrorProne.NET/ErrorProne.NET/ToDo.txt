@@ -72,3 +72,8 @@ Infrastructure:
 Unit test should fail if the sample will fail to compile!
 
 Add statistic to cli tool!
+
+Ok, it seems that special kind of analyzers is required that will duplicate warnings from C# compiler but will show them immediately!!
+: Field never assigned (readonly/regular)
+Field is never used
+Custom: property is never used

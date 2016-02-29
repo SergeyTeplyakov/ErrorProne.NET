@@ -29,7 +29,7 @@ namespace ErrorProne.NET.OtherRules
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
         private static readonly string TitlePrivateSetter = "Property with private setter was never assigned.";
-        private static readonly string MessagePrivateSetter = "Property '{0} with private setter is never assigned to, and will always have its default value '{1}'.";
+        private static readonly string MessagePrivateSetter = "Property '{0}' with private setter is never assigned to, and will always have its default value '{1}'.";
         private static readonly string DescriptionPrivateSetter = "Property with private setterwas never assigned.";
 
         private static readonly DiagnosticDescriptor PropertyWithPrivateSetterWasNeverAssigned =
@@ -73,25 +73,25 @@ namespace ErrorProne.NET.OtherRules
             // - don't have initializer
             if (!propertySymbol.IsAbstract &&
                 !propertySymbol.IsVirtual &&
-                propertySymbol.IsGetOnlyAutoProperty(propertyDeclaration) && 
+                // If property is override, then it should be sealed
+                ((propertySymbol.IsOverride && propertySymbol.IsSealed) || (!propertySymbol.IsOverride && !propertySymbol.IsSealed)) &&
                 !propertyDeclaration.HasInitializer() && 
                 writes.Count == 0)
             {
-                // Splitted checks to simplify this stuff!
-                // If property is override, then it should be sealed
-                if ((propertySymbol.IsOverride && propertySymbol.IsSealed) || 
-                    (!propertySymbol.IsOverride && !propertySymbol.IsSealed))
+                if (propertySymbol.IsGetOnlyAutoProperty(propertyDeclaration))
                 {
                     context.ReportDiagnostic(
-                    Diagnostic.Create(ReadonlyPropertyWasNeverAssignedRule, propertyDeclaration.Identifier.GetLocation(),
-                    propertySymbol.Name, defaultValue));
+                        Diagnostic.Create(ReadonlyPropertyWasNeverAssignedRule,
+                            propertyDeclaration.Identifier.GetLocation(),
+                            propertySymbol.Name, defaultValue));
                 }
-            }
-            else if (propertySymbol.SetMethod?.DeclaredAccessibility == Accessibility.Private && writes.Count == 0)
-            {
-                var setter = propertyDeclaration.Setter();
-                context.ReportDiagnostic(
-                    Diagnostic.Create(PropertyWithPrivateSetterWasNeverAssigned, setter.GetLocation(), propertySymbol.Name, defaultValue));
+                else if (propertySymbol.SetMethod?.DeclaredAccessibility == Accessibility.Private)
+                {
+                    var setter = propertyDeclaration.Setter();
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(PropertyWithPrivateSetterWasNeverAssigned, setter.GetLocation(),
+                            propertySymbol.Name, defaultValue));
+                }
             }
         }
     }

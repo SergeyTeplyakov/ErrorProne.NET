@@ -3,17 +3,39 @@ using System.Linq;
 
 namespace ErrorProne.Samples.WorkInProgress
 {
-    class Foo
+    class Base
     {
-        private readonly int _s;// = "f";
-        private readonly int n;
+        protected int field;
+        // running the build!!
+    }
 
-        public void Method()
+    class Derived2 : Base
+    {
+        public Derived2()
         {
-            Console.WriteLine(_s);
-            Enumerable.Range(1, 10);
+            //field = 42;
         }
     }
+
+
+
+
+
+
+
+
+    class Derived : Base
+{
+    //public override int S => 42;
+}
+
+
+
+
+    class Foo
+{
+    public int S { get; }
+}
 
     public class WorkInProgress
     {
