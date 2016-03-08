@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -9,17 +10,25 @@ using NUnit.Framework;
 
 namespace RoslynNunitTestRunner
 {
+    public abstract class CSharpCodeFixTestFixture<T> : CodeFixTestFixture where T : CodeFixProvider, new()
+    {
+        protected override string LanguageName => LanguageNames.CSharp;
+
+        protected override CodeFixProvider CreateProvider()
+        {
+            return new T();
+        }
+    }
+
     public abstract class CodeFixTestFixture : BaseTestFixture
     {
         protected abstract CodeFixProvider CreateProvider();
 
         protected void TestCodeFix(string markupCode, string expected, DiagnosticDescriptor descriptor)
         {
-            Document document;
-            TextSpan span;
-            Assert.IsTrue(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out document, out span));
+            var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(markupCode, LanguageName);
 
-            TestCodeFix(document, span, expected, descriptor);
+            TestCodeFix(processedDocument.Document, processedDocument.Spans.First(), expected, descriptor);
         }
 
         protected void TestCodeFix(Document document, TextSpan span, string expected, DiagnosticDescriptor descriptor)
@@ -41,7 +50,7 @@ namespace RoslynNunitTestRunner
             var context = new CodeFixContext(document, diagnostic, registerCodeFix, CancellationToken.None);
 
             var provider = CreateProvider();
-            provider.RegisterCodeFixesAsync(context).Wait();
+            provider.RegisterCodeFixesAsync(context).GetAwaiter().GetResult();
 
             return builder.ToImmutable();
         }

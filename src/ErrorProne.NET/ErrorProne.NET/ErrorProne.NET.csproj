@@ -67,6 +67,7 @@
     <CodeContractsRuntimeCheckingLevel>Full</CodeContractsRuntimeCheckingLevel>
     <CodeContractsReferenceAssembly>%28none%29</CodeContractsReferenceAssembly>
     <CodeContractsAnalysisWarningLevel>0</CodeContractsAnalysisWarningLevel>
+    <CodeAnalysisRuleSet>ErrorProne.NET.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -75,6 +76,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>ErrorProne.NET.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Annotations\ImmutableAttribute.cs" />
@@ -85,6 +87,7 @@
     <Compile Include="Common\WellKnownTypes.cs" />
     <Compile Include="Core\PureMethodExtensions.cs" />
     <Compile Include="Core\PureMethodVerifier.cs" />
+    <Compile Include="Refactorings\ConvertToReadOnlyAttribute.cs" />
     <Compile Include="Rules\ExceptionHandling\InvalidExceptionHandlingAnalyzer.cs" />
     <Compile Include="Rules\ExceptionHandling\Helpers.cs" />
     <Compile Include="Rules\ExceptionHandling\SwallowAllExceptionsAnalyzer.cs" />
@@ -98,9 +101,11 @@
     <Compile Include="Extensions\SyntaxNodeExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
     <Compile Include="Rules\Formatting\RegexPatternAnalyzer.cs" />
+    <Compile Include="Rules\OtherRules\UseReadOnlyAttributeAnalyzer.cs" />
     <Compile Include="Rules\OtherRules\ReadOnlyAttributeAnalyzer.cs" />
     <Compile Include="Rules\OtherRules\FieldAnalyzer.cs" />
     <Compile Include="Rules\OtherRules\PropertyAnalyser.cs" />
+    <Compile Include="Rules\OtherRules\UseReadOnlyAttributeCodeFixProvider.cs" />
     <Compile Include="Rules\SideEffectAnalysis\InvocationExpressionExtensions.cs" />
     <Compile Include="Rules\SideEffectAnalysis\NonPureMethodsOnReadonlyStructs.cs" />
     <Compile Include="Rules\SideEffectAnalysis\UnobservedPureMethodInvocationAnalyzer.cs" />
@@ -132,6 +137,7 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ErrorProne.NET.ruleset" />
     <None Include="packages.config" />
     <None Include="tools\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -191,6 +197,7 @@
   <ItemGroup>
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    <Analyzer Include="bin\Debug\ErrorProne.NET.dll" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ToDo.txt" />

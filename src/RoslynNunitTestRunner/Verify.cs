@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -22,6 +24,7 @@ namespace RoslynNunitTestRunner
 
             var sourceText = newDocument.GetTextAsync(CancellationToken.None).Result;
             var text = sourceText.ToString();
+            Debug.WriteLine($"New code:\r\n{text}");
 
             Assert.That(text, Is.EqualTo(expectedCode));
         }

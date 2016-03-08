@@ -91,8 +91,6 @@ namespace RoslynNunitTestRunner
 
                 position = end + EndMarker.Length;
 
-                //builder.Append(markupCode.Substring(end + markerSize));
-
                 spans.Add(TextSpan.FromBounds(start, end - markerSize));
             }
 
@@ -106,6 +104,7 @@ namespace RoslynNunitTestRunner
         /// Converts specified <paramref name="markupCode"/> to regular C# code by removing markers.
         /// </summary>
         /// <exception cref="MarkupCodeInvalidFormatException">Throws if specified code does not have start or end markers.</exception>
+        [Obsolete]
         public static bool TryGetCodeAndSpanFromMarkup(string markupCode, out string code, out TextSpan span)
         {
             code = null;
@@ -144,11 +143,13 @@ namespace RoslynNunitTestRunner
             return processed.WithDocument(document);
         }
 
+        [Obsolete]
         public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, out Document document, out TextSpan span)
         {
             return TryGetDocumentAndSpanFromMarkup(markupCode, languageName, null, out document, out span);
         }
 
+        [Obsolete]
         public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, ImmutableList<MetadataReference> references, out Document document, out TextSpan span)
         {
             string code;

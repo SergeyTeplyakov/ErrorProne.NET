@@ -108,9 +108,11 @@
     <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzerTests.cs" />
     <Compile Include="ExceptionHandlingRules\ThrowExAnalyzerTests.cs" />
     <Compile Include="FormatRules\RegexPatternAnalyzerTests.cs" />
+    <Compile Include="OtherRules\UseReadOnlyAttributeAnalyzerTests.cs" />
     <Compile Include="OtherRules\ReadOnlyAttributeAnalyzerTests.cs" />
     <Compile Include="OtherRules\ReadonlyFieldAssignmentTests.cs" />
     <Compile Include="OtherRules\PropertyAssignmentTests.cs" />
+    <Compile Include="OtherRules\ConvertToReadOnlyAttributeTests.cs" />
     <Compile Include="SideEffectRules\AssignmentFreeObjectConstructionAnalyzer.cs" />
     <Compile Include="SideEffectRules\NonPureMethodOnReadonlyStructsTests.cs" />
     <Compile Include="SideEffectRules\SideEffectFreeExceptionCreationConstructionAnalyzerTests.cs" />
@@ -119,8 +121,6 @@
     <Compile Include="FormatRules\InvalidFormatString.cs" />
     <Compile Include="FormatRules\InvalidIndexTests.cs" />
     <Compile Include="SwitchCompleteness\MissingCasesInSiwtchStatementAnalyzerTests.cs" />
-    <Compile Include="Verifiers\CodeFixVerifier.cs" />
-    <Compile Include="Verifiers\DiagnosticVerifier.cs" />
     <Compile Include="Helpers\CodeFixVerifier.Helper.cs" />
     <Compile Include="Helpers\DiagnosticResult.cs" />
     <Compile Include="Helpers\DiagnosticVerifier.Helper.cs" />
@@ -147,7 +147,9 @@
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Refactorings\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

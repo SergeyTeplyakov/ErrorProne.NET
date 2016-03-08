@@ -29,6 +29,7 @@ namespace ErrorProne.NET.Common
         public const string PrivateFieldWasNeverUsed = "ERP035";
 
         public const string ReadonlyAttributeNotOnCustomStructs = "ERP041";
+        public const string UseReadOnlyAttributeInstead = "ERP042";
 
         // Other
         public const string MissingCasesInSwitchStatement = "ERP101";

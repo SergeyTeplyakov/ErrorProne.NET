@@ -3,9 +3,17 @@ using System.Linq;
 
 namespace ErrorProne.Samples.WorkInProgress
 {
+    struct CustomStruct { }
+    class Foo2
+    {
+        public readonly CustomStruct _m;
+    }
+
+    struct Custom { }
     class Base
     {
-        protected int field;
+        private readonly Custom field = new Custom();
+        //protected int field;
         // running the build!!
     }
 

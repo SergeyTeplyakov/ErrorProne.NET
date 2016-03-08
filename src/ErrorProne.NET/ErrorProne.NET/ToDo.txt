@@ -68,6 +68,7 @@ Could be useful to avoid perf impact on accessing readonly structs!!!
 Private field was never used
 Q: WTF I see compilation warning for unassigned field, but I can't see a warning before running the compilation!
 Kevin answered! This is stupid!
+Convert readonly fields of the struct type to ReadOnlyAttribute
 
 Infrastructure:
 Unit test should fail if the sample will fail to compile!
