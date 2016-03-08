@@ -136,7 +136,7 @@
       <Name>RoslynNunitTestRunner</Name>
     </ProjectReference>
     <ProjectReference Include="..\ErrorProne.NET\ErrorProne.NET.csproj">
-      <Project>{8B7D988D-FC91-4F4C-A57C-83624CB4573D}</Project>
+      <Project>{8b7d988d-fc91-4f4c-a57c-83624cb4573d}</Project>
       <Name>ErrorProne.NET</Name>
     </ProjectReference>
   </ItemGroup>
