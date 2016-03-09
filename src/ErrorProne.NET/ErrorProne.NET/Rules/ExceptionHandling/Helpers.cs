@@ -52,7 +52,8 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
             }
 
             var exception = semanticModel.Compilation.GetTypeByMetadataName(typeof(Exception).FullName);
-            return symbol.Symbol.Equals(exception);
+            var aggregateException = semanticModel.Compilation.GetTypeByMetadataName(typeof(AggregateException).FullName);
+            return symbol.Symbol.Equals(exception) || symbol.Symbol.Equals(aggregateException);
         }
     }
 }

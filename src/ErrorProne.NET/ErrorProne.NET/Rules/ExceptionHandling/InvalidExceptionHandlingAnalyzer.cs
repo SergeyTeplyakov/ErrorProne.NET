@@ -17,7 +17,7 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
     {
         public const string DiagnosticId = RuleIds.OnlyExceptionMessageWasObserved;
 
-        internal const string Title = "Only ex.Message property was observed in exception block!";
+        internal const string Title = "Only ex.Message property was observed in exception block.";
         internal const string MessageFormat = "Only ex.Message property was observed in exception block!";
         internal const string Category = "CodeSmell";
 

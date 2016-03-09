@@ -14,7 +14,10 @@ namespace ErrorProne.Samples.ExceptionHandling
             catch (Exception e)
             {
                 if (e is AggregateException) return;
-            } // Exit point '}' swallows an exception
+                //                           ~~~~~~~
+                // Exit point 'return;' swallows an exception.
+                throw;
+            }
         }
     }
 }

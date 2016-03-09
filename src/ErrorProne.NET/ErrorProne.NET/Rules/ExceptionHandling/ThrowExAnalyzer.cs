@@ -14,7 +14,7 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
     {
         public const string DiagnosticId = RuleIds.IncorrectExceptionPropagation;
 
-        internal const string Title = "Incorrect exception propagation. Use throw; instead.";
+        internal const string Title = "Incorrect exception propagation";
         public const string MessageFormat = "Incorrect exception propagation. Use throw; instead.";
         internal const string Category = "CodeSmell";
 
