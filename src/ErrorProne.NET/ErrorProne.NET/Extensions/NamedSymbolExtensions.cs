@@ -123,6 +123,17 @@ namespace ErrorProne.NET.Extensions
             return TraverseTypeAndItsBaseTypes(namedSymbol).Any(x => x.Equals(exceptionType));
         }
 
+        public static bool IsArgumentExceptionType(this ISymbol symbol, SemanticModel model)
+        {
+            var namedSymbol = symbol as INamedTypeSymbol;
+            if (namedSymbol == null)
+            {
+                return false;
+            }
 
+            var exceptionType = model.Compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName);
+
+            return TraverseTypeAndItsBaseTypes(namedSymbol).Any(x => x.Equals(exceptionType));
+        }
     }
 }

@@ -31,6 +31,10 @@ namespace ErrorProne.NET.Common
         public const string ReadonlyAttributeNotOnCustomStructs = "ERP041";
         public const string UseReadOnlyAttributeInstead = "ERP042";
 
+        // Async methods
+        public const string SuspiciousPreconditionInAsyncMethod = "ERP051";
+        public const string SuspiciousPreconditionInIteratorBlock = "ERP052";
+
         // Other
         public const string MissingCasesInSwitchStatement = "ERP101";
 

@@ -87,9 +87,13 @@
     <Compile Include="Common\WellKnownTypes.cs" />
     <Compile Include="Core\PureMethodExtensions.cs" />
     <Compile Include="Core\PureMethodVerifier.cs" />
+    <Compile Include="Extensions\MethodDeclarationSyntaxExtensions.cs" />
     <Compile Include="Refactorings\ConvertToReadOnlyAttribute.cs" />
+    <Compile Include="Rules\ExceptionHandling\IteratorBlockPreconditionsAnalyzer.cs" />
+    <Compile Include="Rules\ExceptionHandling\AsyncMethodPreconditionsAnalyzer.cs" />
     <Compile Include="Rules\ExceptionHandling\InvalidExceptionHandlingAnalyzer.cs" />
     <Compile Include="Rules\ExceptionHandling\Helpers.cs" />
+    <Compile Include="Rules\ExceptionHandling\PreconditionsBlock.cs" />
     <Compile Include="Rules\ExceptionHandling\SwallowAllExceptionsAnalyzer.cs" />
     <Compile Include="Rules\ExceptionHandling\ThrowExAnalyzer.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />

@@ -104,6 +104,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExceptionHandlingRules\NonSynchronousPreconditionsInIteratorBlockTests.cs" />
+    <Compile Include="ExceptionHandlingRules\NonSynchronousPreconditionsInAsyncMethodTests.cs" />
     <Compile Include="ExceptionHandlingRules\InvalidExceptionHandlingAnalyzerTests.cs" />
     <Compile Include="ExceptionHandlingRules\SwallowAllExceptionsAnalyzerTests.cs" />
     <Compile Include="ExceptionHandlingRules\ThrowExAnalyzerTests.cs" />

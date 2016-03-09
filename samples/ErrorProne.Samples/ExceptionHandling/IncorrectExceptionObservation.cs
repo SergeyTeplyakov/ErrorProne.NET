@@ -25,7 +25,14 @@ namespace ErrorProne.Samples.ExceptionHandling
         {
             try { Create<WillThrow>(); }
             // Warn for ex.Message: Only ex.Message was observed in the exception block!
-            catch (Exception ex) { Console.WriteLine(ex.Message); }
+            catch (Exception ex)
+            {
+                // ex.Message: 
+                // Exception has been thrown by the target of an invocation.
+                Console.WriteLine(ex.Message);
+                //                ~~~~~~~~~~
+                // Only ex.Message property was observed in exception block!
+            }
         }
     }
 }

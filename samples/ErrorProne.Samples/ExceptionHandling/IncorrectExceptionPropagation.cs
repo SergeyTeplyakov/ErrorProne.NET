@@ -10,10 +10,13 @@ namespace ErrorProne.Samples.ExceptionHandling
     {
         public void Sample()
         {
-            // Incorrect exception propagation
-            try { throw new Exception(); }
-            catch (Exception e)
-            { throw e; }
+try { throw new Exception(); }
+catch (Exception ex)
+{
+    throw ex;
+    //    ~~
+    //    Incorrect exception propagation. Use throw; instead
+}
         }
     }
 }
