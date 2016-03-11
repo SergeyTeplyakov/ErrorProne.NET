@@ -25,6 +25,25 @@ class Test
         }
 
         [Test]
+        public void WarnIfYieldIsInsideForeach()
+        {
+            string code = @"
+using System.Collections.Generic;
+class Test
+{
+    public IEnumerable<string> ReadFile2(string fileName)
+    {
+        if (fileName == null) throw new System.ArgumentNullException();
+        foreach(var s in new[] { ""})
+        {
+            yield return s;
+        }
+    }
+}";
+            HasDiagnostic(code, RuleIds.SuspiciousPreconditionInIteratorBlock);
+        }
+
+        [Test]
         public void WarnOnFirstIfThrow()
         {
             string code = @"

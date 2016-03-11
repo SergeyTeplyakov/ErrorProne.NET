@@ -19,11 +19,11 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
         public const string DiagnosticId = RuleIds.SuspiciousPreconditionInIteratorBlock;
 
         private const string Title = "Non-synchronous precondition in iterator block";
-        private const string MessageFormat = "Method {0} has non-synchronous precondition";
+        private const string MessageFormat = "Method '{0}' has non-synchronous precondition";
         private const string Description = "Precondition would be lazily evaluated and excpetion will occurred only with a first call to MoveNext method.";
         private const string Category = "CodeSmell";
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

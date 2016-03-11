@@ -24,7 +24,7 @@ namespace RoslynNunitTestRunner
 
             var sourceText = newDocument.GetTextAsync(CancellationToken.None).Result;
             var text = sourceText.ToString();
-            Debug.WriteLine($"New code:\r\n{text}");
+            Console.WriteLine($"New code:\r\n{text}");
 
             Assert.That(text, Is.EqualTo(expectedCode));
         }

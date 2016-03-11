@@ -18,11 +18,11 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
         public const string DiagnosticId = RuleIds.SuspiciousPreconditionInAsyncMethod;
 
         private const string Title = "Non-synchronous precondition in async method";
-        private const string MessageFormat = "Method {0} has non-synchronous precondition";
+        private const string MessageFormat = "Method '{0}' has non-synchronous precondition";
         private const string Description = "Exceptions in async method will lead to failed task and would not be thrown synchrnously to the client of the code";
         private const string Category = "CodeSmell";
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

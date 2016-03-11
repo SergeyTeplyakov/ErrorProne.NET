@@ -79,3 +79,5 @@ Ok, it seems that special kind of analyzers is required that will duplicate warn
 : Field never assigned (readonly/regular)
 Field is never used
 Custom: property is never used
+
+Treat all roslyn-based collections as immutable collections!
