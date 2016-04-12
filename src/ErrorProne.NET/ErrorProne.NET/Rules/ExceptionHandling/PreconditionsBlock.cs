@@ -75,15 +75,12 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
         private static bool IsThrowArgumentExceptionStatement(StatementSyntax statement, SemanticModel semanticModel)
         {
             var throwStatement = statement as ThrowStatementSyntax;
-            if (throwStatement == null) return false;
 
-            var objectCreation = throwStatement.Expression as ObjectCreationExpressionSyntax;
+            var objectCreation = throwStatement?.Expression as ObjectCreationExpressionSyntax;
             if (objectCreation == null) return false;
 
             var symbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
             return symbol.IsArgumentExceptionType(semanticModel);
         }
-
-
     }
 }

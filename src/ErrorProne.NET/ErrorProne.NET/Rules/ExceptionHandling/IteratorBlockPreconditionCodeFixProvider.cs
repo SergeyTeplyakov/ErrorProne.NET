@@ -68,12 +68,7 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
             var updatedMethod =
                 method.WithStatements(updatedMethodBody);
 
-            // Now need to update the document:
-            // 1. Replace old method with new one
-            // 2. Add extracted method to the same docuemnt
-            //var newRoot = root.ReplaceNode(method, updatedMethod);
-            var newRoot = AppendMethodRewriter.AppendMethod(root, method, updatedMethod, extractedMethod);
-
+            var newRoot = root.ReplaceNode(method, new[] { updatedMethod, extractedMethod });
             var codeAction = CodeAction.Create(FixText, ct => Task.FromResult(context.Document.WithSyntaxRoot(newRoot)));
             context.RegisterCodeFix(codeAction, diagnostic);
         }

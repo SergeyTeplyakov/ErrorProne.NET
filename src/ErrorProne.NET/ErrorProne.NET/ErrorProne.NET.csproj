@@ -89,6 +89,7 @@
     <Compile Include="Core\PureMethodExtensions.cs" />
     <Compile Include="Core\PureMethodVerifier.cs" />
     <Compile Include="Extensions\BodySyntaxExtensions.cs" />
+    <Compile Include="Extensions\CodeFixContextExtensions.cs" />
     <Compile Include="Extensions\MethodDeclarationSyntaxExtensions.cs" />
     <Compile Include="Extensions\SyntaxFactoryExtensions.cs" />
     <Compile Include="Refactorings\ConvertToReadOnlyAttribute.cs" />

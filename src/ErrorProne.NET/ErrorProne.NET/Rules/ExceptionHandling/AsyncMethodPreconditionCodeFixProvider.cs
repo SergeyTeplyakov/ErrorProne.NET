@@ -20,7 +20,8 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
     {
         private const string FixText = "Extract preconditions into separate non-async method";
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RuleIds.SuspiciousPreconditionInAsyncMethod);
+        public override ImmutableArray<string> FixableDiagnosticIds => 
+            ImmutableArray.Create(RuleIds.SuspiciousPreconditionInAsyncMethod);
 
         public override FixAllProvider GetFixAllProvider()
         {
@@ -30,52 +31,43 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var method = context.GetFirstNodeWithDiagnostic<MethodDeclarationSyntax>(root);
 
-            var diagnostic = context.Diagnostics.First();
-
-            // Need to get method where diagnostic was reported
-            var node = root.FindNode(diagnostic.Location.SourceSpan);
-            var method = node.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
-
-            // Need to get precondition block of this method
+            // Extracting semantic model and precodition block
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var preconditionBlock = PreconditionsBlock.GetPreconditions(method, semanticModel);
 
-            Contract.Assert(preconditionBlock.Preconditions.Count != 0, "Method should have at least one precondition!");
+            Contract.Assert(preconditionBlock.Preconditions.Count != 0, "Precondition block should have at least one statement!");
 
-            // Extracting method that would not have preconditions, but would have all the other statements
+            // Caching all precondition. This will help to remove or leave them in different methods.
             var preconditionStatements = preconditionBlock.Preconditions.Select(p => p.IfThrowStaement).ToImmutableHashSet();
+            
+            // Extracting new method: it should contains all statements from the original method
+            // but without preconditions.
             var extractedMethodBody = method.Body.Statements.Where(s => !preconditionStatements.Contains(s));
 
-            // Need to change the name and make it private
-            // TODO: check generated method name to avoid name conflict!
+            // Clonning original method by changing it's body and changing the visibility
             var extractedMethod = 
                 method.WithStatements(extractedMethodBody)
-                      .WithIdentifier(Identifier($"Do{method.Identifier.Text}"))
-                      .WithVisibilityModifier(VisibilityModifier.Private);
+                        .WithIdentifier(Identifier($"Do{method.Identifier.Text}"))
+                        .WithVisibilityModifier(VisibilityModifier.Private);
 
-            // Now we need to change original method: remove method body and replace it with 
-            // a method call to extracted method, and this method should no longer be async!
-            
+            // Updating original method: removing everything except preconditions
             var updatedMethodBody = method.Body.Statements.Where(s => preconditionStatements.Contains(s)).ToList();
             
-            // Creating call expression for extracted method with all parameters of this method
+            // Creating an invocation for extracted method
             var originalMethodCallExpression = CreateMethodCallExpression(extractedMethod, method.ParameterList.AsArguments());
-
             updatedMethodBody.Add(SyntaxFactory.ReturnStatement(originalMethodCallExpression));
-
+            
+            // Removing 'async'
             var updatedMethod =
                 method.WithStatements(updatedMethodBody)
                     .WithoutModifiers(t => t.IsKind(SyntaxKind.AsyncKeyword));
 
-            // Now need to update the document:
-            // 1. Replace old method with new one
-            // 2. Add extracted method to the same docuemnt
-            //var newRoot = root.ReplaceNode(method, updatedMethod);
-            var newRoot = AppendMethodRewriter.AppendMethod(root, method, updatedMethod, extractedMethod);
-
+            // Заменяем метод парой узлов: новым методом и выделенным методом
+            var newRoot = root.ReplaceNode(method, new[] {updatedMethod, extractedMethod});
             var codeAction = CodeAction.Create(FixText, ct => Task.FromResult(context.Document.WithSyntaxRoot(newRoot)));
-            context.RegisterCodeFix(codeAction, diagnostic);
+            context.RegisterCodeFix(codeAction, context.Diagnostics.First());
         }
 
         private static ExpressionSyntax CreateMethodCallExpression(MethodDeclarationSyntax method, ArgumentListSyntax arguments)
