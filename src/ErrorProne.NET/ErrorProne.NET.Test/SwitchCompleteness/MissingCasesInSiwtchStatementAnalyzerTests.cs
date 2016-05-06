@@ -5,13 +5,13 @@ using RoslynNunitTestRunner;
 
 namespace ErrorProne.NET.Test.SwitchCompleteness
 {
-    [TestFixture]
-    public class MissingCasesInSiwtchStatementAnalyzerTests : CSharpAnalyzerTestFixture<MissingCasesInSwitchStatementAnalyzer>
-    {
-        [Test]
-        public void ShouldWarnWhenDefaultThrowsNotImplementedException()
-        {
-            const string code = @"
+	[TestFixture]
+	public class MissingCasesInSiwtchStatementAnalyzerTests : CSharpAnalyzerTestFixture<MissingCasesInSwitchStatementAnalyzer>
+	{
+		[Test]
+		public void ShouldWarnWhenDefaultThrowsNotImplementedException()
+		{
+			const string code = @"
 enum SomeEnum
 {
 	Case1,
@@ -22,23 +22,23 @@ enum SomeEnum
 class Foo
 {
 	public void Test(SomeEnum se)
-    {
-        [|switch|](se)
-        {
-            case SomeEnum.Case1: break;
-            case (SomeEnum)42: break;
-            default: throw new System.InvalidOperationException(); break;
-        }
-    }
+	{
+		[|switch|](se)
+		{
+			case SomeEnum.Case1: break;
+			case (SomeEnum)42: break;
+			default: throw new System.InvalidOperationException(); break;
+		}
+	}
 }";
 
-            HasDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
-        }
+			HasDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
+		}
 
-        [Test]
-        public void ShouldNotWarnWhenAllCasesAreCovered()
-        {
-            const string code = @"
+		[Test]
+		public void ShouldNotWarnWhenAllCasesAreCovered()
+		{
+			const string code = @"
 enum SomeEnum
 {
 	Case1,
@@ -47,23 +47,23 @@ enum SomeEnum
 class Foo
 {
 	public void Test(SomeEnum se)
-    {
-        switch(se)
-        {
-            case SomeEnum.Case1: break;
-            case SomeEnum.Case2: break;
-            default: throw new System.InvalidOperationException(); break;
-        }
-    }
+	{
+		switch(se)
+		{
+			case SomeEnum.Case1: break;
+			case SomeEnum.Case2: break;
+			default: throw new System.InvalidOperationException(); break;
+		}
+	}
 }";
 
-            NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
-        }
-        
-        [Test]
-        public void NoWarningIfSwitchCoversEverything()
-        {
-            const string code = @"
+			NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
+		}
+		
+		[Test]
+		public void NoWarningIfSwitchCoversEverything()
+		{
+			const string code = @"
 enum SomeEnum : byte
 {
 	Case1,
@@ -72,23 +72,23 @@ enum SomeEnum : byte
 class Foo
 {
 	public void Test(SomeEnum se)
-    {
-        switch(se)
-        {
-            case SomeEnum.Case1: break;
-            case SomeEnum.Case2: break;
-            default: System.Diagnostics.Contracts.Contract.Assert(false); break;
-        }
-    }
+	{
+		switch(se)
+		{
+			case SomeEnum.Case1: break;
+			case SomeEnum.Case2: break;
+			default: System.Diagnostics.Contracts.Contract.Assert(false); break;
+		}
+	}
 }";
 
-            NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
-        }
+			NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
+		}
 
-        [Test]
-        public void ShouldWarnOnField()
-        {
-            const string code = @"
+		[Test]
+		public void ShouldWarnOnField()
+		{
+			const string code = @"
 enum SomeEnum
 {
 	Case1,
@@ -99,24 +99,24 @@ enum SomeEnum
 class Foo
 {
 	public void Test()
-    {
-        SomeEnum se = SomeEnum.Case1;
-        [|switch|](se)
-        {
-            case SomeEnum.Case1: break;
-            case (SomeEnum)42: break;
-            default: System.Diagnostics.Contracts.Contract.Assert(false);break;
-        }
-    }
+	{
+		SomeEnum se = SomeEnum.Case1;
+		[|switch|](se)
+		{
+			case SomeEnum.Case1: break;
+			case (SomeEnum)42: break;
+			default: System.Diagnostics.Contracts.Contract.Assert(false);break;
+		}
+	}
 }";
 
-            HasDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
-        }
+			HasDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
+		}
 
-        [Test]
-        public void SouldNotWarnOnBothConsts()
-        {
-            const string code = @"
+		[Test]
+		public void SouldNotWarnOnBothConsts()
+		{
+			const string code = @"
 enum SomeEnum
 {
 	Case1,
@@ -127,23 +127,23 @@ enum SomeEnum
 class Foo
 {
 	public void Test(SomeEnum se)
-    {
-        switch(se)
-        {
-            case (SomeEnum)0: break;
-            case (SomeEnum)1: break;
-            default: throw new System.InvalidOperationException();
-        }
-    }
+	{
+		switch(se)
+		{
+			case (SomeEnum)0: break;
+			case (SomeEnum)1: break;
+			default: throw new System.InvalidOperationException();
+		}
+	}
 }";
 
-            NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
-        }
+			NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
+		}
 
-        [Test]
-        public void NoWarningWhtnDefaultDoesntThrow()
-        {
-            const string code = @"
+		[Test]
+		public void NoWarningWhtnDefaultDoesntThrow()
+		{
+			const string code = @"
 enum SomeEnum
 {
 	Case1,
@@ -154,17 +154,17 @@ enum SomeEnum
 class Foo
 {
 	public void Test(SomeEnum se)
-    {
-        switch(se)
-        {
-            case SomeEnum.Case1: break;
-            case (SomeEnum)42: break;
-            default: System.Console.WriteLine(""Missed case""); break;
-        }
-    }
+	{
+		switch(se)
+		{
+			case SomeEnum.Case1: break;
+			case (SomeEnum)42: break;
+			default: System.Console.WriteLine(""Missed case""); break;
+		}
+	}
 }";
 
-            NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
-        }
-    }
+			NoDiagnostic(code, RuleIds.MissingCasesInSwitchStatement);
+		}
+	}
 }

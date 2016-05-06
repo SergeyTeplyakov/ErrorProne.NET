@@ -34,10 +34,10 @@ class Test
     try { new object(); }
     catch(System.Exception ex)
     {
-        if (ex != null)
-        {
-           System.Console.WriteLine([|ex.Message|]);
-        }
+        //if (ex != null)
+        //{
+        //   System.Console.WriteLine(ex.Message);
+        //}
         System.Console.WriteLine([|ex.Message|]);
     }
   }

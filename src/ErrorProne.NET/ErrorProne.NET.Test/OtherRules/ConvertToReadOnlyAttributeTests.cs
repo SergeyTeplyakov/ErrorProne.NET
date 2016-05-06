@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using ErrorProne.NET.Common;
-using ErrorProne.NET.Rules.OtherRules;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
+﻿using ErrorProne.NET.Rules.OtherRules;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 

@@ -37,6 +37,7 @@ namespace ErrorProne.NET.Common
 
         // Other
         public const string MissingCasesInSwitchStatement = "ERP101";
+        public const string StringCloneMethodWasUsed = "ERP102";
 
     }
 }
