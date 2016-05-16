@@ -195,14 +195,13 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
             
             // Compilation could fail, but we need to check that error is actually happening
             // inside our generated method (because code could be broken and could have errors).
-            var newSyntaxRoot = newSyntaxTree.GetRoot();
             var relevantFailures = new List<Diagnostic>();
             foreach (var diag in compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
             {
                 // Need to check that diagnostic was emitted in the generated method
+                var node = diag.Location.SourceTree?.GetRoot()?.FindNode(diag.Location.SourceSpan);
+                if (node == null) continue;
 
-                var node = newSyntaxRoot.FindNode(diag.Location.SourceSpan);
-                Contract.Assert(node != null);
                 var method = node.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
                 if (method?.Identifier.Text == magicMethodName)
                 {

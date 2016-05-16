@@ -3,21 +3,21 @@ using System.Diagnostics;
 
 namespace ErrorProne.Samples.DebuggerDisplay
 {
-    // DebuggerDisplay attribute requiremenents:
-    // instance/static Field/property/method with any visibility
-    // Format: nq - no quotes. What else?
-    // Method could have arguments! If method has default arguments, everything is fine!
-    // If argument types are incompatible, then error will happen in runtime!
-    [DebuggerDisplay("X: {ToDisplayString()}")]
+    [DebuggerDisplay("{ToDisplayString(42)}")]
     //               ~~~~~~~~~~~~~~~~~~~~~~~~
     // Expression 'ToStrinString(string.Emmpty)' is invalid: 
-    //    'The name '_internalStringRepr' does not exists in current context'
+    //    'Argument 1: cannot convert from 'int' to 'string''
+    // 
+    [DebuggerDisplay("{_content}")]
+    //               ~~~~~~~~~~~~
+    // Expression '_content' is invalid:
+    //   'The name '_content' does not exists in current context'
     public class CustomType
     {
-        private string _internalStringRepresentation = "foo";
-
-        private void ToDisplayString()
+        private string _innerCcontent = "empty";
+        private string ToDisplayString(string x)
         {
+            return string.Empty;
         }
     }
 
@@ -29,7 +29,7 @@ namespace ErrorProne.Samples.DebuggerDisplay
             {
                 new CustomType(), 
             };
-            var x = $"{Run}";
+            //var x = $"{Run}";
             Console.WriteLine("done");
         }
     }

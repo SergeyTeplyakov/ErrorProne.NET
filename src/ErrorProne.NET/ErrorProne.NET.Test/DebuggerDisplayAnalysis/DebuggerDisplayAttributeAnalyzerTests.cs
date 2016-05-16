@@ -63,7 +63,11 @@ public class CustomType
         [TestCase("X: {foo(42),nqq}")] // unknown format qualifier
         public void FailureCases(string attribute)
         {
-            const string Template = @"[System.Diagnostics.DebuggerDisplay([|""{0}""|])]
+            const string Template = @"
+
+
+// foo
+[System.Diagnostics.DebuggerDisplay([|""{0}""|])]
 public class CustomType
 {{
     private static int foo(string n)
