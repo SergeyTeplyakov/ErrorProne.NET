@@ -76,8 +76,8 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
             if (braceMatch != UnmachedBraces.Match)
             {
                 var message = braceMatch == UnmachedBraces.UnmachedCloseBrace
-                    ? "Can't find corresponding close brace '}' in the input string."
-                    : "Can't find corresponding open brace '{' in the input string.";
+                    ? "Can't find corresponding open brace '{' in the input string."
+                    : "Can't find corresponding close brace '}' in the input string.";
                 context.ReportDiagnostic(Diagnostic.Create(Rule, firstArgument.GetLocation(), message));
                 return;
             }
@@ -146,17 +146,27 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
 
             if (pieces.Length == 2 && !_knownSpecifiers.Contains(pieces[1].Trim()))
             {
-                return ParsedExpression.Invalid(expression, $"Unknown expression specifier '{pieces[1].Trim()}'. Known specifiers are {string.Join(", ", _knownSpecifiers.Select(s => $"'{s}'"))}");
+                string additionalMessage = 
+                    _knownSpecifiers.Count > 1 
+                    ? $"Known specifiers are '{string.Join(", ", _knownSpecifiers.Select(s => $"'{s}'"))}'"
+                    : $"Known specifier is '{_knownSpecifiers.First()}'";
+
+                return ParsedExpression.Invalid(expression, 
+                    $"Unknown expression specifier '{pieces[1].Trim()}'. {additionalMessage}");
             }
 
             // Ok, it seems that expression is valid, now need to check that it points to valid field/property/method
-            // Maybe there is more clever way to check that member is correct, like by
-            // embedding this expression inside decorated class.
             var originalClassDefinition = (ClassDeclarationSyntax)classDefinition.DeclaringSyntaxReferences.First().GetSyntax();
             const string magicMethodName = "SomeMethodThatDefinitelyDoesNotExistsInOriginalClass";
+            
+            // Expressions in the attribute is very very similar to string interpolation.
+            // To validate it let's create a code snippet that will use original expression
+            // but in the interpolated string.
+            // I.e. for expression like `DebuggerDisplay("{x}")` we'll generate:
+            // var x = $"{x}";
             const string expressionToParseTemplate =
 @"private void {0}() {{
-    var x = {1};
+    var x = $""{{{1}}}"";
   }}";
             var expressionToParse = string.Format(expressionToParseTemplate, magicMethodName, pieces[0]);
             var tree = CSharpSyntaxTree.ParseText(expressionToParse);

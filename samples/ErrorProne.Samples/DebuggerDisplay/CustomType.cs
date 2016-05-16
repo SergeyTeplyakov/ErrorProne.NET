@@ -8,16 +8,18 @@ namespace ErrorProne.Samples.DebuggerDisplay
     // Format: nq - no quotes. What else?
     // Method could have arguments! If method has default arguments, everything is fine!
     // If argument types are incompatible, then error will happen in runtime!
-[DebuggerDisplay("X: {this.foo(42),nq}")]
-public class CustomType
-{
-    private string _something = "foo";
-
-    private int foo(dynamic n)
+    [DebuggerDisplay("X: {ToDisplayString()}")]
+    //               ~~~~~~~~~~~~~~~~~~~~~~~~
+    // Expression 'ToStrinString(string.Emmpty)' is invalid: 
+    //    'The name '_internalStringRepr' does not exists in current context'
+    public class CustomType
     {
-        return (int)n;
+        private string _internalStringRepresentation = "foo";
+
+        private void ToDisplayString()
+        {
+        }
     }
-}
 
     public class RunDebuggerDisplaySample
     {
@@ -27,6 +29,7 @@ public class CustomType
             {
                 new CustomType(), 
             };
+            var x = $"{Run}";
             Console.WriteLine("done");
         }
     }
