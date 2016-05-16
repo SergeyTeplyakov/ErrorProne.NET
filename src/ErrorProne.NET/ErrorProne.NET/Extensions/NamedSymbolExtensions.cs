@@ -31,7 +31,8 @@ namespace ErrorProne.NET.Extensions
 
         public static bool IsType(this INamedTypeSymbol namedType, Type type)
         {
-            return namedType.MetadataName == type.AssemblyQualifiedName;
+            //return namedType.MetadataName == type.AssemblyQualifiedName;
+            return namedType.GetTypeQualifiedAssemblyName() == type.AssemblyQualifiedName;
         }
 
         public static string GetTypeQualifiedAssemblyName(this INamedTypeSymbol namedType)

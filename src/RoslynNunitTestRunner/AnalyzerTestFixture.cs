@@ -54,6 +54,10 @@ protected void NoDiagnostic(
             var spans = processed.Spans;
 
             var diagnostics = GetDiagnostics(document);
+
+            Console.WriteLine($"Got {diagnostics.Length} diagnostics:");
+            Console.WriteLine(string.Join("\r\n", diagnostics));
+
             string expected = processed.GetCodeWithMarkers(diagnostics.Select(d => d.Location.SourceSpan).ToList());
 
             var message = $"Expected {spans.Count} diagnostic(s). Document with diagnostics:\r\n{expected}";

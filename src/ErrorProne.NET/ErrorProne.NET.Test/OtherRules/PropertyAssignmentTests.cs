@@ -20,13 +20,13 @@ namespace ErrorProne.NET.Test.OtherRules
             yield return @"
 class Foo
 {
-	public int [|M|] { get; }
+    public int [|M|] { get; }
 }";
             // Should warn if property was used but not assigned
             yield return @"
 class Foo
 {
-	public int [|M|] { get; }
+    public int [|M|] { get; }
     public void Test() { System.Console.WriteLine(M); }
 }";
 
@@ -34,7 +34,7 @@ class Foo
             yield return @"
 class Foo
 {
-	protected int [|M|] { get; }
+    protected int [|M|] { get; }
 }";
 
             yield return @"
@@ -65,35 +65,35 @@ class Foo
     {
        if (s != null) {M = 42;}
     }
-	public int M { get; }
+    public int M { get; }
 }";
 
             // No warning when initialized inplace
             yield return @"
 class Foo
 {
-	public int M { get; } = 42;
+    public int M { get; } = 42;
 }";
             
             // No warning when property getter is implemented
             yield return @"
 class Foo
 {
-	public int M { get {return 42;} }
+    public int M { get {return 42;} }
 }";
             
             // No warning on automatic get-only property
             yield return @"
 class Foo
 {
-	public int M => 42
+    public int M => 42
 }";
 
             // No warning on abstract get-only
             yield return @"
 abstract class Foo
 {
-	public abstract int M { get; } 
+    public abstract int M { get; } 
 }";
             
             // No warning on virtual property.
@@ -123,7 +123,7 @@ class Derived : Base
             const string code = @"
 class Foo
 {
-	public int M { get; [|private set;|] }
+    public int M { get; [|private set;|] }
 }";
 
             HasDiagnostic(code, RuleIds.PropertyWithPrivateSetterWasNeverAssigned);
@@ -135,7 +135,7 @@ class Foo
             const string code = @"
 class Foo
 {
-	public virtual int M { get; private set; }
+    public virtual int M { get; private set; }
 }";
 
             NoDiagnostic(code, RuleIds.PropertyWithPrivateSetterWasNeverAssigned);
@@ -147,7 +147,7 @@ class Foo
             const string code = @"
 class Foo
 {
-	private int M { get; [|set;|] }
+    private int M { get; [|set;|] }
 }";
 
             HasDiagnostic(code, RuleIds.PropertyWithPrivateSetterWasNeverAssigned);
@@ -160,7 +160,7 @@ class Foo
 enum Blah {Value = 1;}
 class Foo
 {
-	public Blah M { get; [|private set;|] }
+    public Blah M { get; [|private set;|] }
 }";
 
             HasDiagnostic(code, RuleIds.PropertyWithPrivateSetterWasNeverAssigned);
@@ -176,7 +176,7 @@ class Foo
     {
        if (s != null) {M = 42;}
     }
-	public int M { get; private set; }
+    public int M { get; private set; }
 }";
 
             NoDiagnostic(code, RuleIds.PropertyWithPrivateSetterWasNeverAssigned);
@@ -191,7 +191,7 @@ class Foo
     {
        if (s != null) {M = 42;}
     }
-	public int M { get; protected set; }
+    public int M { get; protected set; }
 }";
 
             NoDiagnostic(code, RuleIds.PropertyWithPrivateSetterWasNeverAssigned);

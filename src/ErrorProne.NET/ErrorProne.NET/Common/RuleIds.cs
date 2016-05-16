@@ -39,5 +39,7 @@ namespace ErrorProne.NET.Common
         public const string MissingCasesInSwitchStatement = "ERP101";
         public const string StringCloneMethodWasUsed = "ERP102";
 
+        // Errors in DebuggerDisplayAttribute
+        public const string DebuggerDisplayAttributeInvalidFormat = "ERP103";
     }
 }

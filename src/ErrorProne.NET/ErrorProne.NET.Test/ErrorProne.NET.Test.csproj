@@ -120,6 +120,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DebuggerDisplayAnalysis\DebuggerDisplayAttributeAnalyzerTests.cs" />
     <Compile Include="ExceptionHandlingRules\ExtractPreconditionInIteratorBlockTests.cs" />
     <Compile Include="ExceptionHandlingRules\ExtractPreconditionInAsyncMethodTests.cs" />
     <Compile Include="ExceptionHandlingRules\NonSynchronousPreconditionsInIteratorBlockTests.cs" />

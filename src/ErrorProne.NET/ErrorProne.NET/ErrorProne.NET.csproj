@@ -90,9 +90,11 @@
     <Compile Include="Core\PureMethodVerifier.cs" />
     <Compile Include="Extensions\BodySyntaxExtensions.cs" />
     <Compile Include="Extensions\CodeFixContextExtensions.cs" />
+    <Compile Include="Extensions\MemberDeclarationSyntaxExtensions.cs" />
     <Compile Include="Extensions\MethodDeclarationSyntaxExtensions.cs" />
     <Compile Include="Extensions\SyntaxFactoryExtensions.cs" />
     <Compile Include="Refactorings\ConvertToReadOnlyAttribute.cs" />
+    <Compile Include="Rules\DubuggerDisplayAnalysis\DebuggerDisplayAttributeAnanlyzer.cs" />
     <Compile Include="Rules\ExceptionHandling\IteratorBlockPreconditionCodeFixProvider.cs" />
     <Compile Include="Rules\ExceptionHandling\IteratorBlockPreconditionsAnalyzer.cs" />
     <Compile Include="Rules\ExceptionHandling\AsyncMethodPreconditionsAnalyzer.cs" />

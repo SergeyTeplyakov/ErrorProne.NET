@@ -14,13 +14,14 @@ namespace ErrorProne.Samples
         {
             var foo = new Foo();
             foo.m.PrintToConsole();
-            var r = foo.n.CompareTo(42);
+            //var r = foo.n.CompareTo(42);
         }
     }
     class Program
     {
         static void Main(string[] args)
         {
+            DebuggerDisplay.RunDebuggerDisplaySample.Run();
         }
     }
 }

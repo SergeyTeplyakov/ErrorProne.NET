@@ -75,6 +75,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DebuggerDisplay\CustomType.cs" />
     <Compile Include="ExceptionHandlingAnalysis.cs" />
     <Compile Include="ExceptionHandling\AsyncMethods.cs" />
     <Compile Include="ExceptionHandling\IncorrectExceptionObservation.cs" />
