@@ -79,6 +79,7 @@
     <CodeAnalysisRuleSet>ErrorProne.NET.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Rules\ExceptionHandling\ArgumentExceptionUsesStringAnalyzer.cs" />
     <Compile Include="Annotations\ImmutableAttribute.cs" />
     <Compile Include="Annotations\ReadOnlyAttribute.cs" />
     <Compile Include="Annotations\StringFormatMethodAttribute.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="Extensions\PropertyDeclarationExtensions.cs" />
     <Compile Include="Extensions\SymbolExtensions.cs" />
     <Compile Include="Extensions\SyntaxNodeExtensions.cs" />
+    <Compile Include="Extensions\SyntaxNodeAnalysisContextExtensions.cs" />
     <Compile Include="Extensions\TypeSymbolExtensions.cs" />
     <Compile Include="Rules\ExceptionHandling\AsyncMethodPreconditionCodeFixProvider.cs" />
     <Compile Include="Rules\Formatting\RegexPatternAnalyzer.cs" />

@@ -36,8 +36,7 @@ namespace ErrorProne.NET.Rules.Formatting
         private void AnalyzeRegexCreation(SyntaxNodeAnalysisContext context)
         {
             var objectCreation = (ObjectCreationExpressionSyntax) context.Node;
-
-            var type = context.SemanticModel.GetSymbolInfo(objectCreation.Type).Symbol as ITypeSymbol;
+            var type = context.GetTypeSymbol(objectCreation.Type);
             if (type == null || !type.Equals(context.SemanticModel.GetClrType(typeof(Regex))))
             {
                 return;
