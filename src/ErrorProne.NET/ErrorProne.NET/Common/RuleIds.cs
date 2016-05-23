@@ -5,7 +5,6 @@ namespace ErrorProne.NET.Common
 {
     public static class RuleIds
     {
-        // 
         public const string UnobservedPureMethodInvocationId = "ERP001";
         public const string SideEffectFreeExceptionContructionId = "ERP002";
         public const string AssignmentFreeImmutableObjectContructionId = "ERP003";
@@ -41,5 +40,10 @@ namespace ErrorProne.NET.Common
 
         // Errors in DebuggerDisplayAttribute
         public const string DebuggerDisplayAttributeInvalidFormat = "ERP103";
+
+        // Argument exception
+        public const string ArgumentExceptionParamNameRequired = "ERP061";
+        public const string ArgumentExceptionMethodHasNoSuchParamName = "ERP062";
+        public const string ArgumentExceptionParamNameShouldNotBeString = "ERP063";
     }
 }
