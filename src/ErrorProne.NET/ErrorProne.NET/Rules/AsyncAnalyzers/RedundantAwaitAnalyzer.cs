@@ -18,7 +18,7 @@ namespace ErrorProne.NET.Rules.AsyncAnalyzers
         public const string DiagnosticId = RuleIds.RedundantAwaitRule;
 
         internal const string Title = "Await is redundant";
-        internal const string MessageFormat = "Async/Await is redundant, because all exit points are awaitable.";
+        internal const string MessageFormat = "Async/Await is redundant because all exit points are awaitable.";
         internal const string Category = "CodeSmell";
 
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
