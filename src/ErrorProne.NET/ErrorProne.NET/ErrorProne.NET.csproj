@@ -94,6 +94,8 @@
     <Compile Include="Extensions\MethodDeclarationSyntaxExtensions.cs" />
     <Compile Include="Extensions\SyntaxFactoryExtensions.cs" />
     <Compile Include="Refactorings\ConvertToReadOnlyAttribute.cs" />
+    <Compile Include="Rules\AsyncAnalyzers\RedundantAwaitCodeFixProvider.cs" />
+    <Compile Include="Rules\AsyncAnalyzers\RedundantAwaitAnalyzer.cs" />
     <Compile Include="Rules\DubuggerDisplayAnalysis\DebuggerDisplayAttributeAnanlyzer.cs" />
     <Compile Include="Rules\ExceptionHandling\IteratorBlockPreconditionCodeFixProvider.cs" />
     <Compile Include="Rules\ExceptionHandling\IteratorBlockPreconditionsAnalyzer.cs" />

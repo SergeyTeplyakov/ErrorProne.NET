@@ -27,5 +27,13 @@ namespace ErrorProne.NET.Extensions
                 new SeparatedSyntaxList<ArgumentSyntax>().AddRange(
                     parameters.Parameters.Select(p => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(p.Identifier)))));
         }
+
+        [Pure]
+        public static bool IsAsync(this MethodDeclarationSyntax method, SemanticModel semanticModel)
+        {
+            var methodSymbol = semanticModel.GetDeclaredSymbol(method);
+
+            return methodSymbol?.IsAsync == true;
+        }
     }
 }

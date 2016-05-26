@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Common;
+using ErrorProne.NET.Extensions;
 using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -37,7 +38,7 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
 
             var methodSymbol = context.SemanticModel.GetDeclaredSymbol(method);
 
-            if (methodSymbol == null || !methodSymbol.IsAsync) return;
+            if (methodSymbol?.IsAsync != true) return;
                 
             var contractBlock = PreconditionsBlock.GetPreconditions(method, context.SemanticModel);
 

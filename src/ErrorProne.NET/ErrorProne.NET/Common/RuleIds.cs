@@ -41,5 +41,8 @@ namespace ErrorProne.NET.Common
 
         // Errors in DebuggerDisplayAttribute
         public const string DebuggerDisplayAttributeInvalidFormat = "ERP103";
+
+        // Async rules
+        public const string RedundantAwaitRule = "ERP111";
     }
 }
