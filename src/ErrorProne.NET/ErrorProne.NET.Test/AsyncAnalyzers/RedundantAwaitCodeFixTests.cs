@@ -63,6 +63,32 @@ class Test
         }
 
         [Test]
+        public void ConvertLambdaExpression()
+        {
+            string code = @"
+using System.Threading.Tasks;
+class Test
+{
+    public Task<int> Foo(string s)
+    {
+        return Task.Run([|async|] () => await Task.FrommResult(42));
+    }
+}";
+
+            string expected = @"
+using System.Threading.Tasks;
+class Test
+{
+    public Task<int> Foo(string s)
+    {
+        return Task.Run(() => Task.FrommResult(42));
+    }
+}";
+
+            TestCodeFix(code, expected, RedundantAwaitAnalyzer.Rule);
+        }
+
+        [Test]
         public void ConvertTernaryReturn()
         {
             string code = @"
