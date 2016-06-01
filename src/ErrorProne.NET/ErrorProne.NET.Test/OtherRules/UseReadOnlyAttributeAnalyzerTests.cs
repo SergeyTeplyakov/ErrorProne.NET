@@ -22,7 +22,7 @@ namespace ErrorProne.NET.Test.Refactorings
 struct CustomStruct {}
 class Foo
 {
-	[|public readonly CustomStruct _m|];
+	[|public readonly CustomStruct _m;|]
 }";
 		}
 

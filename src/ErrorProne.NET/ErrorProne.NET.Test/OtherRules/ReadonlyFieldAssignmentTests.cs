@@ -20,13 +20,13 @@ namespace ErrorProne.NET.Test.OtherRules
             yield return @"
 class Foo
 {
-	public readonly int [|_m|];
+    public readonly int [|_m|];
 }";
             // Should warn if field was used but not initialized
             yield return @"
 class Foo
 {
-	public readonly int [|_m|];
+    public readonly int [|_m|];
     public void Method() { System.Console.WriteLine(_m); }
 }";
 
@@ -34,7 +34,7 @@ class Foo
             yield return @"
 class Foo
 {
-	protected readonly string [|_m|];
+    protected readonly string [|_m|];
 }";
 
             // Should warn on readonly field with attribute
@@ -42,7 +42,7 @@ class Foo
 class Base
 {
     [ErrorProne.NET.Annotations.ReadOnly]
-    private string _foo;
+    private readonly string [|_foo|];
 }";
         }
 
@@ -86,7 +86,7 @@ class Foo
     {
        Initialize(out _m);
     }
-	public readonly string _m;
+    public readonly string _m;
     private void Initialize(out string s) {s = null;}
 }";
             // Should not warn when initialized in constructor
@@ -97,14 +97,14 @@ class Foo
     {
        if (s != null) {_m = 42;}
     }
-	public readonly int _m;
+    public readonly int _m;
 }";
 
             // No warning when initialized inplace
             yield return @"
 class Foo
 {
-	public static readonly int M = 42;
+    public static readonly int M = 42;
 }";
         }
 
