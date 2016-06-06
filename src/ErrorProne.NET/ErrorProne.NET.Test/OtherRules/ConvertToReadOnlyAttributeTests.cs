@@ -8,7 +8,7 @@ namespace ErrorProne.NET.Test.OtherRules
     public class ConvertToReadOnlyAttributeTests : CSharpCodeFixTestFixture<UseReadOnlyAttributeCodeFixProvider>
     {
         [Test]
-        public void Convert()
+        public void WarnOnLargeStruct()
         {
             var code = @"
 struct CustomStruct {}
@@ -24,7 +24,7 @@ class Foo
     [ErrorProne.NET.Annotations.ReadOnly]
     public CustomStruct _m;
 }";
-            this.TestCodeFix(code, expected, UseReadOnlyAttributeAnalyzer.Rule);
+            this.TestCodeFix(code, expected, DoNotUseReadonlyModifierAnalyzer.Rule);
         }
     }
 }

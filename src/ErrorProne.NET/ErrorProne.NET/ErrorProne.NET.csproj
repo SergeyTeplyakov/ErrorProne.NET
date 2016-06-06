@@ -116,9 +116,9 @@
     <Compile Include="Rules\ExceptionHandling\AsyncMethodPreconditionCodeFixProvider.cs" />
     <Compile Include="Rules\Formatting\RegexPatternAnalyzer.cs" />
     <Compile Include="Rules\OtherRules\StringCloneMethodAnalyzer.cs" />
-    <Compile Include="Rules\OtherRules\UseReadOnlyAttributeAnalyzer.cs" />
-    <Compile Include="Rules\OtherRules\ReadOnlyAttributeAnalyzer.cs" />
-    <Compile Include="Rules\OtherRules\FieldAnalyzer.cs" />
+    <Compile Include="Rules\OtherRules\DoNotUseReadonlyModifierAnalyzer.cs" />
+    <Compile Include="Rules\OtherRules\DoNotUseReadOnlyAttributeAnalyzer.cs" />
+    <Compile Include="Rules\OtherRules\FieldAnalyzers.cs" />
     <Compile Include="Rules\OtherRules\PropertyAnalyser.cs" />
     <Compile Include="Rules\OtherRules\UseReadOnlyAttributeCodeFixProvider.cs" />
     <Compile Include="Rules\SideEffectAnalysis\InvocationExpressionExtensions.cs" />
@@ -138,6 +138,7 @@
     <Compile Include="Rules\SwitchAnalysis\SwitchAnalyzer.cs" />
     <Compile Include="Utils\LazyEx.cs" />
     <Compile Include="Utils\Monadic.cs" />
+    <Compile Include="Utils\StructSizeCalculator.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

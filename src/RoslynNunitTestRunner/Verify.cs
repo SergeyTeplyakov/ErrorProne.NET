@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -25,6 +24,10 @@ namespace RoslynNunitTestRunner
             var sourceText = newDocument.GetTextAsync(CancellationToken.None).Result;
             var text = sourceText.ToString();
             Console.WriteLine($"New code:\r\n{text}");
+
+            // Need to replace win-style line ending to unix-style to avoid build breaks on AppVeyor
+            text = text.Replace("\r\n", "\n");
+            expectedCode = expectedCode.Replace("\r\n", "\n");
 
             Assert.That(text, Is.EqualTo(expectedCode));
         }

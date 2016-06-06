@@ -2,6 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ErrorProne.NET.Annotations;
 using ErrorProne.NET.Common;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
@@ -11,8 +12,15 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Rules.OtherRules
 {
+    /// <summary>
+    /// Set of analyzers for fields.
+    /// </summary>
+    /// <remarks>
+    /// Currently one analyzer is responsible for different rules, like
+    /// unassigned private fields, assignment for fields marked with <see cref="ReadOnlyAttribute"/> etc.
+    /// </remarks>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class FieldAnalyzer : DiagnosticAnalyzer
+    public sealed class FieldAnalyzers : DiagnosticAnalyzer
     {
         // Field was never used info
         private static readonly string FieldWasNeverUsedTitle = "A private field was never used.";
