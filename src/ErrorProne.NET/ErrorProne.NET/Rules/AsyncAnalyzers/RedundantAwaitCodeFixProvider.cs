@@ -31,15 +31,39 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var method = context.GetFirstNodeWithDiagnostic<MethodDeclarationSyntax>(root);
 
-            // Removing 'async' keyword and removing all await expression from the body
-            var newMethod = 
-                RemoveAwaitSyntaxRewriter.RewriteMethod(method)
-                .WithoutModifiers(t => t.IsKind(SyntaxKind.AsyncKeyword));
+            SyntaxNode oldNode;
+            SyntaxNode newNode;
 
-            // Заменяем метод парой узлов: новым методом и выделенным методом
-            var newRoot = root.ReplaceNode(method, newMethod);
+            var method = root.FindNode(context.Span) as MethodDeclarationSyntax;
+
+            if (method != null)
+            {
+                // Removing 'async' keyword and removing all await expression from the body
+                var updatedMethod =
+                    RemoveAwaitSyntaxRewriter.RewriteMethod(method)
+                        .WithoutModifiers(t => t.IsKind(SyntaxKind.AsyncKeyword));
+
+                oldNode = method;
+                newNode = updatedMethod;
+            }
+            else
+            {
+                var anonymousMethod =
+                    root.FindNode(context.Span)
+                        .DescendantNodesAndSelf()
+                        .OfType<AnonymousFunctionExpressionSyntax>()
+                        .First();
+
+                var newAnonymousMethodd =
+                    RemoveAwaitSyntaxRewriter.Rewrite(anonymousMethod).RemoveAsyncModifier();
+
+                oldNode = anonymousMethod;
+                newNode = newAnonymousMethodd;
+            }
+            
+            // Replace this stuff
+            var newRoot = root.ReplaceNode(oldNode, newNode);
             var codeAction = CodeAction.Create(FixText, ct => Task.FromResult(context.Document.WithSyntaxRoot(newRoot)));
             context.RegisterCodeFix(codeAction, context.Diagnostics.First());
         }
@@ -54,6 +78,11 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
             public static MethodDeclarationSyntax RewriteMethod(MethodDeclarationSyntax method)
             {
                 return (MethodDeclarationSyntax)(new RemoveAwaitSyntaxRewriter().Visit(method));
+            }
+
+            public static T Rewrite<T>(T root) where T : SyntaxNode
+            {
+                return (T) (new RemoveAwaitSyntaxRewriter().Visit(root));
             }
         }
     }

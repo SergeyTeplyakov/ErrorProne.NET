@@ -31,10 +31,10 @@ class Test
 using System.Collections.Generic;
 class Test
 {
-    public IEnumerable<string> ReadFile2(string fileName)
+    public IEnumerable<string> ReadFile2(string fileName, string[] ar)
     {
-        if (fileName == null) throw new System.ArgumentNullException();
-        foreach(var s in new[] { ""})
+        if (fileName == null) [|throw new System.ArgumentNullException();|]
+        foreach(var s in ar)
         {
             yield return s;
         }

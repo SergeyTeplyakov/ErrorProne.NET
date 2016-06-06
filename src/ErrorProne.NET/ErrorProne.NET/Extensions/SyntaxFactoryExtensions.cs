@@ -58,6 +58,29 @@ namespace ErrorProne.NET.Extensions
             return methodDeclaration.WithModifiers(modifiers);
         }
 
+        public static AnonymousFunctionExpressionSyntax RemoveAsyncModifier(this AnonymousFunctionExpressionSyntax syntax)
+        {
+            var anonymousMethod = syntax as AnonymousMethodExpressionSyntax;
+            if (anonymousMethod != null)
+            {
+                return anonymousMethod.WithAsyncKeyword(new SyntaxToken());
+            }
+
+            var parens = syntax as ParenthesizedLambdaExpressionSyntax;
+            if (parens != null)
+            {
+                return parens.WithAsyncKeyword(new SyntaxToken());
+            }
+
+            var simple = syntax as SimpleLambdaExpressionSyntax;
+            if (simple != null)
+            {
+                return simple.WithAsyncKeyword(new SyntaxToken());
+            }
+
+            return syntax;
+        }
+
         public static MethodDeclarationSyntax WithoutModifiers(this MethodDeclarationSyntax methodDeclaration, Func<SyntaxToken, bool> predicate)
         {
             Contract.Requires(methodDeclaration != null);

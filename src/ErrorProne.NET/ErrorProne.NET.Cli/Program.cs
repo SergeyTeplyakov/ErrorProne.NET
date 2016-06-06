@@ -82,11 +82,11 @@ namespace ErrorProne.NET.Cli
                 return;
             }
 
-            CustomLogger.Configure(configuration.LogFile, true);
+            CustomLogger.Configure(configuration.LogFile, configuration.LogEnabled);
 
             var runner = new AnalyzerRunner(configuration);
             runner.TryAnalyzeSolutionAsync().GetAwaiter().GetResult();
-            
+
             Console.WriteLine("Press \"Enter\" to exit");
             Console.ReadLine();
         }

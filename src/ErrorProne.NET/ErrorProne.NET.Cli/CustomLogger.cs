@@ -20,6 +20,8 @@ namespace ErrorProne.NET.Cli
 
         public static void Configure(string logFileName, bool fileLoggerEnabled)
         {
+            Contract.Requires(logFileName != null || fileLoggerEnabled);
+
             _logFileName = logFileName;
             _fileLoggerEnabled = fileLoggerEnabled;
         }

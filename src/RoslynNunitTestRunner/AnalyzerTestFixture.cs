@@ -53,6 +53,8 @@ protected void NoDiagnostic(
             var document = processed.Document;
             var spans = processed.Spans;
 
+            Assert.That(spans.Count, Is.GreaterThan(0), "At least one marker '[| |]' should be provided.");
+
             var diagnostics = GetDiagnostics(document);
 
             Console.WriteLine($"Got {diagnostics.Length} diagnostics:");
