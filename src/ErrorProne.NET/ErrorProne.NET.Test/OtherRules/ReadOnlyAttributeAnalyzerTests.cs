@@ -7,7 +7,7 @@ using RoslynNunitTestRunner;
 namespace ErrorProne.NET.Test.OtherRules
 {
     [TestFixture]
-    public class ReadOnlyAttributeAnalyzerTests : CSharpAnalyzerTestFixture<ReadOnlyAttributeAnalyzer>
+    public class ReadOnlyAttributeAnalyzerTests : CSharpAnalyzerTestFixture<DoNotUseReadOnlyAttributeAnalyzer>
     {
         [TestCaseSource(nameof(ShouldWarnIfInvalidTestCases))]
         public void ShouldWarnIfInvalid(string code)
@@ -22,7 +22,7 @@ namespace ErrorProne.NET.Test.OtherRules
 class Foo
 {
     [ErrorProne.NET.Annotations.ReadOnlyAttribute]
-	public int [|_m|];
+    public int [|_m|];
 }";
 
             // Can't use attribute on nullable primitives
@@ -30,7 +30,7 @@ class Foo
 class Foo
 {
     [ErrorProne.NET.Annotations.ReadOnlyAttribute]
-	public int? [|_m|];
+    public int? [|_m|];
 }";
 
             // Can't use attribute on reference types
@@ -38,7 +38,7 @@ class Foo
 class Foo
 {
     [ErrorProne.NET.Annotations.ReadOnlyAttribute]
-	public string [|_m|];
+    public string [|_m|];
 }";
 
             // Can't use attribute on enums
@@ -47,7 +47,7 @@ enum CustomEnum {}
 class Foo
 {
     [ErrorProne.NET.Annotations.ReadOnlyAttribute]
-	public CustomEnum [|_m|];
+    public CustomEnum [|_m|];
 }";
 
             // Can't use with readonly attribute
@@ -56,7 +56,7 @@ struct CustomStruct {}
 class Foo
 {
     [ErrorProne.NET.Annotations.ReadOnlyAttribute]
-	public readonly CustomStruct [|_m|];
+    public readonly CustomStruct [|_m|];
 }";
         }
 
@@ -74,7 +74,7 @@ struct CustomStruct {}
 class Foo
 {
     [ErrorProne.NET.Annotations.ReadOnlyAttribute]
-	public CustomStruct _m;
+    public CustomStruct _m;
 }";
         }
     }

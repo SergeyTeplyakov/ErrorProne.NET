@@ -7,7 +7,7 @@ using RoslynNunitTestRunner;
 namespace ErrorProne.NET.Test.OtherRules
 {
     [TestFixture]
-    public class ReadonlyFieldAssignmentTests : CSharpAnalyzerTestFixture<FieldAnalyzer>
+    public class ReadonlyFieldAssignmentTests : CSharpAnalyzerTestFixture<FieldAnalyzers>
     {
         [TestCaseSource(nameof(ShouldWarnForUnassignedReadOnlyFieldTestCases))]
         public void ShouldWarnForUnassignedReadOnlyField(string code)

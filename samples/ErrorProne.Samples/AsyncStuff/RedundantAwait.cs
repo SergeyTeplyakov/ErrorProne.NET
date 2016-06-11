@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace ErrorProne.Samples.AsyncStuff
 {
@@ -6,9 +7,16 @@ namespace ErrorProne.Samples.AsyncStuff
     {
         public async Task<int> FooAsync(string s)
         {
-            if (s == null) return await Task.FromResult(1);
+            ConfiguredTaskAwaitable<int> tsk = Task.FromResult(1).ConfigureAwait(false);
+            var x = tsk.GetAwaiter().GetResult();
+            if (s == null) return await Task.FromResult(1).ConfigureAwait(false);
 
             return await Task.FromResult(42);
+        }
+
+        private static async Task<int> Foo(string arg)
+        {
+            return await Task.FromResult(42) + 1;
         }
     }
 }
