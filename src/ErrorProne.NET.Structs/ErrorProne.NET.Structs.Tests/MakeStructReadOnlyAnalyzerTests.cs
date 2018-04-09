@@ -95,6 +95,5 @@ namespace ErrorProne.NET.Structs.Test
 }";
 
         }
-        
     }
 }

@@ -2,8 +2,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Structs
@@ -13,9 +11,9 @@ namespace ErrorProne.NET.Structs
     {
         public const string DiagnosticId = DiagnosticIds.MakeStructReadonlyDiagnosticId;
 
-        private static readonly string Title = "Make struct readonly";
-        private static readonly string MessageFormat = "Make struct '{0}' readonly";
-        private static readonly string Description = "Readonly structs have better performance when passed/return by reference.";
+        private static readonly string Title = "A struct can be readonly";
+        private static readonly string MessageFormat = "Struct '{0}' can be readonly";
+        private static readonly string Description = "Readonly structs have better performance when passed/return by readonly reference.";
         private const string Category = "Performance";
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
