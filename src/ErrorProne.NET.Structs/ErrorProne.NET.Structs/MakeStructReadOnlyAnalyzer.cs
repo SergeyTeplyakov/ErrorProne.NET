@@ -38,7 +38,7 @@ namespace ErrorProne.NET.Structs
                 return;
             }
 
-            if (IsReadOnly(namedTypeSymbol))
+            if (namedTypeSymbol.IsReadOnlyStruct())
             {
                 return;
             }
@@ -63,26 +63,6 @@ namespace ErrorProne.NET.Structs
                 default:
                     throw new InvalidOperationException($"Unknown member type '{member.GetType()}'.");
             }
-        }
-
-        // TODO: move to an extension method
-        private static bool IsReadOnly(INamedTypeSymbol type)
-        {
-            // Contract.Requires(namedSymbol.IsValueType);
-            // Unfortunately, IsReadOnly property is internal, so we have to compute this manually.
-            foreach (var typeSyntax in type.DeclaringSyntaxReferences.Select(sr => sr.GetSyntax())
-                .OfType<TypeDeclarationSyntax>())
-            {
-                foreach (var modifier in typeSyntax.Modifiers)
-                {
-                    if (modifier.Kind() == SyntaxKind.ReadOnlyKeyword)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
     }
 }
