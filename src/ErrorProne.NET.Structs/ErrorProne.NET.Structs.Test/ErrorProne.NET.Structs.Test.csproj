@@ -6,8 +6,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.7.0" />
-    <PackageReference Include="NUnit" Version="3.10.1" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\RoslynNUnitTestRunner\RoslynNUnitTestRunner.csproj" />
+    <ProjectReference Include="..\ErrorProne.NET.Structs\ErrorProne.NET.Structs.csproj" />
   </ItemGroup>
 
 </Project>
