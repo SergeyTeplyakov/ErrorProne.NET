@@ -14,10 +14,10 @@ namespace ErrorProne.NET.Structs
     /// <summary>
     /// A fixer for <see cref="MakeStructReadOnlyAnalyzer"/>.
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeStructReadOnlyCodeFixProvider)), Shared]
-    public class MakeStructReadOnlyCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseInModifierForReadOnlyStructCodeFixProvider)), Shared]
+    public class UseInModifierForReadOnlyStructCodeFixProvider : CodeFixProvider
     {
-        public const string Title = "Make struct readonly";
+        public const string Title = "Pass readonly struct with 'in'-modifier";
 
         /// <inheritdoc />
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -28,26 +28,26 @@ namespace ErrorProne.NET.Structs
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<StructDeclarationSyntax>().First();
+            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<ParameterSyntax>().First();
 
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: Title,
-                    createChangedDocument: c => MakeReadOnlyAsync(context.Document, declaration, c),
+                    createChangedDocument: c => AddInModifier(context.Document, declaration, c),
                     equivalenceKey: Title),
                 diagnostic);
         }
 
         /// <inheritdoc />
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeStructReadOnlyAnalyzer.DiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(UseInModifierForReadOnlyStructAnalyzer.DiagnosticId);
 
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> MakeReadOnlyAsync(Document document, StructDeclarationSyntax typeDecl, CancellationToken cancellationToken)
+        private async Task<Document> AddInModifier(Document document, ParameterSyntax typeDecl, CancellationToken cancellationToken)
         {
-            var newType = typeDecl.WithModifiers(typeDecl.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)));
+            var newType = typeDecl.WithModifiers(typeDecl.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.InKeyword)));
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(root.ReplaceNode(typeDecl, newType));

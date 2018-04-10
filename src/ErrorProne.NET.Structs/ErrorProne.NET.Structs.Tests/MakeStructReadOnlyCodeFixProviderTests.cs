@@ -7,7 +7,7 @@ namespace ErrorProne.NET.Structs.Test
     public class MakeStructReadOnlyCodeFixProviderTests : CSharpCodeFixTestFixture<MakeStructReadOnlyCodeFixProvider>
     {
         [Test]
-        public void ConvertSingleAwait()
+        public void MakeStructReadOnly()
         {
             string code = @"struct [|FooBar|] {}";
 
@@ -15,5 +15,7 @@ namespace ErrorProne.NET.Structs.Test
 
             TestCodeFix(code, expected, MakeStructReadOnlyAnalyzer.Rule);
         }
+
+        // TODO: add test case for partial declaration.
     }
 }
