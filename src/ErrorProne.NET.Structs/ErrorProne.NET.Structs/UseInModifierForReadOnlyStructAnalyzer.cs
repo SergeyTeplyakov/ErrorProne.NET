@@ -1,28 +1,30 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Structs
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class NonReadOnlyStructPassedAsInParameterAnalyzer : DiagnosticAnalyzer
+    public class UseInModifierForReadOnlyStructAnalyzer : DiagnosticAnalyzer
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.NonReadOnlyStructPassedAsInParameterDiagnosticId;
+        public const string DiagnosticId = DiagnosticIds.UseInModifierForReadOnlyStructDiagnosticId;
 
-        private static readonly string Title = "Non-readonly struct used as in-parameter";
-        private static readonly string MessageFormat = "Non-readonly struct '{0}' used as in-parameter '{1}'";
-        private static readonly string Description = "Non-readonly structs can caused severe performance issues when used as in-parameters";
+        private static readonly string Title = "Use in-modifier for a readonly struct";
+        private static readonly string MessageFormat = "Use in-modifier for passing readonly struct '{0}'";
+        private static readonly string Description = "Readonly structs have better performance when passed readonly reference";
         private const string Category = "Performance";
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor Rule = 
             new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
-        
+
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
-
+        
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
@@ -34,7 +36,7 @@ namespace ErrorProne.NET.Structs
             var method = (IMethodSymbol)context.Symbol;
             foreach (var p in method.Parameters)
             {
-                if (p.RefKind == RefKind.In && p.Type.IsValueType && !p.Type.IsReadOnlyStruct())
+                if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct())
                 {
                     // Can't just use p.Location, because it will capture just a span for parameter name.
                     var span = p.DeclaringSyntaxReferences[0].GetSyntax().FullSpan;
