@@ -17,11 +17,11 @@
         /// <nodoc />
         public const string UseInModifierForReadOnlyStructDiagnosticId = "UseInModifierForReadOnlyStructDiagnosticId";
 
-        // Separate 3 cases:
+        // Separate 4 cases:
         // 1. Struct is readonly - safe to pass/return by readonly ref
         // 2. Struct is non-readonly but has only exposed fields with no exposed props/methods - safe to pass/return by readonly ref
         // 3. Struct is non-readonly and doesn't have exposed fields - unsafe to pass/return by readonly ref
-        // 3. Struct is non-readonly and has exposed fields and props/methods.
+        // 4. Struct is non-readonly and has exposed fields and props/methods.
 
         // Readonly ref local of a generic type: not clear what the perf implications are.
 

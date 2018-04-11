@@ -32,6 +32,9 @@ namespace ErrorProne.NET.Structs.Test
 
             // For custom struct and int
             yield return @"struct S {public void Foo() {}} class FooBar { public void Foo([|in int n|], [|in S s|]) {} }";
+
+            // For generic struct
+            yield return @"struct S<T> {public void Foo() {}} class FooBar<T> {public void Foo([|in S<T> s|]) {}";
         }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
@@ -56,6 +59,9 @@ namespace ErrorProne.NET.Structs.Test
 
             // No diagnostics for mixed struct
             yield return @"struct S {public int x; public void Foo() {} } class FooBar { public void Foo(in S n) {} }";
+
+            // No diagnostics for tuples
+            yield return @"class FooBar { public void Foo(in (int x, int y) t) {}";
         }
 
         // [Test] // not implemented yet.
