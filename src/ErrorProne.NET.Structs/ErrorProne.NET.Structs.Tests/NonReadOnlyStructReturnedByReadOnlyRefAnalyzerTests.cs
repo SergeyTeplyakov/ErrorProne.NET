@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 using RoslynNunitTestRunner;
 
 namespace ErrorProne.NET.Structs.Test
@@ -27,6 +28,40 @@ namespace ErrorProne.NET.Structs.Test
         {
             string code = @"readonly struct S {} class FooBar { public ref readonly S Foo() => throw new System.Exception(); }";
             NoDiagnostic(code, DiagnosticId);
+        }
+
+        [TestCaseSource(nameof(GetHasDiagnosticsTestCases))]
+        public void HasDiagnosticsTestCases(string code)
+        {
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        public static IEnumerable<string> GetHasDiagnosticsTestCases()
+        {
+            // Has diagnostics for ref return property
+            yield return
+                @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S => _s; }";
+            
+            // No diagnostics for ref return method with expression body
+            yield return
+                @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S() => _s; }";
+        }
+
+        [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
+        public void NoDiagnosticsTestCases(string code)
+        {
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        public static IEnumerable<string> GetNoDiagnosticsTestCases()
+        {
+            // No diagnostics for ref return property
+            yield return
+                @"struct S {} class FooBar {private S _s; public ref readonly S S => _s; }";
+            
+            // No diagnostics for ref return method with expression body
+            yield return
+                @"struct S {} class FooBar {private S _s; public ref readonly S S() => _s; }";
         }
 
         // [Test] // not implemented yet.

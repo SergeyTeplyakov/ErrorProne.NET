@@ -5,6 +5,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Structs
 {
+    /// <summary>
+    /// An analyzer that warns when a non-ref-readonly struct is returned by readonly reference.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NonReadOnlyStructReturnedByReadOnlyRefAnalyzer : DiagnosticAnalyzer
     {
@@ -36,13 +39,26 @@ namespace ErrorProne.NET.Structs
             if (!method.ReturnsVoid 
                 && method.ReturnsByRefReadonly 
                 && method.ReturnType.IsValueType &&
-                !method.ReturnType.UnfriendlyToReadOnlyRefs())
+                method.ReturnType.UnfriendlyToReadOnlyRefs())
             {
-                var methodSyntax = (MethodDeclarationSyntax) method.DeclaringSyntaxReferences[0].GetSyntax();
+                var syntaxNode = method.DeclaringSyntaxReferences[0].GetSyntax();
+                var syntaxTree = method.DeclaringSyntaxReferences[0].SyntaxTree;
 
-                var location = Location.Create(method.DeclaringSyntaxReferences[0].SyntaxTree,
-                    methodSyntax.ReturnType.FullSpan);
-
+                Location location = null;
+                
+                switch (syntaxNode)
+                {
+                    case MethodDeclarationSyntax m:
+                        location = Location.Create(syntaxTree, m.ReturnType.FullSpan);
+                        break;
+                    case ArrowExpressionClauseSyntax a:
+                        if (a.Parent is PropertyDeclarationSyntax pd)
+                        {
+                            location = Location.Create(syntaxTree, pd.Type.FullSpan);
+                        }
+                        break;
+                }
+                //method.MethodKind == MethodKind.PropertyGet
                 var diagnostic = Diagnostic.Create(Rule, location, method.ReturnType.Name);
 
                 context.ReportDiagnostic(diagnostic);

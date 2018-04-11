@@ -4,8 +4,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Structs
 {
+    /// <summary>
+    /// An analyzer that warns when non-ref-readonly struct is passed using 'in'-modifier.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class NonReadOnlyStructPassedAsInParameterAnalyzer : DiagnosticAnalyzer
+    public sealed class NonReadOnlyStructPassedAsInParameterAnalyzer : DiagnosticAnalyzer
     {
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.NonReadOnlyStructPassedAsInParameterDiagnosticId;
