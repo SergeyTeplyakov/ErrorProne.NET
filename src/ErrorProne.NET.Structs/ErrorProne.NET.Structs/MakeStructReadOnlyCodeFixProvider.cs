@@ -25,24 +25,26 @@ namespace ErrorProne.NET.Structs
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
             var diagnostic = context.Diagnostics.FirstOrDefault();
+
             if (diagnostic == null)
             {
-                // Not sure why, but this happened.
+                // Not sure why, but it seems this is possible in the batch mode.
                 return;
             }
-
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<StructDeclarationSyntax>().First();
-
-            // Register a code action that will invoke the fix.
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title: Title,
-                    createChangedDocument: c => MakeReadOnlyAsync(context.Document, declaration, c),
-                    equivalenceKey: Title),
-                diagnostic);
+            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<StructDeclarationSyntax>().FirstOrDefault();
+            if (declaration != null)
+            {
+                // Register a code action that will invoke the fix.
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: Title,
+                        createChangedDocument: c => MakeReadOnlyAsync(context.Document, declaration, c),
+                        equivalenceKey: Title),
+                    diagnostic);
+            }
         }
 
         /// <inheritdoc />
@@ -53,7 +55,7 @@ namespace ErrorProne.NET.Structs
 
         private async Task<Document> MakeReadOnlyAsync(Document document, StructDeclarationSyntax typeDecl, CancellationToken cancellationToken)
         {
-            var newType = typeDecl.WithModifiers(typeDecl.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)));
+            var newType = typeDecl.WithModifiers(typeDecl.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)));
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(root.ReplaceNode(typeDecl, newType));

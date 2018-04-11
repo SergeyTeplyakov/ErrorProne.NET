@@ -16,6 +16,40 @@ namespace ErrorProne.NET.Structs.Test
             TestCodeFix(code, expected, MakeStructReadOnlyAnalyzer.Rule);
         }
 
-        // TODO: add test case for partial declaration.
+        [Test]
+        public void MakeStructReadOnlyForPublicStruct()
+        {
+            string code = @"public struct [|FooBar|] {}";
+
+            string expected = @"public readonly struct FooBar {}";
+
+            TestCodeFix(code, expected, MakeStructReadOnlyAnalyzer.Rule);
+        }
+
+        [Test]
+        public void MakeStructReadOnlyForPublicStructWithComment()
+        {
+            string code = @"/// <summary>
+/// comment
+/// </summary>
+public struct [|FooBar|] {}";
+
+            string expected = @"/// <summary>
+/// comment
+/// </summary>
+public readonly struct FooBar {}";
+
+            TestCodeFix(code, expected, MakeStructReadOnlyAnalyzer.Rule);
+        }
+
+        [Test]
+        public void MakeStructReadOnlyForPublicPartialStruct()
+        {
+            string code = @"public partial struct [|FooBar|] {}";
+
+            string expected = @"public partial readonly struct FooBar {}";
+
+            TestCodeFix(code, expected, MakeStructReadOnlyAnalyzer.Rule);
+        }
     }
 }
