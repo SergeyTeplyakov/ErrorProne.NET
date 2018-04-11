@@ -24,7 +24,13 @@ namespace ErrorProne.NET.Structs
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var diagnostic = context.Diagnostics.First();
+            var diagnostic = context.Diagnostics.FirstOrDefault();
+            if (diagnostic == null)
+            {
+                // Not sure why, but this happened.
+                return;
+            }
+
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.

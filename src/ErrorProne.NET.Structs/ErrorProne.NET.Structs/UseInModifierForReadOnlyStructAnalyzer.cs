@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Structs
@@ -28,24 +29,56 @@ namespace ErrorProne.NET.Structs
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
+            context.RegisterSyntaxNodeAction(AnalyzeDelegateDeclaration, SyntaxKind.DelegateDeclaration);
             context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
+        }
+
+        private void AnalyzeDelegateDeclaration(SyntaxNodeAnalysisContext context)
+        {
+            var delegateDeclaration = (DelegateDeclarationSyntax)context.Node;
+            var semanticModel = context.SemanticModel;
+            foreach (var p in delegateDeclaration.ParameterList.Parameters)
+            {
+                if (semanticModel.GetDeclaredSymbol(p) is IParameterSymbol parameterSymbol)
+                {
+                    WarnIfParameterIsReadOnly(parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
+                }
+            }
         }
 
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
             var method = (IMethodSymbol)context.Symbol;
-            foreach (var p in method.Parameters)
+            // Should analyze only subset of methods, not all of them.
+            if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
+                method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction)
             {
-                if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct())
+                foreach (var p in method.Parameters)
+                {
+                    WarnIfParameterIsReadOnly(p, diagnostic => context.ReportDiagnostic(diagnostic));
+                }
+            }
+        }
+
+        private static void WarnIfParameterIsReadOnly(IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
+        {
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct())
+            {
+                Location location;
+                if (p.DeclaringSyntaxReferences.Length != 0)
                 {
                     // Can't just use p.Location, because it will capture just a span for parameter name.
                     var span = p.DeclaringSyntaxReferences[0].GetSyntax().FullSpan;
-                    var location = Location.Create(p.DeclaringSyntaxReferences[0].SyntaxTree, span);
-
-                    var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);
-
-                    context.ReportDiagnostic(diagnostic);
+                    location = Location.Create(p.DeclaringSyntaxReferences[0].SyntaxTree, span);
                 }
+                else
+                {
+                    location = p.Locations[0];
+                }
+
+                var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);
+
+                diagnosticReporter(diagnostic);
             }
         }
     }
