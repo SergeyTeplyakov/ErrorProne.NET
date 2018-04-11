@@ -41,7 +41,7 @@ namespace ErrorProne.NET.Structs
                 return;
             }
 
-            var members = namedTypeSymbol.GetMembers().Where(f => f is IFieldSymbol || f is IPropertySymbol).ToList();
+            var members = namedTypeSymbol.GetMembers().Where(m => !m.IsStatic).Where(f => f is IFieldSymbol || f is IPropertySymbol).ToList();
             if (members.Count == 0 || members.All(m => IsReadonlyFieldOrProperty(m)))
             {
                 var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);

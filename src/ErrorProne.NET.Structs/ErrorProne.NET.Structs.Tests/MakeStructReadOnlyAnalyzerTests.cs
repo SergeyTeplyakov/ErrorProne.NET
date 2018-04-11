@@ -44,12 +44,25 @@ namespace ErrorProne.NET.Structs.Test
     public FooBar(int x) => X = x;
 }";
             
+            // With one public get-only property
+            yield return
+@"struct [|FooBar|] {
+    public int X => 42;
+}";
+            
             // With one public readonly property and method
             yield return
 @"struct [|FooBar|] {
     public int X {get;}
     public FooBar(int x) => X = x;
     public int GetX() => X;
+}";
+            
+            // With const
+            yield return
+@"struct [|FooBar|] {
+    private readonly int _x;
+    private const int MaxLength = 1;
 }";
 
         }
