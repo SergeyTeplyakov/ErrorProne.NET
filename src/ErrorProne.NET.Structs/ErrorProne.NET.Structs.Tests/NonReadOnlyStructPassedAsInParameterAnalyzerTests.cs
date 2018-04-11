@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 using RoslynNunitTestRunner;
 
 namespace ErrorProne.NET.Structs.Test
@@ -15,25 +16,46 @@ namespace ErrorProne.NET.Structs.Test
             HasDiagnostic(code, DiagnosticId);
         }
 
-        [Test]
-        public void HasDiagnosticsForIntAndCustomStruct()
+        [TestCaseSource(nameof(GetHasDiagnosticsTestCases))]
+        public void HasDiagnosticsTestCases(string code)
         {
-            string code = @"struct S {} class FooBar { public void Foo([|in int n|], [|in S s|]) {} }";
             HasDiagnostic(code, DiagnosticId);
         }
 
-        [Test]
-        public void HasDiagnosticsForEmptyStruct()
+        public static IEnumerable<string> GetHasDiagnosticsTestCases()
         {
-            string code = @"struct S {} class FooBar { public void Foo([|in S n|]) {} }";
-            HasDiagnostic(code, DiagnosticId);
+            // Diagnostic for struct with one method
+            yield return @"struct S { public void Foo() {} static void ByIn([|in S s|]) {} }";
+            
+            // Diagnostic for struct with methods and props
+            yield return @"struct S { internal void Foo() {} internal int X {get;} static void ByIn([|in S s|]) {} }";
+
+            // For custom struct and int
+            yield return @"struct S {public void Foo() {}} class FooBar { public void Foo([|in int n|], [|in S s|]) {} }";
         }
 
-        [Test]
-        public void NoDiagnosticsForReadOnlyStruct()
+        [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
+        public void NoDiagnosticsTestCases(string code)
         {
-            string code = @"readonly struct S {} class FooBar { public void Foo(in S n) {} }";
             NoDiagnostic(code, DiagnosticId);
+        }
+
+        public static IEnumerable<string> GetNoDiagnosticsTestCases()
+        {
+            // No diagnostics for readonly struct
+            yield return @"readonly struct S { public void Foo(in S s) {} }";
+
+            // No diagnostics for empty struct
+            yield return @"struct S {} class FooBar { public void Foo(in S n) {} }";
+
+            // No diagnostics for struct with static members
+            yield return @"struct S { static void Foo() {}} class FooBar { public void Foo(in S n) {} }";
+            
+            // No diagnostics for POCO struct
+            yield return @"struct S {public int x; } class FooBar { public void Foo(in S n) {} }";
+
+            // No diagnostics for mixed struct
+            yield return @"struct S {public int x; public void Foo() {} } class FooBar { public void Foo(in S n) {} }";
         }
 
         // [Test] // not implemented yet.

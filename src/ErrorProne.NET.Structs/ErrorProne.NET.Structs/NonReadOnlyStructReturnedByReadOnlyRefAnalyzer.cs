@@ -33,7 +33,10 @@ namespace ErrorProne.NET.Structs
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
             var method = (IMethodSymbol)context.Symbol;
-            if (!method.ReturnsVoid && method.ReturnsByRefReadonly && method.ReturnType.IsValueType && !method.ReturnType.IsReadOnlyStruct())
+            if (!method.ReturnsVoid 
+                && method.ReturnsByRefReadonly 
+                && method.ReturnType.IsValueType &&
+                !method.ReturnType.UnfriendlyToReadOnlyRefs())
             {
                 var methodSyntax = (MethodDeclarationSyntax) method.DeclaringSyntaxReferences[0].GetSyntax();
 

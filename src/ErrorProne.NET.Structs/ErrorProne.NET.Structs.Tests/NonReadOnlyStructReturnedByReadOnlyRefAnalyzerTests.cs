@@ -18,7 +18,7 @@ namespace ErrorProne.NET.Structs.Test
         [Test]
         public void HasDiagnosticsForCustomStruct()
         {
-            string code = @"struct S {} class FooBar { public [|ref readonly S |]Foo() => throw new System.Exception(); }";
+            string code = @"struct S {public void Foo() {}} class FooBar { public [|ref readonly S |]Foo() => throw new System.Exception(); }";
             HasDiagnostic(code, DiagnosticId);
         }
 

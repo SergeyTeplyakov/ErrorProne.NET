@@ -34,7 +34,7 @@ namespace ErrorProne.NET.Structs
             var method = (IMethodSymbol)context.Symbol;
             foreach (var p in method.Parameters)
             {
-                if (p.RefKind == RefKind.In && p.Type.IsValueType && !p.Type.IsReadOnlyStruct())
+                if (p.RefKind == RefKind.In && p.Type.IsValueType && p.Type.UnfriendlyToReadOnlyRefs())
                 {
                     // Can't just use p.Location, because it will capture just a span for parameter name.
                     var span = p.DeclaringSyntaxReferences[0].GetSyntax().FullSpan;
