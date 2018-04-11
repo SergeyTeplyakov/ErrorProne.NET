@@ -4,35 +4,28 @@ using RoslynNunitTestRunner;
 namespace ErrorProne.NET.Structs.Test
 {
     [TestFixture]
-    public class NonReadOnlyStructPassedAsInParameterAnalyzerTests : CSharpAnalyzerTestFixture<NonReadOnlyStructPassedAsInParameterAnalyzer>
+    public class NonReadOnlyStructReturnedByReadOnlyRefAnalyzerTests : CSharpAnalyzerTestFixture<NonReadOnlyStructReturnedByReadOnlyRefAnalyzer>
     {
-        public const string DiagnosticId = NonReadOnlyStructPassedAsInParameterAnalyzer.DiagnosticId;
+        public const string DiagnosticId = NonReadOnlyStructReturnedByReadOnlyRefAnalyzer.DiagnosticId;
 
         [Test]
         public void HasDiagnosticsForInt()
         {
-            string code = @"class FooBar { public void Foo([|in int n|]) {} }";
+            string code = @"class FooBar { public [|ref readonly int |]Foo() => throw new System.Exception(); }";
             HasDiagnostic(code, DiagnosticId);
         }
 
         [Test]
-        public void HasDiagnosticsForIntAndCustomStruct()
+        public void HasDiagnosticsForCustomStruct()
         {
-            string code = @"struct S {} class FooBar { public void Foo([|in int n|], [|in S s|]) {} }";
-            HasDiagnostic(code, DiagnosticId);
-        }
-
-        [Test]
-        public void HasDiagnosticsForEmptyStruct()
-        {
-            string code = @"struct S {} class FooBar { public void Foo([|in S n|]) {} }";
+            string code = @"struct S {} class FooBar { public [|ref readonly S |]Foo() => throw new System.Exception(); }";
             HasDiagnostic(code, DiagnosticId);
         }
 
         [Test]
         public void NoDiagnosticsForReadOnlyStruct()
         {
-            string code = @"readonly struct S {} class FooBar { public void Foo(in S n) {} }";
+            string code = @"readonly struct S {} class FooBar { public ref readonly S Foo() => throw new System.Exception(); }";
             NoDiagnostic(code, DiagnosticId);
         }
 

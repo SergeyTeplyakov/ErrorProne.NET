@@ -10,13 +10,22 @@
 
         /// <nodoc />
         public const string NonReadOnlyStructPassedAsInParameterDiagnosticId = "NonReadOnlyStructPassedAsInParameterId";
+        
+        /// <nodoc />
+        public const string NonReadOnlyStructReturnedByReadOnlyRefDiagnosticId = "NonReadOnlyStructReturnedByReadOnlyRefId";
 
         /// <nodoc />
         public const string UseInModifierForReadOnlyStructDiagnosticId = "UseInModifierForReadOnlyStructDiagnosticId";
 
-        // Ideas: the struct is readonly and instead of passing by value or ref may be passed by 'in'.
+        // Separate 3 cases:
+        // 1. Struct is readonly - safe to pass/return by readonly ref
+        // 2. Struct is non-readonly but has only exposed fields with no exposed props/methods - safe to pass/return by readonly ref
+        // 3. Struct is non-readonly and doesn't have exposed fields - unsafe to pass/return by readonly ref
+        // 3. Struct is non-readonly and has exposed fields and props/methods.
 
         // Readonly ref local of a generic type: not clear what the perf implications are.
+
+        // Show all hidden copies for structs.
 
         // Calling a generic method with ref return/in-modifier with non-readonly struct.
 
