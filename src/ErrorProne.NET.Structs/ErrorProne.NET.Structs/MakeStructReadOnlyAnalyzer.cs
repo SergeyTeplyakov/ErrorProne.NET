@@ -57,7 +57,7 @@ namespace ErrorProne.NET.Structs
                 case IFieldSymbol fs:
                     return fs.IsReadOnly;
                 case IPropertySymbol ps:
-                    return ps.IsReadOnly;
+                    return ps.IsReadOnly || ps.SetMethod != null;
                 default:
                     throw new InvalidOperationException($"Unknown member type '{member.GetType()}'.");
             }

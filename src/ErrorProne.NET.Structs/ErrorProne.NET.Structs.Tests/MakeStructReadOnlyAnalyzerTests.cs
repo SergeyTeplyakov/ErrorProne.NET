@@ -64,6 +64,52 @@ namespace ErrorProne.NET.Structs.Test
     private readonly int _x;
     private const int MaxLength = 1;
 }";
+            // With indexer
+            yield return
+@"struct [|FooBar|]<T> {
+    private readonly T[] _buffer;
+    public T Value
+        {
+            get
+            {
+                return _buffer[Index];
+            }
+
+            set
+            {
+                _buffer[Index] = value;
+            }
+        }
+}";
+            
+            // With getter and setter
+            yield return
+@"struct [|FooBar|] {
+    public int Value
+        {
+            get
+            {
+                return 42;
+            }
+
+            set
+            {
+                
+            }
+        }
+}";
+            
+            // With getter and setter as expression-bodies
+            yield return
+@"struct [|FooBar|] {
+  private readonly object[] _data;  
+  public int Value
+        {
+            get => 42;
+
+            set => _data[0] = value;
+        }
+}";
 
         }
 
