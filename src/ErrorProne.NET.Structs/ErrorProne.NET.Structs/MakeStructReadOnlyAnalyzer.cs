@@ -6,6 +6,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Structs
 {
+    /// <summary>
+    /// Emits a diangostic if a struct can be readonly.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MakeStructReadOnlyAnalyzer : DiagnosticAnalyzer
     {
@@ -31,7 +34,7 @@ namespace ErrorProne.NET.Structs
         {
             var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-            if (!namedTypeSymbol.IsValueType)
+            if (!namedTypeSymbol.IsValueType || namedTypeSymbol.TypeKind == TypeKind.Enum)
             {
                 return;
             }
@@ -41,6 +44,7 @@ namespace ErrorProne.NET.Structs
                 return;
             }
 
+            // Struct can be readonly when all the instance fields and properties are readonly.
             var members = namedTypeSymbol.GetMembers().Where(m => !m.IsStatic).Where(f => f is IFieldSymbol || f is IPropertySymbol).ToList();
             if (members.Count == 0 || members.All(m => IsReadonlyFieldOrProperty(m)))
             {
@@ -57,6 +61,7 @@ namespace ErrorProne.NET.Structs
                 case IFieldSymbol fs:
                     return fs.IsReadOnly;
                 case IPropertySymbol ps:
+                    // Property is readonly, like 'public int X {get;}' or has an explicit setter.
                     return ps.IsReadOnly || ps.SetMethod != null;
                 default:
                     throw new InvalidOperationException($"Unknown member type '{member.GetType()}'.");

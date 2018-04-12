@@ -15,9 +15,7 @@ namespace RoslynNunitTestRunner
 
         protected void TestCodeRefactoring(string markupCode, string expected)
         {
-            Document document;
-            TextSpan span;
-            Assert.That(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out document, out span), Is.True);
+            Assert.That(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out var document, out var span), Is.True);
 
             TestCodeRefactoring(document, span, expected);
         }

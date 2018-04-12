@@ -1,6 +1,9 @@
-﻿1. Do not warn when readonly struct is passed by value into constructor.
-2. Make 'use 'in'-modifier an informational message instead of a warning.
+﻿1. Do not warn when readonly struct is passed by value into constructor. Done
+2. Make 'use 'in'-modifier an informational message instead of a warning. 
 
 
 Known limitations
 - No analysis of local methods. No clue how to analyse it.
+
+Do not warn on readonly struct passed by in if a method is overriden or implements an interface.
+Do not warn if 'non-readonly friendly struct' is passed by 'in' in the same struct.

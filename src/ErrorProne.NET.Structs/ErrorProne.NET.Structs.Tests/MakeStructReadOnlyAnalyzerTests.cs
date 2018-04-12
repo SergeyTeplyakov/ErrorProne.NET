@@ -135,6 +135,9 @@ namespace ErrorProne.NET.Structs.Test
 
         public static IEnumerable<string> GetNoDiagnosticCases()
         {
+            // Enums should not be readonly
+            yield return @"enum FooBar {}";
+
             // Already marked with 
             yield return 
 @"readonly struct FooBar {
