@@ -27,7 +27,14 @@ namespace ErrorProne.NET.Structs.Test
         {
             // Diagnostic for a delegate
             yield return @"readonly struct S { } delegate void Foo([|S s|]);";
-            
+
+            // Diagnostic on abstract declaration, but on the overloaded
+            yield return
+                @"readonly struct S {}
+abstract class B {public virtual void Foo([|S s|]) {}}
+class D : B {public override void Foo(S s) {}
+";
+
             // Diagnostic for local function: not supported yet!
             // yield return @"readonly struct S { } class FooBar { public void Foo() { void Local([|S s|]) {} } }";
         }
@@ -40,6 +47,13 @@ namespace ErrorProne.NET.Structs.Test
         
         public static IEnumerable<string> GetNoDiagnosticsTestCases()
         {
+            // No diagnostic if implements interface
+            yield return
+                @"readonly struct Foo : System.IEquatable<Foo>
+{
+    public bool Equals(Foo other) => true;
+}";
+
             // Passed by value
             yield return @"struct S {} class FooBar { public void Foo(S n) {} }";
             

@@ -35,6 +35,9 @@ namespace ErrorProne.NET.Structs.Test
 
             // For generic struct
             yield return @"struct S<T> {public void Foo() {}} class FooBar<T> {public void Foo([|in S<T> s|]) {}";
+
+            // Non readonly struct without fields used in the struct
+            yield return @"struct S {private int S {get;} public void Foo([|in S s|]) {} }";
         }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
@@ -45,6 +48,9 @@ namespace ErrorProne.NET.Structs.Test
 
         public static IEnumerable<string> GetNoDiagnosticsTestCases()
         {
+            // Not readonly struct with fields used within the struct
+            yield return @"struct S {private int _s; public void Foo(in S s) {} }";
+
             // No diagnostics for readonly struct
             yield return @"readonly struct S { public void Foo(in S s) {} }";
 

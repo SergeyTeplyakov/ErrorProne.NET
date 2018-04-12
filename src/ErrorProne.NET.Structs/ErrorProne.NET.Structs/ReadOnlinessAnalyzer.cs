@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET.Structs
 {
@@ -43,6 +44,14 @@ namespace ErrorProne.NET.Structs
         /// <nodoc />
         public static bool UnfriendlyToReadOnlyRefs(this ITypeSymbol type)
             => type.AnalyzeReadOnlyFriendliness() == ReadOnlyRefFriendliness.Unfriendly;
+
+        /// <summary>
+        /// Returns true if a given <paramref name="type"/> has at least one instance field.
+        /// </summary>
+        public static bool HasInstanceFields(this ITypeSymbol type)
+        {
+            return type.GetMembers().Where(m => !m.IsStatic).Any(m => m is IFieldSymbol fs && !fs.IsImplicitlyDeclared);
+        }
 
         /// <nodoc />
         public static ReadOnlyRefFriendliness AnalyzeReadOnlyFriendliness(this ITypeSymbol type)

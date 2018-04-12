@@ -39,6 +39,13 @@ namespace ErrorProne.NET.Structs
             {
                 if (p.RefKind == RefKind.In && p.Type.IsValueType && p.Type.UnfriendlyToReadOnlyRefs())
                 {
+                    // If the method is declared in the struct itself, then we should not warn
+                    // because this method can access private state.
+                    if (p.ContainingType.Equals(p.Type) && p.Type.HasInstanceFields())
+                    {
+                        continue;
+                    }
+
                     // Can't just use p.Location, because it will capture just a span for parameter name.
                     var span = p.DeclaringSyntaxReferences[0].GetSyntax().FullSpan;
                     var location = Location.Create(p.DeclaringSyntaxReferences[0].SyntaxTree, span);

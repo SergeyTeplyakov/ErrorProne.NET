@@ -49,6 +49,13 @@ namespace ErrorProne.NET.Structs
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
             var method = (IMethodSymbol)context.Symbol;
+            if (IsOverridenMethod(method))
+            {
+                // If the method overrides a base method or implements an interface,
+                // then we can't enforce 'in'-modifier
+                return;
+            }
+
             // Should analyze only subset of methods, not all of them.
             if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
                 method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction)
@@ -58,6 +65,11 @@ namespace ErrorProne.NET.Structs
                     WarnIfParameterIsReadOnly(p, diagnostic => context.ReportDiagnostic(diagnostic));
                 }
             }
+        }
+
+        private static bool IsOverridenMethod(IMethodSymbol method)
+        {
+            return method.IsOverride || method.IsInterfaceImplementation();   
         }
 
         private static void WarnIfParameterIsReadOnly(IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
