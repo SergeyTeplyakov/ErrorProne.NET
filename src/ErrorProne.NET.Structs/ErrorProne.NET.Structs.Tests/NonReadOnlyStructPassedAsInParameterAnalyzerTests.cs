@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.Structs.Test
+namespace ErrorProne.NET.Structs.Tests
 {
     [TestFixture]
     public class NonReadOnlyStructPassedAsInParameterAnalyzerTests : CSharpAnalyzerTestFixture<NonReadOnlyStructPassedAsInParameterAnalyzer>
