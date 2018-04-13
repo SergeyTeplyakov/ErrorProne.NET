@@ -1,5 +1,8 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Structs
@@ -29,12 +32,29 @@ namespace ErrorProne.NET.Structs
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
+            // The following call registers only analysis for top level methods.
+            // Need a special logic to cover local functions.
             context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
+
+            context.RegisterSyntaxNodeAction(AnalyzeLocal, SyntaxKind.LocalFunctionStatement);
         }
 
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
             var method = (IMethodSymbol)context.Symbol;
+            AnalyzeMethodSymbol(method, d => context.ReportDiagnostic(d));
+        }
+
+        private void AnalyzeLocal(SyntaxNodeAnalysisContext context)
+        {
+            if (context.SemanticModel.GetDeclaredSymbol(context.Node) is IMethodSymbol symbol)
+            {
+                AnalyzeMethodSymbol(symbol, d => context.ReportDiagnostic(d));
+            }
+        }
+
+        private static void AnalyzeMethodSymbol(IMethodSymbol method, Action<Diagnostic> reporter)
+        {
             foreach (var p in method.Parameters)
             {
                 if (p.RefKind == RefKind.In && p.Type.IsValueType && p.Type.UnfriendlyToReadOnlyRefs())
@@ -52,7 +72,7 @@ namespace ErrorProne.NET.Structs
 
                     var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);
 
-                    context.ReportDiagnostic(diagnostic);
+                    reporter(diagnostic);
                 }
             }
         }

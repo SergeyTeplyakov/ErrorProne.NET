@@ -5,11 +5,11 @@
 - Do not warn if 'non-readonly friendly struct' is passed by 'in' in the same struct. Done
 
 - Warn if readonly struct is passed by ref
-- Analyze ref readonly locals
+- Analyze ref readonly locals. Done
+- Analyze local functions. Dones
 - Show all hidden copies for structs (info message? Would be good to turn this diagnostics on and off).
 - Large struct used in many methods? Stateful analysis is required.
 - Equals and gethashcode are asymmetrical (different props/fields are used). (not sure about that)
 
 Known limitations
-- No analysis of local methods. No clue how to analyse it.
 - Generic instantiations are not analyzed: public void Foo<T>(in T t) {} Foo<NonReadOnly>(); <-- no warning now.

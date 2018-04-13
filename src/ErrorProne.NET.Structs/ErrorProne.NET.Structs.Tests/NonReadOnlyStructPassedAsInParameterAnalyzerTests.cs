@@ -12,7 +12,22 @@ namespace ErrorProne.NET.Structs.Tests
         [Test]
         public void HasDiagnosticsForInt()
         {
+            // This is actually potentially dangerous case, because people may pass
+            // primitives by in just for the sake of readability.
             string code = @"class FooBar { public void Foo([|in int n|]) {} }";
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void HasDiagnosticsForLocalMethod()
+        {
+            string code = @"
+struct S {
+    public void Foo()
+    {
+        void ByIn([|in S s|]) {}
+    }
+}";
             HasDiagnostic(code, DiagnosticId);
         }
 
