@@ -1,9 +1,15 @@
-﻿1. Do not warn when readonly struct is passed by value into constructor. Done
-2. Make 'use 'in'-modifier an informational message instead of a warning. 
+﻿- Do not warn when readonly struct is passed by value into constructor. Done
+- Make 'use 'in'-modifier an informational message instead of a warning. 
 
+- Do not warn on readonly struct passed by in if a method is overriden or implements an interface. Done
+- Do not warn if 'non-readonly friendly struct' is passed by 'in' in the same struct. Done
+
+- Warn if readonly struct is passed by ref
+- Analyze ref readonly locals
+- Show all hidden copies for structs (info message? Would be good to turn this diagnostics on and off).
+- Large struct used in many methods? Stateful analysis is required.
+- Equals and gethashcode are asymmetrical (different props/fields are used). (not sure about that)
 
 Known limitations
 - No analysis of local methods. No clue how to analyse it.
-
-Do not warn on readonly struct passed by in if a method is overriden or implements an interface.
-Do not warn if 'non-readonly friendly struct' is passed by 'in' in the same struct.
+- Generic instantiations are not analyzed: public void Foo<T>(in T t) {} Foo<NonReadOnly>(); <-- no warning now.

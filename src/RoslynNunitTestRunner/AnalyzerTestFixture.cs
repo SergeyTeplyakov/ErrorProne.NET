@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 
-
 namespace RoslynNunitTestRunner
 {
     public abstract class CSharpAnalyzerTestFixture<T> : AnalyzerTestFixture where T : DiagnosticAnalyzer, new()
@@ -32,15 +31,15 @@ namespace RoslynNunitTestRunner
             NoDiagnostic(processedDocument.Document, diagnosticId, processedDocument);
         }
 
-protected void NoDiagnostic(
-    Document document, string diagnosticId, ProcessedCode processedDocument)
-{
-    var diagnostics = GetDiagnostics(document);
+        protected void NoDiagnostic(
+            Document document, string diagnosticId, ProcessedCode processedDocument)
+        {
+            var diagnostics = GetDiagnostics(document);
     
-    string diagnosticMessage = string.Join("\r\n", diagnostics.Select(d => d.ToString()));
-    Assert.That(diagnostics.Count(d => d.Id == diagnosticId), 
-        Is.EqualTo(0), $"Expected no diagnostics, but got some:\r\n{diagnosticMessage}");
-}
+            string diagnosticMessage = string.Join("\r\n", diagnostics.Select(d => d.ToString()));
+            Assert.That(diagnostics.Count(d => d.Id == diagnosticId), 
+                Is.EqualTo(0), $"Expected no diagnostics, but got some:\r\n{diagnosticMessage}");
+        }
 
         protected void HasDiagnostic(string markupCode, string diagnosticId)
         {
