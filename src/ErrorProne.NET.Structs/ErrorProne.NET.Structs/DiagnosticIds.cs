@@ -15,9 +15,9 @@
         public const string NonReadOnlyStructReturnedByReadOnlyRefDiagnosticId = "EPS03";
 
         /// <nodoc />
-        public const string UseInModifierForReadOnlyStructDiagnosticId = "EPS04";
+        public const string NonReadOnlyStructRefReadOnlyLocalDiagnosticId = "ESP04";
 
-        // Move and enhance 'non-pure method' on readonly field?
-
+        /// <nodoc />
+        public const string UseInModifierForReadOnlyStructDiagnosticId = "EPS05";
     }
 }
