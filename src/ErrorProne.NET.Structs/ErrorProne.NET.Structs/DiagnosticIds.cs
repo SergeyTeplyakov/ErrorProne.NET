@@ -19,5 +19,8 @@
 
         /// <nodoc />
         public const string UseInModifierForReadOnlyStructDiagnosticId = "EPS05";
+
+        /// <nodoc />
+        public const string HiddenStructCopyDiagnosticId = "EPS06";
     }
 }

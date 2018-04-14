@@ -6,7 +6,7 @@
 
 - Warn if readonly struct is passed by ref
 - Analyze ref readonly locals. Done
-- Analyze local functions. Dones
+- Analyze local functions. Done
 - Show all hidden copies for structs (info message? Would be good to turn this diagnostics on and off).
 - Large struct used in many methods? Stateful analysis is required.
 - Equals and gethashcode are asymmetrical (different props/fields are used). (not sure about that)

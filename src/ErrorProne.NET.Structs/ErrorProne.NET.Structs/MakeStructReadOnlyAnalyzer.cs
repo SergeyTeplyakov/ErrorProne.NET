@@ -14,8 +14,8 @@ namespace ErrorProne.NET.Structs
     {
         public const string DiagnosticId = DiagnosticIds.MakeStructReadonlyDiagnosticId;
 
-        private static readonly string Title = "A struct can be readonly";
-        private static readonly string MessageFormat = "Struct '{0}' can be readonly";
+        private static readonly string Title = "A struct can be made readonly";
+        private static readonly string MessageFormat = "Struct '{0}' can be made readonly";
         private static readonly string Description = "Readonly structs have better performance when passed/return by readonly reference.";
         private const string Category = "Performance";
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;

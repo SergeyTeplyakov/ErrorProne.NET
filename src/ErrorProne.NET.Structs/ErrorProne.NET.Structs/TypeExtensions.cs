@@ -15,6 +15,11 @@ namespace ErrorProne.NET.Structs
         /// </summary>
         public static bool IsReadOnlyStruct(this ITypeSymbol type)
         {
+            if (type.IsReferenceType)
+            {
+                return false;
+            }
+
             if (type is INamedTypeSymbol nt)
             {
                 return nt.IsReadOnlyStruct();
