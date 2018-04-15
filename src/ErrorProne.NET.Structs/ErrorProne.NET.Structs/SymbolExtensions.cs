@@ -1,10 +1,26 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics;
+using System.Linq;
 
 namespace ErrorProne.NET.Structs
 {
     /// <nodoc />
     public static class SymbolExtensions
     {
+        /// <summary>
+        /// Returns true if a given <paramref name="method"/> has iterator block inside of it.
+        /// </summary>
+        public static bool IsIteratorBlock(this IMethodSymbol method)
+        {
+            Debug.Assert(method.DeclaringSyntaxReferences.Length != 0);
+
+            return method.DeclaringSyntaxReferences
+                .Select(sr => sr.GetSyntax())
+                .OfType<MethodDeclarationSyntax>()
+                .Any(md => md.IsIteratorBlock());
+        }
+
         /// <summary>
         /// Returns true if a given <paramref name="symbol"/> is an implementation of an interface member.
         /// </summary>

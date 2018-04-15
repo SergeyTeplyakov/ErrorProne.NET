@@ -4,12 +4,23 @@
 - Do not warn on readonly struct passed by in if a method is overriden or implements an interface. Done
 - Do not warn if 'non-readonly friendly struct' is passed by 'in' in the same struct. Done
 
-- Warn if readonly struct is passed by ref
+- Warn if readonly struct is passed by ref (should be info message)
+- Cache non-source types for IsReadOnly.
 - Analyze ref readonly locals. Done
 - Analyze local functions. Done
 - Show all hidden copies for structs (info message? Would be good to turn this diagnostics on and off).
 - Large struct used in many methods? Stateful analysis is required.
 - Equals and gethashcode are asymmetrical (different props/fields are used). (not sure about that)
+- Hidden copy: when an extension method is used that takes a struct by value.
 
 Known limitations
 - Generic instantiations are not analyzed: public void Foo<T>(in T t) {} Foo<NonReadOnly>(); <-- no warning now.
+
+Infrastructure
+- Create one solution
+- Create
+  - Core (move helpers here)
+  - Structs
+  - Memory
+  - Misc (various analyzers)
+  - Exceptions

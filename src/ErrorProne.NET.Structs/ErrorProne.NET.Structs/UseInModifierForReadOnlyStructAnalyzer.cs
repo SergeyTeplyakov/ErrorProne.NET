@@ -49,7 +49,7 @@ namespace ErrorProne.NET.Structs
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
             var method = (IMethodSymbol)context.Symbol;
-            if (IsOverridenMethod(method))
+            if (IsOverridenMethod(method) || method.IsAsync || method.IsIteratorBlock())
             {
                 // If the method overrides a base method or implements an interface,
                 // then we can't enforce 'in'-modifier

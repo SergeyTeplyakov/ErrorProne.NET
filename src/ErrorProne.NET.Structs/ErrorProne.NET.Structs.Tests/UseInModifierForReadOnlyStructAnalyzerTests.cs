@@ -11,6 +11,20 @@ namespace ErrorProne.NET.Structs.Tests
         public const string DiagnosticId = UseInModifierForReadOnlyStructAnalyzer.DiagnosticId;
 
         [Test]
+        public void NoDiagnosticsForAsyncMethod()
+        {
+            string code = @"readonly struct S {public async void Foo(S s) {} }";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoDiagnosticsForIteratorBlock()
+        {
+            string code = @"readonly struct S {public System.Collections.Generics.IEnumerable<int> Foo(S s) {yield break;} }";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void HasDiagnosticsForReadOnlyStruct()
         {
             string code = @"readonly struct S {} class FooBar { public void Foo([|S n|]) {} }";

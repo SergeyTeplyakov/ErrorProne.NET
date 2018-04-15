@@ -53,6 +53,67 @@ public class C {
             HasDiagnostic(code, DiagnosticId);
         }
 
+        [Test]
+        public void NoDiagnosticsFieldOfReferencecType()
+        {
+            string code = @"
+class S {
+    public string this[int x] => string.Empty;
+}
+public class C {
+    private readonly S _s;
+    public string M() => _s[0];
+}"; ;
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoDiagnosticsFieldOfInParameter()
+        {
+            string code = @"
+struct S {
+    public int X;
+    public int Foo(in S other) => other.X;
+}";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoDiagnosticsFielUsedFromReadOnlyReference()
+        {
+            string code = @"
+struct S {
+    public int X;
+    public int Foo(S other)
+    {
+        ref readonly var otherRef = ref other;
+        return otherRef.X;
+    }
+}";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoDiagnosticsFieldOfEnumType()
+        {
+            string code = @"
+enum S {X};
+static class SEx {
+   public static string Get(this S s) => s.ToString();
+}
+class Foo {private readonly S _s; public string Bar() => _s.X.Get();";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoDiagnosticsWhenFieldIsReferencedDeeperToCallAMethod()
+        {
+            string code = @"
+struct S {public int X; }
+class Foo {private readonly S _s; public string Bar() => _s.X.ToString();";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
         public void HasDiagnosticCases(string code)
         {
@@ -91,6 +152,9 @@ public class C {
 
             // No diagnostics if field accessed
             yield return "struct S {public int X;} class Foo {private readonly S _s; public int Bar() => _s.X;";
+
+            // No diagnostics for enum
+            yield return "enum S {X}; class Foo {private readonly S _s; public int Bar() => _s.X;";
         }
     }
 }
