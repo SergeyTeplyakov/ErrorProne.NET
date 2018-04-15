@@ -18,7 +18,7 @@ namespace ErrorProne.NET.Structs
         private static readonly string MessageFormat = "Struct '{0}' can be made readonly";
         private static readonly string Description = "Readonly structs have better performance when passed/return by readonly reference.";
         private const string Category = "Performance";
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        private const DiagnosticSeverity Severity = DiagnosticSeverity.Info;
 
         public static readonly DiagnosticDescriptor Rule = 
             new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);

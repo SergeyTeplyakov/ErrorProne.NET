@@ -20,7 +20,7 @@ namespace ErrorProne.NET.Structs
         private static readonly string MessageFormat = "Expression '{0}' causes a hidden copy of a non-readonly struct '{1}'";
         private static readonly string Description = "Compiler emits a defensive copy to make sure a struct instance remains unchanged";
         private const string Category = "Performance";
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        private const DiagnosticSeverity Severity = DiagnosticSeverity.Info;
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor Rule = 
@@ -41,7 +41,7 @@ namespace ErrorProne.NET.Structs
             if (context.Node is MemberAccessExpressionSyntax ma &&
                 // In a case of 'a.b.c' we need to analyzer 'a.b' case and skip everything else
                 // to avoid incorrect results.
-                !(context.Node.Parent is MemberAccessExpressionSyntax))
+                !(ma.Expression is MemberAccessExpressionSyntax))
             {
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ma).Symbol;
                 AnalyzeExpressionAndTargetSymbol(context, ma.Expression, targetSymbol);

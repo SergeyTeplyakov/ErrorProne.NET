@@ -124,7 +124,10 @@ class Foo {private readonly S _s; public string Bar() => _s.X.ToString();";
         {
             // On for properties
             yield return "struct S {public int X => 42;} class Foo {private readonly S _s; public int Bar() => [|_s|].X;";
-            
+
+            // On composite dotted expression like a.b.c.ToString();
+            yield return "struct S {public int X => 42;} class Foo {private readonly S _s; public string Bar() => [|_s|].X.ToString();";
+
             // On for methods
             yield return "struct S {public int X() => 42;} class Foo {private readonly S _s; public int Bar() => [|_s|].X();";
 
