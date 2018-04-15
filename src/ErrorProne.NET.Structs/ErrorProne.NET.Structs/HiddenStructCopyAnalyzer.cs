@@ -38,11 +38,29 @@ namespace ErrorProne.NET.Structs
 
         private void AnalyzeDottedExpression(SyntaxNodeAnalysisContext context)
         {
-            if (context.Node is MemberAccessExpressionSyntax ma)
+            if (context.Node is MemberAccessExpressionSyntax ma &&
+                // In a case of 'a.b.c' we need to analyzer 'a.b' case and skip everything else
+                // to avoid incorrect results.
+                !(context.Node.Parent is MemberAccessExpressionSyntax))
             {
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ma).Symbol;
                 AnalyzeExpressionAndTargetSymbol(context, ma.Expression, targetSymbol);
             }
+        }
+
+        /// <summary>
+        /// Gets the first expression that potentially could point to a field/parameter/local.
+        /// </summary>
+        private static ExpressionSyntax GetFirstExpression(MemberAccessExpressionSyntax memberAccess)
+        {
+            // If memberAccess is 'a.b.c' we need to get 'a'.
+            var resultCandidate = memberAccess.Expression;
+            if (resultCandidate is MemberAccessExpressionSyntax ma)
+            {
+                return GetFirstExpression(ma);
+            }
+
+            return resultCandidate;
         }
 
         private void AnalyzeElementAccessExpression(SyntaxNodeAnalysisContext context)
@@ -68,19 +86,23 @@ namespace ErrorProne.NET.Structs
             else if (symbol is IParameterSymbol p && p.RefKind == RefKind.In)
             {
                 // The expression uses in-parameter
-                ReportDiagnosticIfTargetIsNotField(context, expression, p.Type, symbol);
+                ReportDiagnosticIfTargetIsNotField(context, expression, p.Type, targetSymbol);
             }
             else if (symbol is ILocalSymbol ls && ls.IsRef && ls.RefKind == RefKind.In)
             {
                 // The expression uses ref readonly local
-                ReportDiagnosticIfTargetIsNotField(context, expression, ls.Type, symbol);
+                ReportDiagnosticIfTargetIsNotField(context, expression, ls.Type, targetSymbol);
             }
         }
 
         private static void ReportDiagnosticIfTargetIsNotField(SyntaxNodeAnalysisContext context,
             ExpressionSyntax expression, ITypeSymbol resolvedType, ISymbol targetSymbol)
         {
-            if (targetSymbol != null && !(targetSymbol is IFieldSymbol) && !resolvedType.IsReadOnlyStruct())
+            if (targetSymbol != null && 
+                !(targetSymbol is IFieldSymbol) &&
+                resolvedType.IsValueType &&
+                resolvedType.TypeKind != TypeKind.Enum &&
+                !resolvedType.IsReadOnlyStruct())
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
