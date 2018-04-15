@@ -11,19 +11,19 @@ namespace ErrorProne.NET.Cli
     /// </summary>
     public sealed class Configuration
     {
-        public Configuration(Options options, Assembly analyzer)
+        public Configuration(Options options, ImmutableList<Assembly> analyzers)
         {
             Contract.Requires(options != null);
             Contract.Requires(options.Solution != null);
             Contract.Requires(File.Exists(options.Solution));
             Contract.Requires(!string.IsNullOrEmpty(options.LogFile));
-            Contract.Requires(analyzer != null);
+            Contract.Requires(analyzers != null && analyzers.Count != 0);
 
             Solution = options.Solution;
             LogFile = options.LogFile;
             RunInfoLevelDiagnostics = options.RunInfoLevelDiagnostics;
             DisabledDiagnostics = (options.DisabledDiagnostics ?? new string[] {}).ToImmutableHashSet();
-            Analyzer = analyzer;
+            Analyzers = analyzers;
         }
 
         public string Solution { get; }
@@ -36,6 +36,6 @@ namespace ErrorProne.NET.Cli
 
         public ImmutableHashSet<string> DisabledDiagnostics { get; }
 
-        public Assembly Analyzer { get; }
+        public ImmutableList<Assembly> Analyzers { get; }
     }
 }

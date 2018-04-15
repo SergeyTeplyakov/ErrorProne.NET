@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using CommandLine.Text;
 using ErrorProne.NET.Cli.Utilities;
@@ -12,7 +14,7 @@ namespace ErrorProne.NET.Cli
     /// </summary>
     internal static class Program
     {
-        const string AnalyzerAssemblyName = "ErrorProne.NET.dll";
+        const string AnalyzerAssemblyName = "ErrorProne.NET*.dll";
 
         private static Options ParseCommandLineArgs(string[] args)
         {
@@ -57,13 +59,15 @@ namespace ErrorProne.NET.Cli
             try
             {
                 var executablePath = Assembly.GetExecutingAssembly().Location;
-                var analyzerFullPath = Path.Combine(Path.GetDirectoryName(executablePath), AnalyzerAssemblyName);
-                var analyzer = Assembly.LoadFile(analyzerFullPath);
-                return new Configuration(options, analyzer);
+                Console.WriteLine($"Executing assembly: " + Path.GetDirectoryName(executablePath));
+                var analyzerPaths = Directory.EnumerateFiles(Path.GetDirectoryName(executablePath), "ErrorProne.NET*.dll");
+                var analyzers = analyzerPaths.Select(a => Assembly.LoadFile(a)).ToImmutableList();
+
+                return new Configuration(options, analyzers);
             }
             catch (Exception e)
             {
-                WriteError($"Failed to load ErrorProne.NET.dll\r\n{e}");
+                WriteError($"Failed to load ErrorProne analyzers\r\n{e}");
                 return null;
             }
         }

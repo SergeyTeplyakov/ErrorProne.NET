@@ -18,5 +18,8 @@ namespace ErrorProne.NET.Cli
         
         [OptionArray('d', "disable", Required = false, HelpText = "List of diagnostics that should be excluded from the analysis")]
         public string[] DisabledDiagnostics { get; set; }
+
+        [Option('a', "analyzer", Required = false, HelpText = "Path to an analyzer to run. By default all ErrorProne*.dll will be used.")]
+        public string Analyzer { get; set; }
     }
 }

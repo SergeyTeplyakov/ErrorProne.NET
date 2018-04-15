@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using ErrorProne.NET.Cli.Extensions;
 using ErrorProne.NET.Cli.Utilities;
-using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -103,7 +102,7 @@ namespace ErrorProne.NET.Cli
 
         private async Task AnalyzeSolutionAsync(Configuration configuration)
         {
-            var analyzers = GetAnalyzers(configuration.Analyzer).ToImmutableArray();
+            var analyzers = GetAnalyzers(configuration.Analyzers).ToImmutableArray();
 
             // Loading the solution
             var sw = Stopwatch.StartNew();
@@ -138,6 +137,11 @@ namespace ErrorProne.NET.Cli
                     .Where(type => type.IsSubclassOf(diagnosticAnalyzerType) && !type.IsAbstract)
                     .Select(CustomActivator.CreateInstance<DiagnosticAnalyzer>)
                     .ToList();
+        }
+
+        private static List<DiagnosticAnalyzer> GetAnalyzers(IEnumerable<Assembly> assemblies)
+        {
+            return assemblies.SelectMany(a => GetAnalyzers(a)).ToList();
         }
     }
 }
