@@ -68,7 +68,7 @@ namespace ErrorProne.NET.Cli
                 .Select(p => new { Project = p.Project, Task = p.Task.ContinueWith(t =>
                     {
                         var diagnostics = t.Result.Where(d => ruleIds.Contains(d.Id)).ToImmutableArray();
-                        if (configuration.RunInfoLevelDiagnostics)
+                        if (!configuration.RunInfoLevelDiagnostics)
                         {
                             diagnostics = diagnostics.Where(d => d.Severity != DiagnosticSeverity.Info).ToImmutableArray();
                         }
