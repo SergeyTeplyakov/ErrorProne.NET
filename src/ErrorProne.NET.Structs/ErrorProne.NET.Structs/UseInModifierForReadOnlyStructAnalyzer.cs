@@ -50,7 +50,7 @@ namespace ErrorProne.NET.Structs
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
             var method = (IMethodSymbol)context.Symbol;
-            if (IsOverridenMethod(method) || method.IsAsync || method.IsIteratorBlock())
+            if (IsOverridenMethod(method) || method.IsAsyncOrTaskBased(context.Compilation) || method.IsIteratorBlock())
             {
                 // If the method overrides a base method or implements an interface,
                 // then we can't enforce 'in'-modifier
@@ -70,7 +70,9 @@ namespace ErrorProne.NET.Structs
 
         private static bool IsOverridenMethod(IMethodSymbol method)
         {
-            return method.IsOverride || method.IsInterfaceImplementation();   
+            return method.IsOverride || 
+                   method.MethodKind == MethodKind.ExplicitInterfaceImplementation || 
+                   method.IsInterfaceImplementation();   
         }
 
         private static void WarnIfParameterIsReadOnly(IParameterSymbol p, Action<Diagnostic> diagnosticReporter)

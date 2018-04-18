@@ -14,7 +14,7 @@ namespace ErrorProne.NET.Structs
             Contract.Requires(method != null);
 
             // very naive implementation
-            return method.Body.DescendantNodes().Any(x => x is YieldStatementSyntax);
+            return method.Body?.DescendantNodes().Any(x => x is YieldStatementSyntax) == true;
         }
     }
 }

@@ -9,7 +9,7 @@ namespace ErrorProne.NET.Structs.Tests
     public class UseInModifierForReadOnlyStructAnalyzerTests : CSharpAnalyzerTestFixture<UseInModifierForReadOnlyStructAnalyzer>
     {
         public const string DiagnosticId = UseInModifierForReadOnlyStructAnalyzer.DiagnosticId;
-
+        
         [Test]
         public void NoDiagnosticsForAsyncMethod()
         {
@@ -61,11 +61,35 @@ class D : B {public override void Foo(S s) {}
         
         public static IEnumerable<string> GetNoDiagnosticsTestCases()
         {
+            // No diagnostic if returns Task
+            yield return @"
+readonly struct Foo {
+  public System.Threading.Tasks.Task FooAsync(Foo f) => null;
+}";
+            // No diagnostic if returns Task<T>
+            yield return @"
+readonly struct Foo {
+  public System.Threading.Tasks.Task<int> FooAsync(Foo f) => null;
+}";
+            
+            // No diagnostic if returns ValueTask<T>
+            yield return @"
+readonly struct Foo {
+  public System.Threading.Tasks.ValueTask<int> FooAsync(Foo f) => null;
+}";
+
             // No diagnostic if implements interface
             yield return
-                @"readonly struct Foo : System.IEquatable<Foo>
+@"readonly struct Foo : System.IEquatable<Foo>
 {
     public bool Equals(Foo other) => true;
+}";
+
+            // No diagnostic if implements interface implicitely
+            yield return
+@"readonly struct Foo : System.IEquatable<Foo>
+{
+    bool System.IEquatable<Foo>.Equals(Foo other) => true;
 }";
 
             // Passed by value
