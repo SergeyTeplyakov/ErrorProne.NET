@@ -49,7 +49,7 @@ namespace ErrorProne.NET.Structs
 
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
-            var method = (IMethodSymbol)context.Symbol;
+            var method = (IMethodSymbol) context.Symbol;
             if (IsOverridenMethod(method) || method.IsAsyncOrTaskBased(context.Compilation) || method.IsIteratorBlock())
             {
                 // If the method overrides a base method or implements an interface,
@@ -58,8 +58,10 @@ namespace ErrorProne.NET.Structs
             }
 
             // Should analyze only subset of methods, not all of them.
+            // What about operators?
             if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
-                method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction)
+                method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
+                method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet)
             {
                 foreach (var p in method.Parameters)
                 {

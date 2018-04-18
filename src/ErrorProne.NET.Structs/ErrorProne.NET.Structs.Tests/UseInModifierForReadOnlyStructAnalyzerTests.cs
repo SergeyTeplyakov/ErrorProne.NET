@@ -41,6 +41,10 @@ namespace ErrorProne.NET.Structs.Tests
         {
             // Diagnostic for a delegate
             yield return @"readonly struct S { } delegate void Foo([|S s|]);";
+            
+            // Diagnostic for an indexer
+            // TODO: the location of the diagnostic is weird, because DeclaredSyntaxReferences for the parameter in this case is empty:(
+            yield return @"readonly struct S { public int this[S [|s|]] => 42; }";
 
             // Diagnostic on abstract declaration, but on the overloaded
             yield return
