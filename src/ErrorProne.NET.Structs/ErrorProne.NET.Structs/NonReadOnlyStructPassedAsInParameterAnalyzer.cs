@@ -55,6 +55,12 @@ namespace ErrorProne.NET.Structs
 
         private static void AnalyzeMethodSymbol(IMethodSymbol method, Action<Diagnostic> reporter)
         {
+            if (method.IsOverride || method.IsInterfaceImplementation())
+            {
+                // This is an override, nothing we can do here
+                return;
+            }
+
             foreach (var p in method.Parameters)
             {
                 if (p.RefKind == RefKind.In && p.Type.IsValueType && p.Type.UnfriendlyToReadOnlyRefs())

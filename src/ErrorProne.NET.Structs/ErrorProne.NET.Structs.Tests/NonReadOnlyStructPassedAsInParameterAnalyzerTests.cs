@@ -39,6 +39,12 @@ struct S {
 
         public static IEnumerable<string> GetHasDiagnosticsTestCases()
         {
+            // The warning should be only in the base class
+            yield return @"
+struct S { public void Foo() {} } 
+class B {public virtual void Foo([|in S s|]) {}}
+class D : B {public override void Foo(in S s) {}}";
+            
             // Diagnostic for struct with one method
             yield return @"struct S { public void Foo() {} static void ByIn([|in S s|]) {} }";
             
