@@ -17,7 +17,8 @@ namespace ErrorProne.NET.Structs
         private static readonly string MessageFormat = "Use in-modifier for passing readonly struct '{0}'";
         private static readonly string Description = "Readonly structs have better performance when passed readonly reference";
         private const string Category = "Performance";
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Info;
+        // Using warning for visibility purposes
+        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor Rule = 
