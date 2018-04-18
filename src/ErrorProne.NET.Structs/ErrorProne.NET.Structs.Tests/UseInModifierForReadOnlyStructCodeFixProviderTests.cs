@@ -15,5 +15,27 @@ namespace ErrorProne.NET.Structs.Tests
 
             TestCodeFix(code, expected, UseInModifierForReadOnlyStructAnalyzer.Rule);
         }
+
+        [Test]
+        public void AddInModifierWithTrivia()
+        {
+            string code = @"readonly struct FooBar
+{
+    public static void Foo(
+        [|FooBar fb|])
+    {
+    }
+}";
+
+            string expected = @"readonly struct FooBar
+{
+    public static void Foo(
+        in FooBar fb)
+    {
+    }
+}";
+
+            TestCodeFix(code, expected, UseInModifierForReadOnlyStructAnalyzer.Rule);
+        }
     }
 }

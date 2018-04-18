@@ -45,12 +45,17 @@ namespace ErrorProne.NET.Structs
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> AddInModifier(Document document, ParameterSyntax typeDecl, CancellationToken cancellationToken)
+        private async Task<Document> AddInModifier(Document document, ParameterSyntax paramSyntax, CancellationToken cancellationToken)
         {
-            var newType = typeDecl.WithModifiers(typeDecl.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.InKeyword)));
+            SyntaxTriviaList trivia = paramSyntax.GetLeadingTrivia(); ;
+
+            var newType = paramSyntax
+                .WithModifiers(paramSyntax.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.InKeyword)))
+                .WithLeadingTrivia(trivia);
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            return document.WithSyntaxRoot(root.ReplaceNode(typeDecl, newType));
+            return document.WithSyntaxRoot(root.ReplaceNode(paramSyntax, newType));
         }
     }
 }

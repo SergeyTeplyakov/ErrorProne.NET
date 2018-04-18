@@ -71,7 +71,6 @@ namespace ErrorProne.NET.Structs
         private static bool IsOverridenMethod(IMethodSymbol method)
         {
             return method.IsOverride || 
-                   method.MethodKind == MethodKind.ExplicitInterfaceImplementation || 
                    method.IsInterfaceImplementation();   
         }
 
