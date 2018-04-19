@@ -54,6 +54,38 @@ public class C {
         }
 
         [Test]
+        public void HasDiagnosticsWhenExtensionMethodIsUsedThatTakesStructByValue()
+        {
+            string code = @"
+readonly struct S {
+    public static void Sample() {
+       S s = default(S);
+       [|s|].Foo();
+    }
+}
+static class C {
+    public static void Foo(this S s) {}
+}"; ;
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoDiagnosticsWhenExtensionMethodIsUsedThatTakesStructByIn()
+        {
+            string code = @"
+readonly struct S {
+    public static void Sample() {
+       S s = default(S);
+       s.Foo();
+    }
+}
+public static class C {
+    public static void Foo(this in S s) {}
+}"; ;
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void NoDiagnosticsFieldOfReferencecType()
         {
             string code = @"

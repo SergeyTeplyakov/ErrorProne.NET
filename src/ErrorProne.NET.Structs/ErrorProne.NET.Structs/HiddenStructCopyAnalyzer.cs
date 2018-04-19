@@ -79,6 +79,15 @@ namespace ErrorProne.NET.Structs
             ExpressionSyntax expression, 
             ISymbol targetSymbol)
         {
+            if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
+                // MethodSymbol itself has no parameters, need to go through ReducedFrom property.
+                ms.ReducedFrom.Parameters[0].RefKind == RefKind.None &&
+                ms.ReceiverType.IsValueType && ms.ReceiverType.TypeKind != TypeKind.Enum)
+            {
+                // The expression calls an extension method that takes a struct by value.
+                ReportDiagnostic(context, expression, ms.ReceiverType);
+            }
+
             var symbol = context.SemanticModel.GetSymbolInfo(expression).Symbol;
             if (symbol is IFieldSymbol fs && fs.IsReadOnly)
             {
@@ -108,14 +117,19 @@ namespace ErrorProne.NET.Structs
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
-                var diagnostic = Diagnostic.Create(
-                    Rule,
-                    expression.GetLocation(),
-                    expression.Parent.ToFullString(),
-                    resolvedType.Name);
-
-                context.ReportDiagnostic(diagnostic);
+                ReportDiagnostic(context, expression, resolvedType);
             }
+        }
+
+        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType)
+        {
+            var diagnostic = Diagnostic.Create(
+                Rule,
+                expression.GetLocation(),
+                expression.Parent.ToFullString(),
+                resolvedType.Name);
+
+            context.ReportDiagnostic(diagnostic);
         }
     }
 }

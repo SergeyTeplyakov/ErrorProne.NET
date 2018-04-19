@@ -18,6 +18,22 @@ public readonly struct RS
     public static void UseAsOut(ref RS rs) => rs = default;
 }
 
+
+    readonly struct S
+    {
+        public static void Sample()
+        {
+            S s = default;
+            s.Foo();
+            s.Bar();
+        }
+    }
+    static class C
+    {
+        public static void Foo(in this S s) { }
+
+        public static void Bar(this S s) { }
+    }
     
 
     //public class AsyncSample
