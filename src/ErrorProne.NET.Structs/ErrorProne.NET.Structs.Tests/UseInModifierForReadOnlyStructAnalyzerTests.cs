@@ -39,6 +39,9 @@ namespace ErrorProne.NET.Structs.Tests
 
         public static IEnumerable<string> GetHasDiagnosticsTestCases()
         {
+            // Expression body for method
+            yield return @"readonly struct FooBar { public static System.Func<FooBar> Foo([|FooBar fb|]) => null; }";
+
             // Diagnostic for a delegate
             yield return @"readonly struct S { } delegate void Foo([|S s|]);";
             

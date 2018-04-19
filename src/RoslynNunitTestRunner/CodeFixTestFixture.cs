@@ -31,6 +31,19 @@ namespace RoslynNunitTestRunner
             TestCodeFix(processedDocument.Document, processedDocument.Spans.First(), expected, descriptor);
         }
 
+        protected void TestNoCodeFix(string markupCode, DiagnosticDescriptor descriptor)
+        {
+            var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(markupCode, LanguageName);
+
+            TestNoCodeFix(processedDocument.Document, processedDocument.Spans.First(), descriptor);
+        }
+
+        protected void TestNoCodeFix(Document document, TextSpan span, DiagnosticDescriptor descriptor)
+        {
+            var codeFixes = GetCodeFixes(document, span, descriptor);
+            Assert.That(codeFixes.Length, Is.EqualTo(0), "Fixer should not be available");
+        }
+
         protected void TestCodeFix(Document document, TextSpan span, string expected, DiagnosticDescriptor descriptor)
         {
             var codeFixes = GetCodeFixes(document, span, descriptor);
