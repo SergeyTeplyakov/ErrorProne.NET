@@ -25,16 +25,23 @@ public readonly struct RS
         {
             S s = default;
             s.Foo();
+            s.Baz();
+            //
             s.Bar();
         }
     }
     static class C
     {
-        public static void Foo(in this S s) { }
-
+        // Extension methods for value types
+        // (or generics with the struct constrained)
+        // can be passed by value, by 'in' or by 'ref'.
         public static void Bar(this S s) { }
+        public static void Foo(in this S s) { }   
+        public static void Baz(ref this S s) { }
     }
     
+
+
 
     //public class AsyncSample
     //{

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,7 +18,7 @@ namespace ErrorProne.NET.Structs
         public const string DiagnosticId = DiagnosticIds.HiddenStructCopyDiagnosticId;
 
         private static readonly string Title = "Hidden struct copy operation";
-        private static readonly string MessageFormat = "Expression '{0}' causes a hidden copy of a non-readonly struct '{1}'";
+        private static readonly string MessageFormat = "Expression '{0}' causes a hidden copy of a {2}struct '{1}'";
         private static readonly string Description = "Compiler emits a defensive copy to make sure a struct instance remains unchanged";
         private const string Category = "Performance";
         
@@ -46,23 +47,8 @@ namespace ErrorProne.NET.Structs
                 !(ma.Expression is MemberAccessExpressionSyntax))
             {
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ma).Symbol;
-                AnalyzeExpressionAndTargetSymbol(context, ma.Expression, targetSymbol);
+                AnalyzeExpressionAndTargetSymbol(context, ma.Expression, ma.Name, targetSymbol);
             }
-        }
-
-        /// <summary>
-        /// Gets the first expression that potentially could point to a field/parameter/local.
-        /// </summary>
-        private static ExpressionSyntax GetFirstExpression(MemberAccessExpressionSyntax memberAccess)
-        {
-            // If memberAccess is 'a.b.c' we need to get 'a'.
-            var resultCandidate = memberAccess.Expression;
-            if (resultCandidate is MemberAccessExpressionSyntax ma)
-            {
-                return GetFirstExpression(ma);
-            }
-
-            return resultCandidate;
         }
 
         private void AnalyzeElementAccessExpression(SyntaxNodeAnalysisContext context)
@@ -70,13 +56,14 @@ namespace ErrorProne.NET.Structs
             if (context.Node is ElementAccessExpressionSyntax ea)
             {
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ea).Symbol;
-                AnalyzeExpressionAndTargetSymbol(context, ea.Expression, targetSymbol);
+                AnalyzeExpressionAndTargetSymbol(context, ea.Expression, null, targetSymbol: targetSymbol);
             }
         }
 
         private void AnalyzeExpressionAndTargetSymbol(
             SyntaxNodeAnalysisContext context,
-            ExpressionSyntax expression, 
+            ExpressionSyntax expression,
+            SimpleNameSyntax name,
             ISymbol targetSymbol)
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
@@ -84,25 +71,26 @@ namespace ErrorProne.NET.Structs
                 ms.ReducedFrom.Parameters[0].RefKind == RefKind.None &&
                 ms.ReceiverType.IsValueType && ms.ReceiverType.TypeKind != TypeKind.Enum)
             {
+                Debug.Assert(name != null);
                 // The expression calls an extension method that takes a struct by value.
-                ReportDiagnostic(context, expression, ms.ReceiverType);
+                ReportDiagnostic(context, name, ms.ReceiverType);
             }
 
             var symbol = context.SemanticModel.GetSymbolInfo(expression).Symbol;
             if (symbol is IFieldSymbol fs && fs.IsReadOnly)
             {
                 // The expression uses readonly field of non-readonly struct
-                ReportDiagnosticIfTargetIsNotField(context, expression, fs.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, fs.Type, targetSymbol);
             }
             else if (symbol is IParameterSymbol p && p.RefKind == RefKind.In)
             {
                 // The expression uses in-parameter
-                ReportDiagnosticIfTargetIsNotField(context, expression, p.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, p.Type, targetSymbol);
             }
             else if (symbol is ILocalSymbol ls && ls.IsRef && ls.RefKind == RefKind.In)
             {
                 // The expression uses ref readonly local
-                ReportDiagnosticIfTargetIsNotField(context, expression, ls.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, ls.Type, targetSymbol);
             }
         }
 
@@ -117,17 +105,18 @@ namespace ErrorProne.NET.Structs
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
-                ReportDiagnostic(context, expression, resolvedType);
+                ReportDiagnostic(context, expression, resolvedType, "non-readonly");
             }
         }
 
-        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType)
+        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType, string modifier = null)
         {
             var diagnostic = Diagnostic.Create(
                 Rule,
                 expression.GetLocation(),
-                expression.Parent.ToFullString(),
-                resolvedType.Name);
+                expression.ToFullString(),
+                resolvedType.Name,
+                modifier ?? string.Empty);
 
             context.ReportDiagnostic(diagnostic);
         }

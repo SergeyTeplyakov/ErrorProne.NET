@@ -13,14 +13,14 @@ namespace ErrorProne.NET.Structs.Tests
         [Test]
         public void HasDiagnosticsForMethodCallsOnReadOnlyField()
         {
-            string code = @"struct S {public int Foo() => 42;} class Foo {private readonly S _s; public int Bar() => [|_s|].Foo();";
+            string code = @"struct S {public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();";
             HasDiagnostic(code, DiagnosticId);
         }
 
         [Test]
         public void HasDiagnosticsForMethodCallsOnInParameter()
         {
-            string code = @"struct S {public int Foo() => 42;} class Foo {public int Bar(in S s) => [|s|].Foo();}";
+            string code = @"struct S {public int Foo() => 42;} class Foo {public int Bar(in S s) => s.[|Foo|]();}";
             HasDiagnostic(code, DiagnosticId);
         }
         
@@ -33,7 +33,7 @@ class Foo {
     public int Bar(S s)
     {
         ref readonly var rs = ref s;
-        return [|rs|].Foo();
+        return rs.[|Foo|]();
     }
 }";
             HasDiagnostic(code, DiagnosticId);
@@ -60,7 +60,7 @@ public class C {
 readonly struct S {
     public static void Sample() {
        S s = default(S);
-       [|s|].Foo();
+       s.[|Foo|]();
     }
 }
 static class C {
@@ -155,13 +155,13 @@ class Foo {private readonly S _s; public string Bar() => _s.X.ToString();";
         public static IEnumerable<string> GetHasDiagnosticCases()
         {
             // On for properties
-            yield return "struct S {public int X => 42;} class Foo {private readonly S _s; public int Bar() => [|_s|].X;";
+            yield return "struct S {public int X => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|];";
 
             // On composite dotted expression like a.b.c.ToString();
-            yield return "struct S {public int X => 42;} class Foo {private readonly S _s; public string Bar() => [|_s|].X.ToString();";
+            yield return "struct S {public int X => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|X|].ToString();";
 
             // On for methods
-            yield return "struct S {public int X() => 42;} class Foo {private readonly S _s; public int Bar() => [|_s|].X();";
+            yield return "struct S {public int X() => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|]();";
 
             // On for indexers
             yield return @"
