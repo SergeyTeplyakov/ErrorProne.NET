@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
+using ErrorProne.NET.Core;
+using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,6 +12,9 @@ namespace ErrorProne.NET.Structs
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class UseInModifierForReadOnlyStructAnalyzer : DiagnosticAnalyzer
     {
+        // Only suggest when the struct is greater or equals to the threashold
+        public static readonly int LargeStructThreashold = 2 * IntPtr.Size;
+
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.UseInModifierForReadOnlyStructDiagnosticId;
 
@@ -42,7 +47,7 @@ namespace ErrorProne.NET.Structs
             {
                 if (semanticModel.GetDeclaredSymbol(p) is IParameterSymbol parameterSymbol)
                 {
-                    WarnIfParameterIsReadOnly(parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
+                    WarnIfParameterIsReadOnly(context.SemanticModel, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
                 }
             }
         }
@@ -57,15 +62,22 @@ namespace ErrorProne.NET.Structs
                 return;
             }
 
-            // Should analyze only subset of methods, not all of them.
-            // What about operators?
-            if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
-                method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
-                method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet)
+            // TODO: not sure how to get the semantic model another way!
+            if (context.Symbol.DeclaringSyntaxReferences.Length != 0)
             {
-                foreach (var p in method.Parameters)
+                var syntaxTree = context.Symbol.DeclaringSyntaxReferences[0].SyntaxTree;
+                var semanticModel = context.Compilation.GetSemanticModel(syntaxTree);
+
+                // Should analyze only subset of methods, not all of them.
+                // What about operators?
+                if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
+                    method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
+                    method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet)
                 {
-                    WarnIfParameterIsReadOnly(p, diagnostic => context.ReportDiagnostic(diagnostic));
+                    foreach (var p in method.Parameters)
+                    {
+                        WarnIfParameterIsReadOnly(semanticModel, p, diagnostic => context.ReportDiagnostic(diagnostic));
+                    }
                 }
             }
         }
@@ -76,9 +88,9 @@ namespace ErrorProne.NET.Structs
                    method.IsInterfaceImplementation();   
         }
 
-        private static void WarnIfParameterIsReadOnly(IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
+        private static void WarnIfParameterIsReadOnly(SemanticModel model, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
         {
-            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct())
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.ComputeStructSize(model) >= LargeStructThreashold)
             {
                 Location location;
                 if (p.DeclaringSyntaxReferences.Length != 0)

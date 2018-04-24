@@ -25,9 +25,16 @@ namespace ErrorProne.NET.Structs.Tests
         }
 
         [Test]
-        public void HasDiagnosticsForReadOnlyStruct()
+        public void NoDiagnosticsForReadOnlyStruct()
         {
-            string code = @"readonly struct S {} class FooBar { public void Foo([|S n|]) {} }";
+            string code = @"readonly struct S {} class FooBar { public void Foo(S n) {} }";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void HasDiagnosticsForLargeReadOnlyStruct()
+        {
+            string code = @"readonly struct S {readonly long l, l2;} class FooBar { public void Foo([|S n|]) {} }";
             HasDiagnostic(code, DiagnosticId);
         }
 
@@ -40,18 +47,18 @@ namespace ErrorProne.NET.Structs.Tests
         public static IEnumerable<string> GetHasDiagnosticsTestCases()
         {
             // Expression body for method
-            yield return @"readonly struct FooBar { public static System.Func<FooBar> Foo([|FooBar fb|]) => null; }";
+            yield return @"readonly struct FooBar {readonly long l, l2; public static System.Func<FooBar> Foo([|FooBar fb|]) => null; }";
 
             // Diagnostic for a delegate
-            yield return @"readonly struct S { } delegate void Foo([|S s|]);";
+            yield return @"readonly struct S { readonly long l, l2; } delegate void Foo([|S s|]);";
             
             // Diagnostic for an indexer
             // TODO: the location of the diagnostic is weird, because DeclaredSyntaxReferences for the parameter in this case is empty:(
-            yield return @"readonly struct S { public int this[S [|s|]] => 42; }";
+            yield return @"readonly struct S { readonly long l,l2; public int this[S [|s|]] => 42; }";
 
             // Diagnostic on abstract declaration, but on the overloaded
             yield return
-                @"readonly struct S {}
+                @"readonly struct S { readonly long l,l2; }
 abstract class B {public virtual void Foo([|S s|]) {}}
 class D : B {public override void Foo(S s) {}
 ";

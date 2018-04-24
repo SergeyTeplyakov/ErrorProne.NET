@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\RoslynNUnitTestRunner\RoslynNUnitTestRunner.csproj" />
-    <ProjectReference Include="..\ErrorProne.NET.Structs\ErrorProne.NET.Structs.csproj" />
+    <ProjectReference Include="..\StructAnalyzers\StructAnalyzers.csproj" />
   </ItemGroup>
 
 </Project>

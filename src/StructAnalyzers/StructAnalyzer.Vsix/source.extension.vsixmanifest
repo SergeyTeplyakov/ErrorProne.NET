@@ -3,7 +3,7 @@
   <Metadata>
     <Identity Id="ErrorProne.NET.Structs.cf9c52e8-7335-4efe-b68d-ba32c99ff09d" Version="1.0" Language="en-US" Publisher="Sergey T"/>
     <DisplayName>ErrorProne.NET.Structs</DisplayName>
-    <Description xml:space="preserve">This is a sample diagnostic extension for the .NET Compiler Platform ("Roslyn").</Description>
+    <Description xml:space="preserve">This project contains a set of analyzers for detecting correctness and performancec issues when the structs are used incorrectly.</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,)" />
@@ -12,8 +12,8 @@
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="ErrorProne.NET.Structs" Path="|ErrorProne.NET.Structs|"/>
-    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="ErrorProne.NET.Structs" Path="|ErrorProne.NET.Structs|"/>
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="StructAnalyzers" Path="|StructAnalyzers|"/>
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="StructAnalyzers" Path="|StructAnalyzers|"/>
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
