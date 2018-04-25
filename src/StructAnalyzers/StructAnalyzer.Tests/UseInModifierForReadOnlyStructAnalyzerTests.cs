@@ -48,6 +48,9 @@ namespace ErrorProne.NET.Structs.Tests
         {
             // Expression body for method
             yield return @"readonly struct FooBar {readonly long l, l2; public static System.Func<FooBar> Foo([|FooBar fb|]) => null; }";
+            
+            // Diagnostic for extension method.
+            yield return @"readonly struct FooBar {readonly long l, l2; public static string Foo([|this FooBar fb|]) => null; }";
 
             // Diagnostic for a delegate
             yield return @"readonly struct S { readonly long l, l2; } delegate void Foo([|S s|]);";
