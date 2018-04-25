@@ -105,7 +105,7 @@ namespace ErrorProne.NET.Structs
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
-                ReportDiagnostic(context, expression, resolvedType, "non-readonly");
+                ReportDiagnostic(context, expression, resolvedType, "non-readonly ");
             }
         }
 
