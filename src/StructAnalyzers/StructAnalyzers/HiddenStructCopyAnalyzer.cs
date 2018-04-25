@@ -60,6 +60,23 @@ namespace ErrorProne.NET.Structs
             }
         }
 
+        private static RefKind GetExtensionMethodThisRefKind(IMethodSymbol method)
+        {
+            Debug.Assert(method.IsExtensionMethod);
+
+            // The logic is quite tricky because it depends on the call form:
+            // If an extension method is called using foo.Extension() then the parameter
+            // should be obtained via 'ReducedFrom', otherwise ReducedFrom is null
+            // and Parameters property should be used.
+
+            if (method.ReducedFrom != null)
+            {
+                return method.ReducedFrom.Parameters[0].RefKind;
+            }
+
+            return method.Parameters[0].RefKind;
+        }
+
         private void AnalyzeExpressionAndTargetSymbol(
             SyntaxNodeAnalysisContext context,
             ExpressionSyntax expression,
@@ -67,13 +84,11 @@ namespace ErrorProne.NET.Structs
             ISymbol targetSymbol)
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
-                // MethodSymbol itself has no parameters, need to go through ReducedFrom property.
-                ms.ReducedFrom?.Parameters[0].RefKind == RefKind.None &&
-                ms.ReceiverType?.IsValueType == true && ms.ReceiverType?.TypeKind != TypeKind.Enum)
+                GetExtensionMethodThisRefKind(ms) == RefKind.None &&
+                ms.ReceiverType.IsValueType == true && ms.ReceiverType.TypeKind != TypeKind.Enum)
             {
-                Debug.Assert(name != null);
                 // The expression calls an extension method that takes a struct by value.
-                ReportDiagnostic(context, name, ms.ReceiverType);
+                ReportDiagnostic(context, name ?? expression, ms.ReceiverType);
             }
 
             var symbol = context.SemanticModel.GetSymbolInfo(expression).Symbol;

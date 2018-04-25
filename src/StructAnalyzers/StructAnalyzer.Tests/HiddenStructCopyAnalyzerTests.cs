@@ -11,6 +11,17 @@ namespace ErrorProne.NET.Structs.Tests
         public const string DiagnosticId = HiddenStructCopyAnalyzer.DiagnosticId;
 
         [Test]
+        public void NoNullRefeferenceExceptionWhenExtensionMethodIsCalledAsAMethod()
+        {
+            string code = @"
+static class Ex {
+    public static void Foo(this object o) {}
+    public static void Example(object o) => Ex.Foo(o);
+}";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void HasDiagnosticsForMethodCallsOnReadOnlyField()
         {
             string code = @"struct S {public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();";
