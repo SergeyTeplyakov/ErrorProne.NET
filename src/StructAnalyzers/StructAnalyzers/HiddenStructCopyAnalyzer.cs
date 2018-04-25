@@ -68,8 +68,8 @@ namespace ErrorProne.NET.Structs
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
                 // MethodSymbol itself has no parameters, need to go through ReducedFrom property.
-                ms.ReducedFrom.Parameters[0].RefKind == RefKind.None &&
-                ms.ReceiverType.IsValueType && ms.ReceiverType.TypeKind != TypeKind.Enum)
+                ms.ReducedFrom?.Parameters[0].RefKind == RefKind.None &&
+                ms.ReceiverType?.IsValueType == true && ms.ReceiverType?.TypeKind != TypeKind.Enum)
             {
                 Debug.Assert(name != null);
                 // The expression calls an extension method that takes a struct by value.
