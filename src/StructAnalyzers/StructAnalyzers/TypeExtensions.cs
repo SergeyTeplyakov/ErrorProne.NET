@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,8 +7,6 @@ namespace ErrorProne.NET.Structs
 {
     public static class TypeExtensions
     {
-        private static readonly object[] EmptyObjectsArray = new object[0];
-
         /// <summary>
         /// Returns true if a given type is a struct and the struct is readonly.
         /// </summary>
@@ -20,20 +17,14 @@ namespace ErrorProne.NET.Structs
                 return false;
             }
 
-            if (type is INamedTypeSymbol nt)
+            if (type is INamedTypeSymbol nt && nt.DeclaringSyntaxReferences.Length != 0)
             {
                 return nt.IsReadOnlyStruct();
             }
 
-            // This is not a named type, so we'll try to get IsReadOnly property via reflection.
-            // Dirty, but can't see other options:(
-            var property = type.GetType().GetRuntimeProperty("IsReadOnly");
-            if (property?.GetMethod == null)
-            {
-                return false;
-            }
-
-            return (bool)property.GetMethod.Invoke(type, EmptyObjectsArray);
+            // From metadata
+            return type.GetAttributes().Any(a =>
+                a.AttributeClass.ToDisplayString() == "System.Runtime.CompilerServices.IsReadOnlyAttribute");
         }
 
         /// <summary>
