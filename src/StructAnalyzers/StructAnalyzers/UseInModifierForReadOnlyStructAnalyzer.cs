@@ -92,6 +92,7 @@ namespace ErrorProne.NET.Structs
             var instanceSize = p.Type.ComputeStructSize(model);
             if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && instanceSize >= LargeStructThreashold)
             {
+                // Not sure why, but syntax could be missing.
                 Location location;
                 if (p.DeclaringSyntaxReferences.Length != 0)
                 {
