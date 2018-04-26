@@ -78,6 +78,11 @@ class D : B {public override void Foo(S s) {}
         
         public static IEnumerable<string> GetNoDiagnosticsTestCases()
         {
+            // No diagnostic for property with a setter
+            yield return @"
+readonly struct Foo { private long l1, l2; }
+class FooBar { public Foo F {get;set;} }";
+            
             // No diagnostic if returns Task
             yield return @"
 readonly struct Foo {

@@ -71,7 +71,7 @@ namespace ErrorProne.NET.Structs
                 // What about operators?
                 if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
                     method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
-                    method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet)
+                    method.MethodKind == MethodKind.PropertyGet)
                 {
                     foreach (var p in method.Parameters)
                     {
