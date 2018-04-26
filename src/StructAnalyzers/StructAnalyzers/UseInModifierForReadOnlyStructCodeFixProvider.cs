@@ -78,6 +78,13 @@ namespace ErrorProne.NET.Structs
                 var location = reference.Locations.FirstOrDefault();
                 if (location.Location != null)
                 {
+                    // The reference could be easily outside of the current syntax tree.
+                    // For instance, it may be in a partial class?
+                    if (!syntaxRoot.FullSpan.Contains(location.Location.SourceSpan))
+                    {
+                        continue;
+                    }
+
                     var node = syntaxRoot.FindNode(location.Location.SourceSpan);
 
                     if (node.Parent is ArgumentSyntax arg &&
