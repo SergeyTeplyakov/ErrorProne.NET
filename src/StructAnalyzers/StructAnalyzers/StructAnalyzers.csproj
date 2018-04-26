@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
   
   <PropertyGroup>
     <PackageId>ErrorProne.NET.Structs</PackageId>
-    <PackageVersion>1.0.0.0</PackageVersion>
+    <PackageVersion>0.1.0.0</PackageVersion>
     <Authors>Sergey T</Authors>
     <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
     <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
@@ -31,17 +31,23 @@
   </PropertyGroup>
    
   <ItemGroup>
+    <PackageReference Include="ILMerge" Version="2.14.1208" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.7.0" PrivateAssets="all" />
     <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\$(AssemblyName).Packed.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
+    <ProjectReference Include="..\..\Core\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" PrivateAssets="all" />
   </ItemGroup>
+
+    <Target Name="ILMerge" BeforeTargets="GenerateNuspec">
+        <!-- the ILMergePath property points to the location of ILMerge.exe console application -->
+        <Exec Command="$(NuGetPackageRoot)ILMerge\2.14.1208\tools\ilmerge.exe /ndebug /out:$(OutputPath)\$(AssemblyName).Packed.dll $(OutputPath)\$(AssemblyName).dll $(OutputPath)\ErrorProne.NET.Core.dll" />
+    </Target>
 
 </Project>
