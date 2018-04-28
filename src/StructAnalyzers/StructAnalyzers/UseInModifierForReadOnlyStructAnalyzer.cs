@@ -11,9 +11,6 @@ namespace ErrorProne.NET.Structs
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class UseInModifierForReadOnlyStructAnalyzer : DiagnosticAnalyzer
     {
-        // Only suggest when the struct is greater or equals to the threashold
-        public static readonly int LargeStructThreashold = 2 * sizeof(long);
-
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.UseInModifierForReadOnlyStructDiagnosticId;
 
@@ -90,7 +87,7 @@ namespace ErrorProne.NET.Structs
         private static void WarnIfParameterIsReadOnly(SemanticModel model, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
         {
             var instanceSize = p.Type.ComputeStructSize(model);
-            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && instanceSize >= LargeStructThreashold)
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && instanceSize >= Settings.LargeStructThreashold)
             {
                 // Not sure why, but syntax could be missing.
                 Location location;
