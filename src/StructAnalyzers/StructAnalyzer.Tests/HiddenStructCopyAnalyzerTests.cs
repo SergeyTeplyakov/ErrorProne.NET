@@ -186,6 +186,19 @@ public class C {
     private readonly S _s;
     public string M() => [|_s|][0];
 }";
+            
+            // On readonly ref returns
+            yield return @"
+struct S {
+    private readonly long l1,l2; 
+}
+public class C {
+    private readonly S _s;
+    private ref readonly S GetS() => ref _s;
+    private static void Test() {
+       string s = GetS().[|ToString|]()
+    }
+}";
         }
         
         [TestCaseSource(nameof(GetNoDiagnosticCases))]

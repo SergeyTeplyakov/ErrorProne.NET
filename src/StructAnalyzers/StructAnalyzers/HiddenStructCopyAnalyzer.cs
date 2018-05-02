@@ -108,6 +108,11 @@ namespace ErrorProne.NET.Structs
                 // The expression uses ref readonly local
                 ReportDiagnosticIfTargetIsNotField(context, name ?? expression, ls.Type, targetSymbol);
             }
+            else if (symbol is IMethodSymbol method && method.ReturnsByRefReadonly)
+            {
+                // The expression uses ref readonly return
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, method.ReturnType, targetSymbol);
+            }
         }
 
         private static void ReportDiagnosticIfTargetIsNotField(SyntaxNodeAnalysisContext context,

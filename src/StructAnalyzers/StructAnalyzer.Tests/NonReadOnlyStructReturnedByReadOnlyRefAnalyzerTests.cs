@@ -42,10 +42,10 @@ namespace ErrorProne.NET.Structs.Tests
             yield return
                 @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S => _s; }";
             
-            // No diagnostics for ref return method with expression body
+            // Has diagnostics for ref return method with expression body
             yield return
                 @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S() => _s; }";
-        }
+                    }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
         public void NoDiagnosticsTestCases(string code)
