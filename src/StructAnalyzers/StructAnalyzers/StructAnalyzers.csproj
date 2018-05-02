@@ -9,14 +9,19 @@
   <PropertyGroup>
     <PackageId>ErrorProne.NET.Structs</PackageId>
     <PackageVersion>0.1.0.0</PackageVersion>
-    <Authors>Sergey T</Authors>
-    <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
-    <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
-    <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
-    <RepositoryUrl>http://REPOSITORY_URL_HERE_OR_DELETE_THIS_LINE</RepositoryUrl>
+    <Authors>Sergey Teplyakov</Authors>
+    <PackageLicenseUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>ErrorProne.NET.Structs</Description>
-    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
+    <Description>Analyzers that help avoiding struct and readonly reference performance pitfalls</Description>
+    <PackageReleaseNotes>
+* EPS01: detects that a struct could be made readonly;
+* EPS02: detects that a struct not suitable for readonly contexts is passed using 'in'-parameter
+* EPS03: detects that a struct not suitable for readonly contexts is returned by ref readonly reference.
+* EPS04: detects that a struct not suitable for readonly contexts is stored in ref readonly local.
+* EPS05: detects that a struct could be passed using 'in'-modifier for performance reasons.
+* EPS06: detects that the compiler emits a defensive copy for a given expression.
+</PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
     <PackageTags>ErrorProne.NET.Structs, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>

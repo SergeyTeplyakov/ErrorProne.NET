@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -107,6 +108,11 @@ namespace ErrorProne.NET.Structs
                 // The expression uses ref readonly local
                 ReportDiagnosticIfTargetIsNotField(context, name ?? expression, ls.Type, targetSymbol);
             }
+            else if (symbol is IMethodSymbol method && method.ReturnsByRefReadonly)
+            {
+                // The expression uses ref readonly return
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, method.ReturnType, targetSymbol);
+            }
         }
 
         private static void ReportDiagnosticIfTargetIsNotField(SyntaxNodeAnalysisContext context,
@@ -116,7 +122,9 @@ namespace ErrorProne.NET.Structs
                 !(targetSymbol is IFieldSymbol) &&
                 resolvedType.IsValueType &&
                 resolvedType.TypeKind != TypeKind.Enum &&
-                !resolvedType.IsReadOnlyStruct())
+                !resolvedType.IsReadOnlyStruct() &&
+                // Warn only when the size of the struct is larger then threshold
+                (resolvedType.ComputeStructSize(context.SemanticModel) is var size && size >= Settings.LargeStructThreashold))
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.

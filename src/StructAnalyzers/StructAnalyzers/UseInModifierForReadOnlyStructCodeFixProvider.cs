@@ -30,9 +30,10 @@ namespace ErrorProne.NET.Structs
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<ParameterSyntax>().First();
+            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<ParameterSyntax>().FirstOrDefault();
 
-            if (!await ParameterIsUsedInNonInFriendlyManner(declaration, context.Document, context.CancellationToken).ConfigureAwait(false))
+            // It is possible for some weird cases to not have 'ParameterSyntax'. See 'WarnIfParameterIsReadOnly' in UseInModifierAnalyzer.
+            if (declaration != null && !await ParameterIsUsedInNonInFriendlyManner(declaration, context.Document, context.CancellationToken).ConfigureAwait(false))
             {
                 // Register a code action that will invoke the fix.
                 context.RegisterCodeFix(
@@ -77,6 +78,13 @@ namespace ErrorProne.NET.Structs
                 var location = reference.Locations.FirstOrDefault();
                 if (location.Location != null)
                 {
+                    // The reference could be easily outside of the current syntax tree.
+                    // For instance, it may be in a partial class?
+                    if (!syntaxRoot.FullSpan.Contains(location.Location.SourceSpan))
+                    {
+                        continue;
+                    }
+
                     var node = syntaxRoot.FindNode(location.Location.SourceSpan);
 
                     if (node.Parent is ArgumentSyntax arg &&

@@ -24,14 +24,14 @@ static class Ex {
         [Test]
         public void HasDiagnosticsForMethodCallsOnReadOnlyField()
         {
-            string code = @"struct S {public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();";
+            string code = @"struct S {private readonly long l1,l2; public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();";
             HasDiagnostic(code, DiagnosticId);
         }
 
         [Test]
         public void HasDiagnosticsForMethodCallsOnInParameter()
         {
-            string code = @"struct S {public int Foo() => 42;} class Foo {public int Bar(in S s) => s.[|Foo|]();}";
+            string code = @"struct S {private readonly long l1,l2; public int Foo() => 42;} class Foo {public int Bar(in S s) => s.[|Foo|]();}";
             HasDiagnostic(code, DiagnosticId);
         }
         
@@ -39,7 +39,7 @@ static class Ex {
         public void HasDiagnosticsForMethodCallsOnRefReadOnly()
         {
             string code = @"
-struct S { public int Foo() => 42; }
+struct S { private readonly long l1,l2; public int Foo() => 42; }
 class Foo {
     public int Bar(S s)
     {
@@ -55,6 +55,7 @@ class Foo {
         {
             string code = @"
 struct S {
+    private readonly long l1,l2; 
     public string this[int x] => string.Empty;
 }
 public class C {
@@ -69,6 +70,7 @@ public class C {
         {
             string code = @"
 readonly struct S {
+    private readonly long l1,l2; 
     public static void Sample() {
        S s = default(S);
        s.[|Foo|]();
@@ -166,22 +168,36 @@ class Foo {private readonly S _s; public string Bar() => _s.X.ToString();";
         public static IEnumerable<string> GetHasDiagnosticCases()
         {
             // On for properties
-            yield return "struct S {public int X => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|];";
+            yield return "struct S { private readonly long l1,l2; public int X => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|];";
 
             // On composite dotted expression like a.b.c.ToString();
-            yield return "struct S {public int X => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|X|].ToString();";
+            yield return "struct S { private readonly long l1,l2; public int X => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|X|].ToString();";
 
             // On for methods
-            yield return "struct S {public int X() => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|]();";
+            yield return "struct S {private readonly long l1,l2; public int X() => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|]();";
 
             // On for indexers
             yield return @"
 struct S {
+    private readonly long l1,l2; 
     public string this[int x] => string.Empty;
 }
 public class C {
     private readonly S _s;
     public string M() => [|_s|][0];
+}";
+            
+            // On readonly ref returns
+            yield return @"
+struct S {
+    private readonly long l1,l2; 
+}
+public class C {
+    private readonly S _s;
+    private ref readonly S GetS() => ref _s;
+    private static void Test() {
+       string s = GetS().[|ToString|]()
+    }
 }";
         }
         
@@ -190,17 +206,23 @@ public class C {
         {
             NoDiagnostic(code, DiagnosticId);
         }
-
+        
         public static IEnumerable<string> GetNoDiagnosticCases()
         {
+            // No diagnostics if a struct small
+            yield return "struct S {private readonly int _n; public override int GetHashCode() => _n.GetHashCode();}";
+            
+            // No diagnostics for CancellationToken
+            yield return "struct S {private readonly System.Threading.CancellationToken _n; public override int GetHashCode() => _n.GetHashCode();}";
+            
             // No diagnostics if a struct is readonly
-            yield return "readonly struct S {public int X => 42;} class Foo {private readonly S _s; public int Bar() => _s.X;";
+            yield return "readonly struct S {public int X => 42;} class Foo {private readonly S _s; public int Bar() => _s.X; }";
 
             // No diagnostics if field accessed
-            yield return "struct S {public int X;} class Foo {private readonly S _s; public int Bar() => _s.X;";
+            yield return "struct S {public int X;} class Foo {private readonly S _s; public int Bar() => _s.X;}";
 
             // No diagnostics for enum
-            yield return "enum S {X}; class Foo {private readonly S _s; public int Bar() => _s.X;";
+            yield return "enum S {X}; class Foo {private readonly S _s; public int Bar() => _s.X;}";
         }
     }
 }
