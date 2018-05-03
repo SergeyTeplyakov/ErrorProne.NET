@@ -24,6 +24,22 @@ namespace ErrorProne.NET.Structs.Tests
         }
 
         [Test]
+        public void HasDiagnosticsForLocalFunction()
+        {
+            string code = @"
+struct S { public void Foo() { } }
+class FooBar
+{
+    private S _s;
+    public void F()
+    {
+        [|ref readonly S|] S2() => ref _s;
+    }
+}";
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void NoDiagnosticsForReadOnlyStruct()
         {
             string code = @"readonly struct S {} class FooBar { public ref readonly S Foo() => throw new System.Exception(); }";
@@ -45,7 +61,7 @@ namespace ErrorProne.NET.Structs.Tests
             // Has diagnostics for ref return method with expression body
             yield return
                 @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S() => _s; }";
-                    }
+        }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
         public void NoDiagnosticsTestCases(string code)

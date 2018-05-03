@@ -1,5 +1,7 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -31,13 +33,26 @@ namespace ErrorProne.NET.Structs
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
+            context.RegisterSyntaxNodeAction(AnalyzeLocal, SyntaxKind.LocalFunctionStatement);
+        }
+
+        private void AnalyzeLocal(SyntaxNodeAnalysisContext context)
+        {
+            if (context.SemanticModel.GetDeclaredSymbol(context.Node) is IMethodSymbol symbol)
+            {
+                AnalyzeMethodSymbol(symbol, d => context.ReportDiagnostic(d));
+            }
         }
 
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
-            var method = (IMethodSymbol)context.Symbol;
-            if (!method.ReturnsVoid 
-                && method.ReturnsByRefReadonly 
+            AnalyzeMethodSymbol((IMethodSymbol)context.Symbol, d => context.ReportDiagnostic(d));
+        }
+
+        private static void AnalyzeMethodSymbol(IMethodSymbol method, Action<Diagnostic> diagnosticsReporter)
+        {
+            if (!method.ReturnsVoid
+                && method.ReturnsByRefReadonly
                 && method.ReturnType.IsValueType &&
                 method.ReturnType.UnfriendlyToReadOnlyRefs())
             {
@@ -45,7 +60,7 @@ namespace ErrorProne.NET.Structs
                 var syntaxTree = method.DeclaringSyntaxReferences[0].SyntaxTree;
 
                 Location location = null;
-                
+
                 switch (syntaxNode)
                 {
                     case MethodDeclarationSyntax m:
@@ -56,12 +71,15 @@ namespace ErrorProne.NET.Structs
                         {
                             location = Location.Create(syntaxTree, pd.Type.FullSpan);
                         }
+
+                        break;
+                    case LocalFunctionStatementSyntax l:
+                        location = Location.Create(syntaxTree, l.ReturnType.Span);
                         break;
                 }
-                //method.MethodKind == MethodKind.PropertyGet
-                var diagnostic = Diagnostic.Create(Rule, location, method.ReturnType.Name);
 
-                context.ReportDiagnostic(diagnostic);
+                var diagnostic = Diagnostic.Create(Rule, location, method.ReturnType.Name);
+                diagnosticsReporter(diagnostic);
             }
         }
     }
