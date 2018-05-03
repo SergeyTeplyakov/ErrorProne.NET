@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="ErrorProne.NET.Structs.cf9c52e8-7335-4efe-b68d-ba32c99ff09d" Version="1.0" Language="en-US" Publisher="Sergey T"/>
+        <Identity Id="ErrorProne.NET.Structs.cf9c52e8-7335-4efe-b68d-ba32c99ff09d" Version="0.1" Language="en-US" Publisher="Sergey Teplyakov"/>
         <DisplayName>ErrorProne.NET.Structs</DisplayName>
         <Description xml:space="preserve">Analyzers that help avoiding struct and readonly reference performance pitfalls.</Description>
     </Metadata>
