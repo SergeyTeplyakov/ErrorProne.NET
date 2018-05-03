@@ -3,7 +3,7 @@
     <Metadata>
         <Identity Id="ErrorProne.NET.Structs.cf9c52e8-7335-4efe-b68d-ba32c99ff09d" Version="1.0" Language="en-US" Publisher="Sergey T"/>
         <DisplayName>ErrorProne.NET.Structs</DisplayName>
-        <Description xml:space="preserve">This project contains a set of analyzers for detecting correctness and performancec issues when the structs are used incorrectly.</Description>
+        <Description xml:space="preserve">Analyzers that help avoiding struct and readonly reference performance pitfalls.</Description>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,)" />

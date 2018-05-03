@@ -25,6 +25,7 @@
     <Copyright>Copyright</Copyright>
     <PackageTags>ErrorProne.NET.Structs, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <AssemblyName>ErrorProne.Net.StructAnalyzers</AssemblyName>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
