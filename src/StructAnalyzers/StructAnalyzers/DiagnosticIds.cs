@@ -1,7 +1,7 @@
 ﻿namespace ErrorProne.NET.Structs
 {
     /// <summary>
-    /// Diagnostitcs produced by this project.
+    /// Diagnostics produced by this project.
     /// </summary>
     public static class DiagnosticIds
     {
@@ -22,5 +22,8 @@
 
         /// <nodoc />
         public const string HiddenStructCopyDiagnosticId = "EPS06";
+        
+        /// <nodoc />
+        public const string HashTableIncompatibilityDiagnosticId = "EPS06";
     }
 }

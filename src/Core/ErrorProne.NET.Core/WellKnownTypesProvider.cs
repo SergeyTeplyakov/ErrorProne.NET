@@ -24,5 +24,15 @@ namespace ErrorProne.NET.Core
         {
             return model.Compilation.GetTypeByMetadataName(type.FullName);
         }
+
+        public static INamedTypeSymbol GetClrType(this Compilation compilation, Type type)
+        {
+            return compilation.GetClrType(type.FullName);
+        }
+
+        public static INamedTypeSymbol GetClrType(this Compilation compilation, string fullName)
+        {
+            return compilation.GetTypeByMetadataName(fullName);
+        }
     }
 }
