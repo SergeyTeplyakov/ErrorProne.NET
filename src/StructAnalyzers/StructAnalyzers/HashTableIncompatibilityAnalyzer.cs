@@ -2,10 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using ErrorProne.NET.Core;
+using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,11 +18,22 @@ namespace ErrorProne.NET.Structs
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class HashTableIncompatibilityAnalyzer : DiagnosticAnalyzer
     {
+        private static readonly Type[] Types = {
+            typeof(HashSet<>),
+            typeof(ISet<>),
+            typeof(IDictionary<,>),
+            typeof(IReadOnlyDictionary<,>),
+            typeof(Dictionary<,>),
+            typeof(ConcurrentDictionary<,>),
+            typeof(ImmutableHashSet<>),
+            typeof(ImmutableDictionary<,>)
+        };
+
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.HashTableIncompatibilityDiagnosticId;
 
         private static readonly string Title = "Hash table unfriendly type is used in a hash table";
-        private static readonly string MessageFormat = "Struct '{0}' with default Equals/GetHashCode implementation used as a key in a hash table '1'";
+        private static readonly string MessageFormat = "Struct '{0}' with default {1} implementation is used as a key in a hash table.";
         private static readonly string Description = "Default implementation of Equals/GetHashCode for struct is inneficient and could cause severe performance issues.";
         private const string Category = "Performance";
         
@@ -42,34 +52,154 @@ namespace ErrorProne.NET.Structs
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSymbolAction(AnalyzeType, SymbolKind.Field);
-            //context.RegisterSyntaxNodeAction(AnalyzeDottedExpression, SyntaxKind.type);
-            //context.RegisterSyntaxNodeAction(AnalyzeElementAccessExpression, SyntaxKind.ElementAccessExpression);
+            context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
+            context.RegisterSymbolAction(AnalyzeField, SymbolKind.Field);
+            context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
+
+            context.RegisterSyntaxNodeAction(AnalyzeUsingDirective, SyntaxKind.UsingDirective);
+            context.RegisterSyntaxNodeAction(AnalyzeClassDeclaration, SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeLocalFunction, SyntaxKind.LocalFunctionStatement);
+            context.RegisterSyntaxNodeAction(AnalyzeLocal, SyntaxKind.LocalDeclarationStatement);
         }
 
-        private void AnalyzeType(SymbolAnalysisContext context)
+        private void AnalyzeField(SymbolAnalysisContext context)
         {
-            if (context.TryGetSemanticModel(out var semanticModel))
+            if (context.Symbol is IFieldSymbol fs && fs.TryGetDeclarationSyntax() is var syntax)
             {
-                if (context.Symbol is IFieldSymbol fs)
+                DoAnalyzeType(fs.Type, syntax.Type.GetLocation(), d => context.ReportDiagnostic(d));
+            }
+        }
+
+        private void AnalyzeProperty(SymbolAnalysisContext context)
+        {
+            if (context.Symbol is IPropertySymbol fs && fs.TryGetDeclarationSyntax() is var syntax)
+            {
+                DoAnalyzeType(fs.Type, syntax.Type.GetLocation(), d => context.ReportDiagnostic(d));
+            }
+        }
+
+        private void AnalyzeLocal(SyntaxNodeAnalysisContext context)
+        {
+            if (context.Node is LocalDeclarationStatementSyntax vs)
+            {
+                foreach (var local in vs.Declaration.Variables)
                 {
-                    DoAnalyzeType(fs.Type, d => context.ReportDiagnostic(d));
+                    if (context.SemanticModel.GetDeclaredSymbol(local) is ILocalSymbol resolvedLocal)
+                    {
+                        DoAnalyzeType(resolvedLocal.Type, vs.Declaration.Type.GetLocation(), d => context.ReportDiagnostic(d));
+                    }
                 }
             }
         }
 
-        private void DoAnalyzeType(ITypeSymbol type, Action<Diagnostic> diagnosticsReporter)
+        private void AnalyzeLocalFunction(SyntaxNodeAnalysisContext context)
         {
+            if (context.SemanticModel.GetDeclaredSymbol(context.Node) is IMethodSymbol methodSymbol)
+            {
+                var methodDeclarationSyntax = (LocalFunctionStatementSyntax) context.Node;
+                if (!methodSymbol.ReturnsVoid)
+                {
+                    DoAnalyzeType(methodSymbol.ReturnType, methodDeclarationSyntax.ReturnType.GetLocation(), d => context.ReportDiagnostic(d));
+                }
+
+                int idx = 0;
+                foreach (var p in methodSymbol.Parameters)
+                {
+                    DoAnalyzeType(p.Type, methodDeclarationSyntax.ParameterList.Parameters[idx].Type.GetLocation(), d => context.ReportDiagnostic(d));
+                    idx++;
+                }
+            }
+        }
+
+        private void AnalyzeUsingDirective(SyntaxNodeAnalysisContext context)
+        {
+            var usingDirective = (UsingDirectiveSyntax) context.Node;
+            if (context.SemanticModel.GetDeclaredSymbol(usingDirective) is IAliasSymbol alias)
+            {
+                if (alias.Target is ITypeSymbol ts)
+                {
+                    DoAnalyzeType(ts, usingDirective.Name.GetLocation(), d => context.ReportDiagnostic(d));
+                }
+            }
+        }
+
+        private void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context)
+        {
+            var classDeclaration = (ClassDeclarationSyntax) context.Node;
+            if (classDeclaration.BaseList != null && 
+                context.SemanticModel.GetDeclaredSymbol(context.Node) is ITypeSymbol methodSymbol)
+            {
+                foreach (var baseType in classDeclaration.BaseList.Types)
+                {
+                    var type = context.SemanticModel.GetTypeInfo(baseType.Type).Type;
+                    if (type != null)
+                    {
+                        DoAnalyzeType(type, baseType.GetLocation(), d => context.ReportDiagnostic(d));
+                    }
+                }
+            }
+        }
+
+        private void AnalyzeMethod(SymbolAnalysisContext context)
+        {
+            if (context.Symbol is IMethodSymbol ms && 
+                ms.TryGetDeclarationSyntax() is var syntax &&
+                syntax != null)
+            {
+                if (!ms.ReturnsVoid)
+                {
+                    DoAnalyzeType(ms.ReturnType, syntax.ReturnType.GetLocation(), d => context.ReportDiagnostic(d));
+                }
+
+                int idx = 0;
+                foreach (var p in ms.Parameters)
+                {
+                    DoAnalyzeType(p.Type, syntax.ParameterList.Parameters[idx].Type.GetLocation(), d => context.ReportDiagnostic(d));
+                    idx++;
+                }
+            }
+        }
+
+        private void DoAnalyzeType(ITypeSymbol type, Location location, Action<Diagnostic> diagnosticsReporter)
+        {
+            if (type is IArrayTypeSymbol at)
+            {
+                DoAnalyzeType(at.ElementType, location, diagnosticsReporter);
+                return;
+            }
+
             if (type is INamedTypeSymbol ts && ts.IsGenericType && IsWellKnownHashTableType(ts))
             {
                 // Key is always a first argument.
                 var key = ts.TypeArguments[0];
 
-                if (DefaultEqualsOrHashCodeImplementations(key, out _))
+                if (key is INamedTypeSymbol namedKey && namedKey.IsTuple())
                 {
-                    var diagnostic = Diagnostic.Create(Rule, type.Locations[0], type.ToDisplayString());
+                    key = namedKey.GetTupleElements()
+                        .FirstOrDefault(t => HasDefaultEqualsOrHashCodeImplementations(t, out _)) ?? key;
+                }
+
+                if (HasDefaultEqualsOrHashCodeImplementations(key, out var equalsOrHashCode))
+                {
+                    string equalsOrHashCodeAsString = GetDescription(equalsOrHashCode);
+                    var diagnostic = Diagnostic.Create(Rule, location, key.ToDisplayString(), equalsOrHashCodeAsString);
                     diagnosticsReporter(diagnostic);
                 }
+            }
+        }
+
+        private string GetDescription(EqualsOrHashCode equalsOrHashCode)
+        {
+            switch (equalsOrHashCode)
+            {
+                case EqualsOrHashCode.Equals:
+                    return nameof(Equals);
+                case EqualsOrHashCode.GetHashCode:
+                    return nameof(GetHashCode);
+                case EqualsOrHashCode.All:
+                    return $"{nameof(Equals)} and {nameof(GetHashCode)}";
+                default:
+                    throw new InvalidOperationException($"Invalid value '{equalsOrHashCode}'");
             }
         }
 
@@ -87,31 +217,39 @@ namespace ErrorProne.NET.Structs
 
             return false;
         }
-
+        
         private static (string name, int arity)[] WellKnownHashTables()
         {
-            var types = new[]
-            {
-                typeof(HashSet<>),
-                typeof(Dictionary<,>),
-                typeof(ConcurrentDictionary<,>),
-                typeof(ImmutableHashSet<>),
-                typeof(ImmutableDictionary<,>)
-            };
-
-            return types.Select(t => (t.FullName, t.GenericTypeArguments.Length)).ToArray();
+            return Types.Select(t => (t.FullName, t.GenericTypeArguments.Length)).ToArray();
         }
 
+        [Flags]
         public enum EqualsOrHashCode
         {
-            Equals,
-            HashCode,
+            None = 0,
+            Equals = 1 << 0,
+            GetHashCode = 1 << 1,
+            All = Equals | GetHashCode,
         }
 
-        private static bool DefaultEqualsOrHashCodeImplementations(ITypeSymbol type,
+        private static bool HasDefaultEqualsOrHashCodeImplementations(ITypeSymbol type,
             out EqualsOrHashCode equalsOrHashCode)
         {
+            equalsOrHashCode = EqualsOrHashCode.All;
+            foreach (var member in type.GetMembers())
+            {
+                if (member.Name == nameof(Equals) && member.IsOverride)
+                {
+                    equalsOrHashCode &= ~EqualsOrHashCode.Equals;
+                }
 
+                if (member.Name == nameof(GetHashCode) && member.IsOverride)
+                {
+                    equalsOrHashCode &= ~EqualsOrHashCode.GetHashCode;
+                }
+            }
+
+            return equalsOrHashCode != EqualsOrHashCode.None;
         }
     }
 }

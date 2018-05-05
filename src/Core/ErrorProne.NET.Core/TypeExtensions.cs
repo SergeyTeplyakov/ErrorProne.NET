@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET.Utils
@@ -20,6 +22,30 @@ namespace ErrorProne.NET.Utils
 
             var namedTypeSymbol = enumType as INamedTypeSymbol;
             return namedTypeSymbol?.EnumUnderlyingType;
+        }
+
+        public static bool IsTuple(this INamedTypeSymbol type)
+        {
+            // Returns true for System.Tuple as well.
+            return type.IsTupleType || type.IsSystemTuple();
+        }
+
+        public static IEnumerable<ITypeSymbol> GetTupleElements(this INamedTypeSymbol type)
+        {
+            if (type.IsSystemTuple())
+            {
+                foreach (var te in type.TypeParameters)
+                {
+                    yield return te;
+                }
+            }
+            else
+            {
+                foreach (var te in type.TupleElements)
+                {
+                    yield return te.Type;
+                }
+            }
         }
 
         public static bool TryGetPrimitiveSize(this ITypeSymbol type, out int size)
