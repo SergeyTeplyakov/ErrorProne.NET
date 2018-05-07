@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-
+    
 namespace ErrorProne.NET.Structs
 {
     /// <summary>
@@ -67,6 +67,15 @@ namespace ErrorProne.NET.Structs
             if (context.Symbol is IFieldSymbol fs && fs.TryGetDeclarationSyntax() is var syntax)
             {
                 DoAnalyzeType(fs.Type, syntax.Type.GetLocation(), d => context.ReportDiagnostic(d));
+
+                if (fs.ContainingType.IsValueType && fs.Type.HasDefaultEqualsOrHashCodeImplementations(out var method))
+                {
+                    
+                    // The field is a value type with default Equals/GetHashCode and the field is declared in the struct.
+                    // Warn if the field is used in Equals/GetHashCode.
+                    //SymbolFinder.find
+                    //var references = SymbolFinder.FindReferencesAsync(fs, context.Compilation syntax..Project.Solution, token).ConfigureAwait(false);
+                }
             }
         }
 
@@ -176,10 +185,10 @@ namespace ErrorProne.NET.Structs
                 if (key is INamedTypeSymbol namedKey && namedKey.IsTuple())
                 {
                     key = namedKey.GetTupleElements()
-                        .FirstOrDefault(t => HasDefaultEqualsOrHashCodeImplementations(t, out _)) ?? key;
+                        .FirstOrDefault(t => t.HasDefaultEqualsOrHashCodeImplementations(out _)) ?? key;
                 }
 
-                if (HasDefaultEqualsOrHashCodeImplementations(key, out var equalsOrHashCode))
+                if (key.HasDefaultEqualsOrHashCodeImplementations(out var equalsOrHashCode))
                 {
                     string equalsOrHashCodeAsString = GetDescription(equalsOrHashCode);
                     var diagnostic = Diagnostic.Create(Rule, location, key.ToDisplayString(), equalsOrHashCodeAsString);
@@ -188,15 +197,15 @@ namespace ErrorProne.NET.Structs
             }
         }
 
-        private string GetDescription(EqualsOrHashCode equalsOrHashCode)
+        private string GetDescription(ValueTypeEqualityImplementations equalsOrHashCode)
         {
             switch (equalsOrHashCode)
             {
-                case EqualsOrHashCode.Equals:
+                case ValueTypeEqualityImplementations.Equals:
                     return nameof(Equals);
-                case EqualsOrHashCode.GetHashCode:
+                case ValueTypeEqualityImplementations.GetHashCode:
                     return nameof(GetHashCode);
-                case EqualsOrHashCode.All:
+                case ValueTypeEqualityImplementations.All:
                     return $"{nameof(Equals)} and {nameof(GetHashCode)}";
                 default:
                     throw new InvalidOperationException($"Invalid value '{equalsOrHashCode}'");
@@ -221,35 +230,6 @@ namespace ErrorProne.NET.Structs
         private static (string name, int arity)[] WellKnownHashTables()
         {
             return Types.Select(t => (t.FullName, t.GenericTypeArguments.Length)).ToArray();
-        }
-
-        [Flags]
-        public enum EqualsOrHashCode
-        {
-            None = 0,
-            Equals = 1 << 0,
-            GetHashCode = 1 << 1,
-            All = Equals | GetHashCode,
-        }
-
-        private static bool HasDefaultEqualsOrHashCodeImplementations(ITypeSymbol type,
-            out EqualsOrHashCode equalsOrHashCode)
-        {
-            equalsOrHashCode = EqualsOrHashCode.All;
-            foreach (var member in type.GetMembers())
-            {
-                if (member.Name == nameof(Equals) && member.IsOverride)
-                {
-                    equalsOrHashCode &= ~EqualsOrHashCode.Equals;
-                }
-
-                if (member.Name == nameof(GetHashCode) && member.IsOverride)
-                {
-                    equalsOrHashCode &= ~EqualsOrHashCode.GetHashCode;
-                }
-            }
-
-            return equalsOrHashCode != EqualsOrHashCode.None;
         }
     }
 }

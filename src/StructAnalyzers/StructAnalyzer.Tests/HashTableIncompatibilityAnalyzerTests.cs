@@ -38,7 +38,7 @@ static class Ex {
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()
-        {
+        {   
             // Warn on System.Tuple
             yield return @"
 struct MyStruct {}

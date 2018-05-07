@@ -24,6 +24,9 @@
         public const string HiddenStructCopyDiagnosticId = "EPS06";
         
         /// <nodoc />
-        public const string HashTableIncompatibilityDiagnosticId = "EPS06";
+        public const string HashTableIncompatibilityDiagnosticId = "EPS07";
+        
+        /// <nodoc />
+        public const string DefaultEqualsOrHashCodeIsUsedInStructDiagnosticId = "EPS08";
     }
 }

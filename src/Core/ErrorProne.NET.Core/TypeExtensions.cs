@@ -94,5 +94,25 @@ namespace ErrorProne.NET.Utils
 
             return size != 0;
         }
+
+        public static bool HasDefaultEqualsOrHashCodeImplementations(this ITypeSymbol type,
+            out ValueTypeEqualityImplementations valueTypeEquality)
+        {
+            valueTypeEquality = ValueTypeEqualityImplementations.All;
+            foreach (var member in type.GetMembers())
+            {
+                if (member.Name == nameof(Equals) && member.IsOverride)
+                {
+                    valueTypeEquality &= ~ValueTypeEqualityImplementations.Equals;
+                }
+
+                if (member.Name == nameof(GetHashCode) && member.IsOverride)
+                {
+                    valueTypeEquality &= ~ValueTypeEqualityImplementations.GetHashCode;
+                }
+            }
+
+            return valueTypeEquality != ValueTypeEqualityImplementations.None;
+        }
     }
 }
