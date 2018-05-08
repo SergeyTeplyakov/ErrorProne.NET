@@ -28,6 +28,17 @@ struct AnotherStruct { private MyStruct ms; public override int GetHashCode() =>
 struct MyStruct {}
 struct AnotherStruct { private MyStruct ms; public override bool Equals(object other) => ms.[|Equals|](other); }
 ";
+            
+            // Warn When Equals is used for implementing IEquatable
+            yield return @"
+struct MyStruct { }
+struct AnotherStruct : System.IEquatable<AnotherStruct>
+{
+    private MyStruct ms;
+    public override bool Equals(object other) => false;
+    public bool Equals(AnotherStruct another) => ms.[|Equals|](another);
+}
+";
         }
         
         [TestCaseSource(nameof(GetNoDiagnosticCases))]

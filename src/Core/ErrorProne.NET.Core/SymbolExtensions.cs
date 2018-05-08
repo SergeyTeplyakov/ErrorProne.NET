@@ -14,7 +14,7 @@ namespace ErrorProne.NET.Core
             }
 
             var syntaxReference = symbol.DeclaringSyntaxReferences[0];
-            return (VariableDeclarationSyntax) syntaxReference.GetSyntax().Parent;
+            return syntaxReference.GetSyntax().FirstAncestorOrSelf<VariableDeclarationSyntax>();
         }
 
         public static PropertyDeclarationSyntax TryGetDeclarationSyntax(this IPropertySymbol symbol)

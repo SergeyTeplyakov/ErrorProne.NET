@@ -34,7 +34,7 @@ namespace ErrorProne.NET.Utils
         {
             if (type.IsSystemTuple())
             {
-                foreach (var te in type.TypeParameters)
+                foreach (var te in type.TypeArguments)
                 {
                     yield return te;
                 }
@@ -93,6 +93,11 @@ namespace ErrorProne.NET.Utils
             }
 
             return size != 0;
+        }
+
+        public static bool IsStruct(this ITypeSymbol type)
+        {
+            return type.IsValueType && !type.IsEnum() && !(type is ITypeParameterSymbol);
         }
 
         public static bool HasDefaultEqualsOrHashCodeImplementations(this ITypeSymbol type,

@@ -68,7 +68,8 @@ static class Ex {
             
             // using
             yield return @"
-using C = [|System.Collections.Generic.HashSet<MyStruct>|];";
+using C = [|System.Collections.Generic.HashSet<MyStruct>|];
+struct MyStruct { }";
 
             // Base type with interface
             yield return @"
@@ -214,12 +215,45 @@ struct MyStruct { public override int GetHashCode() => 42; public override bool 
 static class Ex {
     private System.Collections.Generic.HashSet<MyStruct> hs = null;
 }";
-            
+
+            // No diagnostic for class
+            yield return @"
+class MyClass { }
+static class Ex {
+    private System.Collections.Generic.HashSet<MyClass> hs = null;
+}";
+
+            // No diagnostic for enum
+            yield return @"
+enum MyEnum { value1 = 42, value2 }
+static class Ex {
+    private System.Collections.Generic.HashSet<MyEnum> hs = null;
+}";
+
+            // No diagnostic for interfaces
+            yield return @"
+interface I { }
+static class Ex {
+    private System.Collections.Generic.HashSet<I> hs = null;
+}";
+
             // No diagnostic for second type parameter
             yield return @"
 struct MyStruct {}
 static class Ex {
     private System.Collections.Generic.Dictionary<int, MyStruct> hs = null;
+}";
+            
+            // No diagnostic for second type parameter
+            yield return @"
+static class Ex {
+    private System.Collections.Generic.ISet<T> GetSet<T>() => null;
+}";
+            
+            // No diagnostic for T with constraint
+            yield return @"
+static class Ex {
+    private System.Collections.Generic.ISet<T> GetSet<T>() where T : struct => null;
 }";
         }
     }

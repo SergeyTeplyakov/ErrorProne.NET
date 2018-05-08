@@ -64,24 +64,15 @@ namespace ErrorProne.NET.Structs
 
         private void AnalyzeField(SymbolAnalysisContext context)
         {
-            if (context.Symbol is IFieldSymbol fs && fs.TryGetDeclarationSyntax() is var syntax)
+            if (context.Symbol is IFieldSymbol fs && fs.Type != null && fs.TryGetDeclarationSyntax() is var syntax && syntax != null)
             {
                 DoAnalyzeType(fs.Type, syntax.Type.GetLocation(), d => context.ReportDiagnostic(d));
-
-                if (fs.ContainingType.IsValueType && fs.Type.HasDefaultEqualsOrHashCodeImplementations(out var method))
-                {
-                    
-                    // The field is a value type with default Equals/GetHashCode and the field is declared in the struct.
-                    // Warn if the field is used in Equals/GetHashCode.
-                    //SymbolFinder.find
-                    //var references = SymbolFinder.FindReferencesAsync(fs, context.Compilation syntax..Project.Solution, token).ConfigureAwait(false);
-                }
             }
         }
 
         private void AnalyzeProperty(SymbolAnalysisContext context)
         {
-            if (context.Symbol is IPropertySymbol fs && fs.TryGetDeclarationSyntax() is var syntax)
+            if (context.Symbol is IPropertySymbol fs && fs.TryGetDeclarationSyntax() is var syntax && syntax != null)
             {
                 DoAnalyzeType(fs.Type, syntax.Type.GetLocation(), d => context.ReportDiagnostic(d));
             }
@@ -181,14 +172,14 @@ namespace ErrorProne.NET.Structs
             {
                 // Key is always a first argument.
                 var key = ts.TypeArguments[0];
-
                 if (key is INamedTypeSymbol namedKey && namedKey.IsTuple())
                 {
                     key = namedKey.GetTupleElements()
-                        .FirstOrDefault(t => t.HasDefaultEqualsOrHashCodeImplementations(out _)) ?? key;
+                              .FirstOrDefault(t =>
+                                  t.IsStruct() && t.HasDefaultEqualsOrHashCodeImplementations(out _)) ?? key;
                 }
 
-                if (key.HasDefaultEqualsOrHashCodeImplementations(out var equalsOrHashCode))
+                if (key.IsStruct() && key.HasDefaultEqualsOrHashCodeImplementations(out var equalsOrHashCode))
                 {
                     string equalsOrHashCodeAsString = GetDescription(equalsOrHashCode);
                     var diagnostic = Diagnostic.Create(Rule, location, key.ToDisplayString(), equalsOrHashCodeAsString);

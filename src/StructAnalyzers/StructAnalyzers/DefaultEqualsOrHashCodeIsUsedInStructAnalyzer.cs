@@ -58,8 +58,9 @@ namespace ErrorProne.NET.Structs
             if (methodSymbol.ContainingType.IsValueType && 
                 // Overrides Equals or GetHashCode
                 (methodSymbol.IsOverride &&
-                (methodSymbol.Name == nameof(Equals) || methodSymbol.Name == nameof(GetHashCode))) //||
+                (methodSymbol.Name == nameof(Equals) || methodSymbol.Name == nameof(GetHashCode))) ||
                 // Or implements IEquatable<T>.Equals
+                (methodSymbol.IsInterfaceImplementation() && methodSymbol.Name == nameof(Equals))
                 )
             {
                 // Looking through all the method calls in the current method declaration
@@ -73,14 +74,15 @@ namespace ErrorProne.NET.Structs
                         // Looking for a field access with the calls to Equals/GetHashCode
                         // on structs with default Equals/GetHashCode implementations.
                         if (s is IFieldSymbol fs &&
-                            fs.Type.IsValueType &&
+                            fs.Type.IsStruct() &&
                             fs.Type.HasDefaultEqualsOrHashCodeImplementations(out _) &&
                             semanticModel.GetSymbolInfo(ms).Symbol is var reference &&
                             reference is IMethodSymbol referencedMethod &&
+
                             (referencedMethod.Name == nameof(Equals) || referencedMethod.Name == nameof(GetHashCode)))
                         {
                             string equalsOrHashCodeAsString = referencedMethod.Name;
-                            var diagnostic = Diagnostic.Create(Rule, ms.Name.GetLocation(), fs.Type.ToDisplayString(), equalsOrHashCodeAsString);
+                            var diagnostic = Diagnostic.Create(Rule, ms.Name.GetLocation(), equalsOrHashCodeAsString, $"{methodSymbol.ContainingType.ToDisplayString()}.{referencedMethod.Name}");
                             diagnosticRepoter(diagnostic);
                         }
                     }
