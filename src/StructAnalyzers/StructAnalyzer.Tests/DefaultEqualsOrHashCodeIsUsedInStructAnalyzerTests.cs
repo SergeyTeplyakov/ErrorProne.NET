@@ -17,6 +17,12 @@ namespace ErrorProne.NET.Structs.Tests
 
         public static IEnumerable<string> GetHasDiagnosticCases()
         {
+            // Warn when used in another class
+            yield return @"
+struct MyStruct {}
+class AnotherStruct { private MyStruct ms; public override int GetHashCode() => ms.[|GetHashCode|]() ^ 42; }
+";
+            
             // Warn when used in another struct
             yield return @"
 struct MyStruct {}

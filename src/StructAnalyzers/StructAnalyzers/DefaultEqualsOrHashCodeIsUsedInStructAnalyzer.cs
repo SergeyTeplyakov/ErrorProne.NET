@@ -55,7 +55,7 @@ namespace ErrorProne.NET.Structs
         private void TryAnalyzeEqualsOrGetHashCode(IMethodSymbol methodSymbol, MethodDeclarationSyntax syntax,
             SemanticModel semanticModel, Action<Diagnostic> diagnosticRepoter)
         {
-            if (methodSymbol.ContainingType.IsValueType && 
+            if (
                 // Overrides Equals or GetHashCode
                 (methodSymbol.IsOverride &&
                 (methodSymbol.Name == nameof(Equals) || methodSymbol.Name == nameof(GetHashCode))) ||
