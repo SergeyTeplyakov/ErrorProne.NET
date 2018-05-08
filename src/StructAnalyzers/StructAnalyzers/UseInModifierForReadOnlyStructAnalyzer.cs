@@ -58,12 +58,8 @@ namespace ErrorProne.NET.Structs
                 return;
             }
 
-            // TODO: not sure how to get the semantic model another way!
-            if (context.Symbol.DeclaringSyntaxReferences.Length != 0)
+            if (context.TryGetSemanticModel(out var semanticModel))
             {
-                var syntaxTree = context.Symbol.DeclaringSyntaxReferences[0].SyntaxTree;
-                var semanticModel = context.Compilation.GetSemanticModel(syntaxTree);
-
                 // Should analyze only subset of methods, not all of them.
                 // What about operators?
                 if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||

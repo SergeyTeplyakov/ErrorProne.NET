@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET.Utils
@@ -20,6 +22,30 @@ namespace ErrorProne.NET.Utils
 
             var namedTypeSymbol = enumType as INamedTypeSymbol;
             return namedTypeSymbol?.EnumUnderlyingType;
+        }
+
+        public static bool IsTuple(this INamedTypeSymbol type)
+        {
+            // Returns true for System.Tuple as well.
+            return type.IsTupleType || type.IsSystemTuple();
+        }
+
+        public static IEnumerable<ITypeSymbol> GetTupleElements(this INamedTypeSymbol type)
+        {
+            if (type.IsSystemTuple())
+            {
+                foreach (var te in type.TypeArguments)
+                {
+                    yield return te;
+                }
+            }
+            else
+            {
+                foreach (var te in type.TupleElements)
+                {
+                    yield return te.Type;
+                }
+            }
         }
 
         public static bool TryGetPrimitiveSize(this ITypeSymbol type, out int size)
@@ -67,6 +93,31 @@ namespace ErrorProne.NET.Utils
             }
 
             return size != 0;
+        }
+
+        public static bool IsStruct(this ITypeSymbol type)
+        {
+            return type.IsValueType && !type.IsEnum() && !(type is ITypeParameterSymbol);
+        }
+
+        public static bool HasDefaultEqualsOrHashCodeImplementations(this ITypeSymbol type,
+            out ValueTypeEqualityImplementations valueTypeEquality)
+        {
+            valueTypeEquality = ValueTypeEqualityImplementations.All;
+            foreach (var member in type.GetMembers())
+            {
+                if (member.Name == nameof(Equals) && member.IsOverride)
+                {
+                    valueTypeEquality &= ~ValueTypeEqualityImplementations.Equals;
+                }
+
+                if (member.Name == nameof(GetHashCode) && member.IsOverride)
+                {
+                    valueTypeEquality &= ~ValueTypeEqualityImplementations.GetHashCode;
+                }
+            }
+
+            return valueTypeEquality != ValueTypeEqualityImplementations.None;
         }
     }
 }
