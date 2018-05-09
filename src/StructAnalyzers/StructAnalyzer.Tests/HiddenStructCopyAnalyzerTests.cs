@@ -99,6 +99,20 @@ public static class C {
         }
 
         [Test]
+        public void NoDiagnosticsForNullableTypes()
+        {
+            string code = @"
+public struct Large {private long l1, l2;}
+public class C {
+   private readonly Large? s;  
+   public void Foo() {
+       if (s.HasValue) System.Console.WriteLine(s.Value);
+   }
+}"; ;
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void NoDiagnosticsFieldOfReferencecType()
         {
             string code = @"

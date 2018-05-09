@@ -17,6 +17,12 @@ namespace ErrorProne.NET.Structs
                 return false;
             }
 
+            if (type.IsNullableType())
+            {
+                // Nullable types are not quite readonly, but effectively they are.
+                return true;
+            }
+
             if (type is INamedTypeSymbol nt && nt.DeclaringSyntaxReferences.Length != 0)
             {
                 return nt.IsReadOnlyStruct();
@@ -25,6 +31,15 @@ namespace ErrorProne.NET.Structs
             // From metadata
             return type.GetAttributes().Any(a =>
                 a.AttributeClass.ToDisplayString() == "System.Runtime.CompilerServices.IsReadOnlyAttribute");
+        }
+
+        /// <summary>
+        /// Returns true if the given <paramref name="type"/> is <see cref="System.Nullable{T}"/>.
+        /// </summary>
+        public static bool IsNullableType(this ITypeSymbol type)
+        {
+            var original = type.OriginalDefinition;
+            return original != null && original.SpecialType == SpecialType.System_Nullable_T;
         }
 
         /// <summary>
