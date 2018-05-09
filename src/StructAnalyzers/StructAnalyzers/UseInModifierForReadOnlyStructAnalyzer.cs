@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using ErrorProne.NET.Core;
+using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -82,8 +83,7 @@ namespace ErrorProne.NET.Structs
 
         private static void WarnIfParameterIsReadOnly(SemanticModel model, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
         {
-            var instanceSize = p.Type.ComputeStructSize(model);
-            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && instanceSize >= Settings.LargeStructThreashold)
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(model, Settings.LargeStructThreashold))
             {
                 // Not sure why, but syntax could be missing.
                 Location location;

@@ -100,6 +100,11 @@ namespace ErrorProne.NET.Utils
             return type.IsValueType && !type.IsEnum() && !(type is ITypeParameterSymbol);
         }
 
+        public static bool IsLargeStruct(this ITypeSymbol type, SemanticModel semanticModel, int threshold)
+        {
+            return type.IsStruct() && type.ComputeStructSize(semanticModel) is var size && size >= threshold;
+        }
+
         public static bool HasDefaultEqualsOrHashCodeImplementations(this ITypeSymbol type,
             out ValueTypeEqualityImplementations valueTypeEquality)
         {

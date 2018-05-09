@@ -167,14 +167,23 @@ class Foo {private readonly S _s; public string Bar() => _s.X.ToString();";
 
         public static IEnumerable<string> GetHasDiagnosticCases()
         {
+            // On extension method that takes 'this' by value
+            yield return @"
+readonly struct S { private readonly long l1,l2; public int X => 42;}
+static class SEx {
+    public static int GetX(this S s) => s.X;
+
+    static int Example(S s) => s.[|GetX|]();
+}";
+
             // On for properties
-            yield return "struct S { private readonly long l1,l2; public int X => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|];";
+            yield return "struct S { private readonly long l1,l2; public int X => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|];}";
 
             // On composite dotted expression like a.b.c.ToString();
-            yield return "struct S { private readonly long l1,l2; public int X => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|X|].ToString();";
+            yield return "struct S { private readonly long l1,l2; public int X => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|X|].ToString();}";
 
             // On for methods
-            yield return "struct S {private readonly long l1,l2; public int X() => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|]();";
+            yield return "struct S {private readonly long l1,l2; public int X() => 42;} class Foo {private readonly S _s; public int Bar() => _s.[|X|]();}";
 
             // On for indexers
             yield return @"
@@ -209,6 +218,24 @@ public class C {
         
         public static IEnumerable<string> GetNoDiagnosticCases()
         {
+            // No diagnostics for a small struct
+            yield return @"
+readonly struct S { private readonly long l1; public int X => 42;}
+static class SEx {
+    public static int GetX(this S s) => s.X;
+
+    static int Example(S s) => s.GetX();
+}";
+
+            // No diagnostics if 'this' is passed by 'in'
+            yield return @"
+readonly struct S { private readonly long l1,l2; public int X => 42;}
+static class SEx {
+    public static int GetX(in this S s) => s.X;
+
+    static int Example(S s) => s.GetX();
+}";
+
             // No diagnostics if a struct small
             yield return "struct S {private readonly int _n; public override int GetHashCode() => _n.GetHashCode();}";
             

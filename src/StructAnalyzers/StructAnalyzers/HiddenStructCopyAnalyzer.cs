@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using ErrorProne.NET.Core;
+using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -86,7 +87,7 @@ namespace ErrorProne.NET.Structs
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
                 GetExtensionMethodThisRefKind(ms) == RefKind.None &&
-                ms.ReceiverType.IsValueType == true && ms.ReceiverType.TypeKind != TypeKind.Enum)
+                ms.ReceiverType.IsLargeStruct(context.SemanticModel, Settings.LargeStructThreashold))
             {
                 // The expression calls an extension method that takes a struct by value.
                 ReportDiagnostic(context, name ?? expression, ms.ReceiverType);
@@ -124,7 +125,7 @@ namespace ErrorProne.NET.Structs
                 resolvedType.TypeKind != TypeKind.Enum &&
                 !resolvedType.IsReadOnlyStruct() &&
                 // Warn only when the size of the struct is larger then threshold
-                (resolvedType.ComputeStructSize(context.SemanticModel) is var size && size >= Settings.LargeStructThreashold))
+                resolvedType.IsLargeStruct(context.SemanticModel, Settings.LargeStructThreashold))
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
