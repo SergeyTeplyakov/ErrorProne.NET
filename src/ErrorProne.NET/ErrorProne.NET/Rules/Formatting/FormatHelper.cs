@@ -149,14 +149,14 @@ namespace ErrorProne.NET.Rules.Formatting
                 semanticModel);
 
             var format = arguments.Item1.Expression.GetLiteral(semanticModel);
-            HashSet<int> usedIndices;
-            
-            bool isValid = ParseFormatString(format, out usedIndices);
+
+            HashSet<int> usedIndices = null;
+            bool isValid = string.IsNullOrEmpty(format) || ParseFormatString(format, out usedIndices);
             
             return new ParseResult()
             {
                 IsValid = isValid,
-                UsedIndices = usedIndices,
+                UsedIndices = usedIndices ?? new HashSet<int>(),
                 Format = format,
                 FormatArgument = arguments.Item1,
                 Args = arguments.Item2
