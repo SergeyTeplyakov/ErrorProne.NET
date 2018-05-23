@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,6 +10,9 @@ namespace ErrorProne.NET.Structs
 {
     public static class TypeExtensions
     {
+        private static readonly object[] EmptyObjectsArray = new object[0];
+        private static readonly ConcurrentDictionary<Type, bool> ReadOnlyMap = new ConcurrentDictionary<Type, bool>();
+
         /// <summary>
         /// Returns true if a given type is a struct and the struct is readonly.
         /// </summary>
@@ -28,9 +34,19 @@ namespace ErrorProne.NET.Structs
                 return nt.IsReadOnlyStruct();
             }
 
-            // From metadata
-            return type.GetAttributes().Any(a =>
-                a.AttributeClass.ToDisplayString() == "System.Runtime.CompilerServices.IsReadOnlyAttribute");
+            // Unfortunately, there is no way to get the information about the readonliness of the type.
+            // This is not a named type, so we'll try to get IsReadOnly property via reflection.
+            // Dirty, but can't see other options:(
+            return ReadOnlyMap.GetOrAdd(type.GetType(), t =>
+            {
+                var property = t.GetRuntimeProperties().FirstOrDefault(p => p.Name == "IsReadOnly");
+                if (property?.GetMethod == null)
+                {
+                    return false;
+                }
+
+                return (bool) property.GetMethod.Invoke(type, EmptyObjectsArray);
+            });
         }
 
         /// <summary>
