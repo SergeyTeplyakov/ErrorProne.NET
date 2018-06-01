@@ -3,9 +3,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 
-namespace ErrorProne.NET.Extensions
+namespace ErrorProne.NET.Core
 {
-    internal static class CodeFixContextExtensions
+    public static class CodeFixContextExtensions
     {
         public static T GetFirstNodeWithDiagnostic<T>(this CodeFixContext context, SyntaxNode root) where T : SyntaxNode
         {

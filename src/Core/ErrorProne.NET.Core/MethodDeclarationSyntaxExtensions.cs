@@ -4,9 +4,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.Extensions
+namespace ErrorProne.NET.Core
 {
-    internal static class MethodDeclarationSyntaxExtensions
+    public static class MethodDeclarationSyntaxExtensions
     {
         [Pure]
         public static bool IsIteratorBlock(this MethodDeclarationSyntax method)

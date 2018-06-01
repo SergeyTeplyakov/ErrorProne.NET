@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.Rules.ExceptionHandling
+namespace ErrorProne.NET.Exceptions
 {
     internal struct ExceptionReference
     {

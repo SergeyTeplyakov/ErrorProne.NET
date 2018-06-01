@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard1.3</TargetFramework>
+        <RootNamespace>ErrorProne.NET.Exceptions</RootNamespace>
+        <IncludeBuildOutput>true</IncludeBuildOutput>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>ErrorProne.NET.Exceptions</PackageId>
+        <PackageVersion>0.1.0.0</PackageVersion>
+        <Authors>Sergey Teplyakov</Authors>
+        <PackageLicenseUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/</RepositoryUrl>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <Description>Analyzers that help avoiding common errors with exceptions</Description>
+        <PackageReleaseNotes>
+        </PackageReleaseNotes>
+        <Copyright>Copyright</Copyright>
+        <PackageTags>ErrorProne.NET.Exceptions, analyzers</PackageTags>
+        <NoPackageAnalysis>true</NoPackageAnalysis>
+        <AssemblyName>ErrorProne.Net.ExceptionAnalyzers</AssemblyName>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.7.0" />
+        <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Core\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)\ErrorProne.NET.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)\ErrorProne.NET.Core.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+
+</Project>
