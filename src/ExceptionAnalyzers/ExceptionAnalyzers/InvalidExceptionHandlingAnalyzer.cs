@@ -1,13 +1,11 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
-using ErrorProne.NET.Common;
-using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Rules.ExceptionHandling
+namespace ErrorProne.NET.Exceptions
 {
     /// <summary>
     /// Checks that `catch` block uses `ex.Message`.
@@ -66,7 +64,7 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
                     .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
                               u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
                                                                      // or Inner exception was used
-                              (u.Parent.As(x => x as MemberAccessExpressionSyntax)?.Name?.Identifier)?.Text == "InnerException");
+                              ((u.Parent as MemberAccessExpressionSyntax)?.Name?.Identifier)?.Text == "InnerException");
 
                 // If exception object was "observed" properly!
                 if (wasObserved)

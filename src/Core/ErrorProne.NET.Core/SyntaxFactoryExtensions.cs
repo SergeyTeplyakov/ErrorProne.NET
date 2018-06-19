@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ErrorProne.NET.Extensions
 {
-    internal enum VisibilityModifier
+    public enum VisibilityModifier
     {
         Public,
         Internal,
@@ -17,7 +17,7 @@ namespace ErrorProne.NET.Extensions
         Private
     }
 
-    internal static class SyntaxFactoryExtensions
+    public static class SyntaxFactoryExtensions
     {
         private static readonly SyntaxKind[] m_visibilityModifierKinds = new[]
         {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Common;
+using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
 using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;

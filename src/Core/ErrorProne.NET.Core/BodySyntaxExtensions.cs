@@ -2,9 +2,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.Extensions
+namespace ErrorProne.NET.Core
 {
-    internal static class BodySyntaxExtensions
+    public static class BodySyntaxExtensions
     {
         public static MethodDeclarationSyntax WithStatements(this MethodDeclarationSyntax method,
             IEnumerable<StatementSyntax> statements)

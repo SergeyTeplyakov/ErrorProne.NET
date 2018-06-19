@@ -2,7 +2,6 @@
 using System.Composition;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
-using ErrorProne.NET.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using System.Linq;
@@ -21,7 +20,7 @@ namespace ErrorProne.NET.Rules.ExceptionHandling
         private const string FixText = "Extract preconditions into separate non-async method";
 
         public override ImmutableArray<string> FixableDiagnosticIds => 
-            ImmutableArray.Create(RuleIds.SuspiciousPreconditionInAsyncMethod);
+            ImmutableArray.Create(DiagnosticIds.SuspiciousPreconditionInAsyncMethod);
 
         public override FixAllProvider GetFixAllProvider()
         {
