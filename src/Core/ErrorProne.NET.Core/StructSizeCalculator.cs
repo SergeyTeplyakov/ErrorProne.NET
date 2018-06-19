@@ -53,6 +53,12 @@ namespace ErrorProne.NET.Core
 
         private static bool TryGetPrimitiveSize(ITypeSymbol type, out int size, ref int largestFieldSize)
         {
+            if (type == null)
+            {
+                size = 0;
+                return false;
+            }
+
             if (type.IsReferenceType)
             {
                 size = IntPtr.Size;
