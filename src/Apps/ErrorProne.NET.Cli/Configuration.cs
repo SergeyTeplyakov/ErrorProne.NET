@@ -22,7 +22,7 @@ namespace ErrorProne.NET.Cli
             Solution = options.Solution;
             LogFile = options.LogFile;
             RunInfoLevelDiagnostics = options.RunInfoLevelDiagnostics;
-            DisabledDiagnostics = (options.DisabledDiagnostics ?? new string[] {}).ToImmutableHashSet();
+            SuppressedDiagnostics = (options.DisabledDiagnostics ?? new string[] {}).ToImmutableHashSet();
             Analyzers = analyzers;
         }
 
@@ -34,7 +34,7 @@ namespace ErrorProne.NET.Cli
 
         public bool RunInfoLevelDiagnostics { get; }
 
-        public ImmutableHashSet<string> DisabledDiagnostics { get; }
+        public ImmutableHashSet<string> SuppressedDiagnostics { get; }
 
         public ImmutableList<Assembly> Analyzers { get; }
     }

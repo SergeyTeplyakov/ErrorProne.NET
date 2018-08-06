@@ -32,9 +32,13 @@ namespace ErrorProne.NET.Cli
             Console.ResetColor();
         }
 
-        public static void WriteInfo(string text)
+        public static void WriteInfo(string text, bool consoleOnly = false)
         {
             WriteLine(text, ConsoleColor.White);
+            if (!consoleOnly)
+            {
+                WriteFile(text + Environment.NewLine);
+            }
         }
 
         public static void WriteCaption(string text)

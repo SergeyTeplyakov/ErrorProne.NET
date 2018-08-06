@@ -57,7 +57,7 @@ namespace ErrorProne.NET.Cli
         {
             var ruleIds = analyzers
                 .SelectMany(a => a.SupportedDiagnostics.Select(d => d.Id))
-                .Where(d => !_configuration.DisabledDiagnostics.Contains(d))
+                .Where(d => !_configuration.SuppressedDiagnostics.Contains(d))
                 .ToImmutableHashSet();
 
             var projectAnalysisTasks = solution.Projects

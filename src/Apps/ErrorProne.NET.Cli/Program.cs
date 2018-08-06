@@ -3,8 +3,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CommandLine.Text;
 using ErrorProne.NET.Cli.Utilities;
+using Microsoft.Extensions.CommandLineUtils;
 using static ErrorProne.NET.Cli.CustomLogger;
 
 namespace ErrorProne.NET.Cli
@@ -14,15 +14,72 @@ namespace ErrorProne.NET.Cli
     /// </summary>
     internal static class Program
     {
-        const string AnalyzerAssemblyName = "ErrorProne.NET*.dll";
-
         private static Options ParseCommandLineArgs(string[] args)
         {
+            var app = new CommandLineApplication(throwOnUnexpectedArg: false);
+
             var options = new Options();
-            bool result = CommandLine.Parser.Default.ParseArguments(args, options);
-            if (!result)
+            
+            var solution = app.Option(
+                "-s | --solution <solution>",
+                "Required. Path to a solution to analyze.",
+                CommandOptionType.SingleValue);
+            var analyzer = app.Option(
+                "-a | --analyzer <analyzer>",
+                "Optional. Path to an analyzer to run. Default is all the ErrorProne*.dll analyzers.",
+                CommandOptionType.SingleValue);
+            var info = app.Option(
+                "-i | --info",
+                "Optional. Enable information-level diagnostics. Default is 'true'.",
+                CommandOptionType.NoValue);
+            var logFile = app.Option(
+                "-l | --log <logFile>",
+                "Optional. Path to a log file. log.txt is the default.",
+                CommandOptionType.SingleValue);
+            var disabledDiagnostics = app.Option(
+                "-d | --disabled <diagnostics>",
+                "Optional. List of diagnostics to exclude",
+                CommandOptionType.MultipleValue);
+            app.ExtendedHelpText =
+                "Example: ErrorProne.NET.Cli.exe -s:my.sln -l:foo.txt -d:ERP01 -d:ERP02";
+
+            app.HelpOption("-? | -h | --help");
+
+            app.OnExecute(() =>
             {
-                Console.WriteLine(HelpText.AutoBuild(options).ToString());
+                if (!solution.HasValue())
+                {
+                    return 1;
+                }
+
+                options.Solution = solution.Value();
+                if (analyzer.HasValue())
+                {
+                    options.Analyzer = analyzer.Value();
+                }
+
+                if (logFile.HasValue())
+                {
+                    options.LogFile = logFile.Value();
+                }
+
+                if (info.HasValue())
+                {
+                    options.RunInfoLevelDiagnostics = true;
+                }
+
+                if (disabledDiagnostics.HasValue())
+                {
+                    options.DisabledDiagnostics = disabledDiagnostics.Values.ToArray();
+                }
+
+                return 0;
+            });
+
+            int result = app.Execute(args);
+            if (result == 1)
+            {
+                app.ShowHelp();
                 return null;
             }
 
@@ -86,13 +143,36 @@ namespace ErrorProne.NET.Cli
                 return;
             }
 
-            CustomLogger.Configure(configuration.LogFile, configuration.LogEnabled);
+            Configure(configuration.LogFile, configuration.LogEnabled);
+
+            LogConfiguration(configuration);
 
             var runner = new AnalyzerRunner(configuration);
             runner.TryAnalyzeSolutionAsync().GetAwaiter().GetResult();
 
             Console.WriteLine("Press \"Enter\" to exit");
             Console.ReadLine();
+        }
+
+        private static void LogConfiguration(Configuration configuration)
+        {
+            CustomLogger.WriteInfo($"Analyzing solution '{configuration.Solution}'.");
+            WriteInfo($"Logging is {(configuration.LogEnabled ? "enabled" : "disabled")}", consoleOnly: true);
+            if (configuration.LogEnabled)
+            {
+                WriteInfo($"Log file is '{configuration.LogFile}'", consoleOnly: true);
+            }
+
+            if (!configuration.Analyzers.IsEmpty)
+            {
+                WriteInfo($"Custom analyzers: {string.Join(", ", configuration.Analyzers.Select(a => a.FullName))}");
+            }
+
+            WriteInfo($"Info level diagnostics: {(configuration.RunInfoLevelDiagnostics ? "'on'" : "'off'")}");
+            if (!configuration.SuppressedDiagnostics.IsEmpty)
+            {
+                WriteInfo($"Suppressed diagnostics: {string.Join(", ", configuration.SuppressedDiagnostics)}");
+            }
         }
     }
 }
