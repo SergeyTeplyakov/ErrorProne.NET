@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using ErrorProne.NET.Cli.Extensions;
 using ErrorProne.NET.Cli.Utilities;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -104,6 +105,8 @@ namespace ErrorProne.NET.Cli
         {
             var analyzers = GetAnalyzers(configuration.Analyzers).ToImmutableArray();
 
+            LocateMsBuild();
+
             // Loading the solution
             var sw = Stopwatch.StartNew();
 
@@ -125,6 +128,34 @@ namespace ErrorProne.NET.Cli
             WriteInfo($"Found {diagnostics.SelectMany(d => d.Diagnostics).Count()} diagnostics in {sw.ElapsedMilliseconds}ms");
 
             PrintStatistics(diagnostics, analyzers);
+        }
+
+        private void LocateMsBuild()
+        {
+            // More then one VS instance installed on the machine may cause some issues when a solution is opened using MsBuildWorkspace.
+            // To avoid the issues we need to locate an msbuild.
+            // Locates all of the instances of Visual Studio 2017 on the machine with MSBuild.
+            var instances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+            if (instances.Length == 0)
+            {
+                WriteInfo("No Visual Studio instances found.");
+                return;
+            }
+
+            WriteInfo("Visual Studio intances:");
+            foreach (var instance in instances)
+            {
+                WriteInfo($"  - {instance.Name} - {instance.Version}");
+                WriteInfo($"    {instance.MSBuildPath}");
+                WriteInfo("");
+            }
+
+            // We register the first instance that we found. This will cause MSBuildWorkspace to use the MSBuild installed in that instance.
+            // Note: This has to be registered *before* creating MSBuildWorkspace. Otherwise, the MEF composition used by MSBuildWorkspace will fail to compose.
+            var registeredInstance = instances.First();
+            MSBuildLocator.RegisterInstance(registeredInstance);
+            WriteInfo($"Registered: {registeredInstance.Name} - {registeredInstance.Version}");
+            WriteInfo("");
         }
 
         private static List<DiagnosticAnalyzer> GetAnalyzers(Assembly assembly)
