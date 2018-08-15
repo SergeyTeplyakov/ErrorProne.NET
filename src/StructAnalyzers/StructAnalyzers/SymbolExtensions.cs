@@ -1,13 +1,41 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace ErrorProne.NET.Structs
 {
     /// <nodoc />
     public static class SymbolExtensions
     {
+        public static IEnumerable<ISymbol> GetAllUsedSymbols(Compilation compilation, SyntaxNode root)
+        {
+            var noDuplicates = new HashSet<ISymbol>();
+
+            var model = compilation.GetSemanticModel(root.SyntaxTree);
+
+            foreach (var node in root.DescendantNodesAndSelf())
+            {
+                switch (node.Kind())
+                {
+                    case SyntaxKind.ExpressionStatement:
+                    case SyntaxKind.InvocationExpression:
+                        break;
+                    default:
+                        ISymbol symbol = model.GetSymbolInfo(node).Symbol;
+
+                        if (symbol != null)
+                        {
+                            if (noDuplicates.Add(symbol))
+                                yield return symbol;
+                        }
+                        break;
+                }
+            }
+        }
+
         /// <summary>
         /// Returns true if a given <paramref name="method"/> has iterator block inside of it.
         /// </summary>
