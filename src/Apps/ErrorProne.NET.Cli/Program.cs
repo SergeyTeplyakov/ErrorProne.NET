@@ -115,16 +115,24 @@ namespace ErrorProne.NET.Cli
 
             try
             {
-                var executablePath = Assembly.GetExecutingAssembly().Location;
-                Console.WriteLine($"Executing assembly: " + Path.GetDirectoryName(executablePath));
-                var analyzerPaths = Directory.EnumerateFiles(Path.GetDirectoryName(executablePath), "ErrorProne.NET*.dll");
+                var executable = Assembly.GetExecutingAssembly().Location;
+                var executableDirectory = Path.GetDirectoryName(executable);
+                Console.WriteLine($"Executing assembly: {executableDirectory}");
+
+                var analyzerPaths = Directory.EnumerateFiles(executableDirectory, "ErrorProne.NET*.dll");
                 var analyzers = analyzerPaths.Select(a => Assembly.LoadFile(a)).ToImmutableList();
+
+                if (analyzers.IsEmpty)
+                {
+                    WriteError($"Can't find any ErrorProne.NET analyzers at '{executable}'.");
+                    return null;
+                }
 
                 return new Configuration(options, analyzers);
             }
             catch (Exception e)
             {
-                WriteError($"Failed to load ErrorProne analyzers\r\n{e}");
+                WriteError($"Failed to load ErrorProne.NET analyzers.\r\n{e}");
                 return null;
             }
         }
