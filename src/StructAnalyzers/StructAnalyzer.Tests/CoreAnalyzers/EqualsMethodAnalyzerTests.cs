@@ -123,14 +123,14 @@ class FooBar
     private static int _s = 4;
     private static Foo _f = new foo();
 
-    public override bool [|Equals|](object obj)
+    public override bool Equals(object [|obj|])
     {
         return _f.X == _n && 
             System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(this as FooBar);
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            HasDiagnostics(code, new []{DiagnosticId, DiagnosticId + "WithoutSuggestion"});
         }
 
         [Test]

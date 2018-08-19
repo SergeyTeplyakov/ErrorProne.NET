@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.CoreAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class SuspiciousEqualsMethodAnalyzer : DiagnosticAnalyzer
+    public sealed class SuspiciousEqualsMethodAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.SuspiciousEqualsMethodImplementation;
@@ -25,6 +25,11 @@ namespace ErrorProne.NET.CoreAnalyzers
         // Using warning for visibility purposes
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
+        public SuspiciousEqualsMethodAnalyzer() 
+            : base(InstanceMembersAreNotUsedRule, RightHandSideIsNotUsedRule)
+        {
+        }
+
         /// <nodoc />
         public static readonly DiagnosticDescriptor InstanceMembersAreNotUsedRule =
             new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
@@ -32,9 +37,6 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <nodoc />
         public static readonly DiagnosticDescriptor RightHandSideIsNotUsedRule =
             new DiagnosticDescriptor(DiagnosticId, RhsTitle, RhsMessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
-
-        /// <inheritdoc />
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(InstanceMembersAreNotUsedRule, RightHandSideIsNotUsedRule);
 
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
@@ -75,13 +77,21 @@ namespace ErrorProne.NET.CoreAnalyzers
 
                     if (!symbols.Any(s => s is IParameterSymbol p && p.ContainingSymbol == method && !p.IsThis))
                     {
+                        var location = method.Parameters[0].Locations[0];
                         // 'obj' is not used
                         var diagnostic = Diagnostic.Create(
                             RightHandSideIsNotUsedRule,
-                            method.Locations[0],
+                            location,
                             method.Parameters[0].Name);
 
                         context.ReportDiagnostic(diagnostic);
+
+                        // Fading 'obj' away
+                        
+                        context.ReportDiagnostic(
+                            Diagnostic.Create(
+                                UnnecessaryWithoutSuggestionDescriptor,
+                                location));
                     }
                 }
             }
