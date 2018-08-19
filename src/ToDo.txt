@@ -1,2 +1,0 @@
-Naming: StructsAnalyzers? StructAnalyzers?
-Suggest "Pass by 'in'" only for structs 2PtrSize+

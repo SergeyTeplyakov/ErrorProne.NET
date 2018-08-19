@@ -1,4 +1,4 @@
-﻿namespace ErrorProne.NET.CoreAnalyzers
+﻿namespace ErrorProne.NET.Core.CoreAnalyzers
 {
     /// <summary>
     /// Diagnostic ids produced by analyzers defined in ErrorProne.Net.Core project.
@@ -7,5 +7,8 @@
     {
         /// <nodoc />
         public const string SuspiciousEqualsMethodImplementation = "EPC11";
+
+        /// <nodoc />
+        public const string SuspiciousExceptionHandling = "EPC12";
     }
 }

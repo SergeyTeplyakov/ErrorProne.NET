@@ -47,22 +47,22 @@ namespace ErrorProne.NET.Exceptions
 
             foreach (var throwStatement in catchClause.DescendantNodes().OfType<ThrowStatementSyntax>())
             {
-                var identifier =
-                    throwStatement.Expression as IdentifierNameSyntax;
-
-                if (identifier == null)
+                if (!(throwStatement.Expression is IdentifierNameSyntax identifier))
                     continue;
-
-                var symbol = context.SemanticModel.GetSymbolInfo(identifier);
-                if (symbol.Symbol == null)
-                    continue;
-
-                if (symbol.Symbol.ExceptionFromCatchBlock())
+                
                 {
-                    // throw ex; detected!
-                    var diagnostic = Diagnostic.Create(Rule, identifier.GetLocation());
+                    var symbol = context.SemanticModel.GetSymbolInfo(identifier);
+                    if (symbol.Symbol == null)
+                        continue;
 
-                    context.ReportDiagnostic(diagnostic);
+                    if (symbol.Symbol.ExceptionFromCatchBlock())
+                    {
+                        // throw ex; detected!
+                        var diagnostic = Diagnostic.Create(Rule, identifier.GetLocation());
+
+                        context.ReportDiagnostic(diagnostic);
+                    }
+
                 }
             }
         }

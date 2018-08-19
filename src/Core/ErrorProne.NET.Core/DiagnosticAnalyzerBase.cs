@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.CoreAnalyzers
 {
     /// <summary>
-    /// Base class of a diagnostic analyzer.
+    /// Base class of diagnostic analyzers.
     /// </summary>
     public abstract class DiagnosticAnalyzerBase : DiagnosticAnalyzer
     {
@@ -28,23 +28,14 @@ namespace ErrorProne.NET.CoreAnalyzers
         private readonly string _localizableMessageFormat;
 
         /// <inheritdoc />
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
-        /// <nodoc />
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor()
-            => CreateUnnecessaryDescriptor(DescriptorId);
-
-        /// <nodoc />
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
-            => CreateDescriptorWithId(
-                descriptorId, _localizableTitle, _localizableMessageFormat,
-                WellKnownDiagnosticTags.Unnecessary);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         /// <nodoc />
         protected DiagnosticAnalyzerBase(
             string descriptorId,
             string title,
-            string messageFormat = null)
+            string messageFormat = null,
+            string description = null)
         {
             DescriptorId = descriptorId;
             _localizableTitle = title;
@@ -80,15 +71,30 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         /// <nodoc />
         protected DiagnosticDescriptor CreateDescriptorWithId(
-            string id, LocalizableString title, LocalizableString messageFormat,
+            string id,
+            LocalizableString title,
+            LocalizableString messageFormat,
             params string[] customTags)
         {
             return new DiagnosticDescriptor(
-                id, title, messageFormat,
+                id, 
+                title, 
+                messageFormat,
                 "Style",
                 DiagnosticSeverity.Hidden,
                 isEnabledByDefault: true,
                 customTags: customTags);
         }
+
+        /// <nodoc />
+        protected DiagnosticDescriptor CreateUnnecessaryDescriptor()
+            => CreateUnnecessaryDescriptor(DescriptorId);
+
+        /// <nodoc />
+        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
+            => CreateDescriptorWithId(
+                descriptorId, _localizableTitle, _localizableMessageFormat,
+                WellKnownDiagnosticTags.Unnecessary);
+
     }
 }

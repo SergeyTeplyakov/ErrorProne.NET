@@ -1,9 +1,8 @@
-﻿using ErrorProne.NET.CoreAnalyzers;
-using ErrorProne.NET.Structs;
+﻿using ErrorProne.NET.Core.CoreAnalyzers;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace StructAnalyzers.CoreAnalyzersTests
+namespace ErrorProne.NET.Core.Tests.CoreAnalyzersTests
 {
     [TestFixture]
     public class EqualsMethodAnalyzerTests : CSharpAnalyzerTestFixture<SuspiciousEqualsMethodAnalyzer>
@@ -106,6 +105,22 @@ class FooBar
     {
         return _f.X == _s && 
             System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(obj as FooBar);
+    }
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoWorn_When_This_Is_Used()
+        {
+            string code = @"
+class FooBar
+{
+    private int _n = 42;
+    public override bool Equals(object obj)
+    {
+        return System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(this as FooBar ?? obj);
     }
 }
 ";

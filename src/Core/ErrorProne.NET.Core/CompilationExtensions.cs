@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET.Core
@@ -17,6 +18,9 @@ namespace ErrorProne.NET.Core
 
         public static bool IsSystemObject(this INamedTypeSymbol type, Compilation compilation)
             => type.Equals(compilation.GetTypeByMetadataName("System.Object"));
+
+        public static bool IsClrType(this ISymbol type, Compilation compilation, Type clrType)
+            => type.Equals(compilation.GetTypeByMetadataName(clrType.FullName));
 
         public static bool IsSystemValueType(this INamedTypeSymbol type, Compilation compilation)
             => type.Equals(compilation.GetTypeByMetadataName("System.ValueType"));

@@ -83,7 +83,7 @@ namespace RoslynNunitTestRunner
                 Assert.True(diagnosticsSet.Contains(diagnostic.Id), 
                     $"Diagnostic '{diagnostic.Id}' is unknown. Known diagnostics: {string.Join(", ", diagnosticId)}");
                 Assert.IsTrue(diagnostic.Location.IsInSource);
-                Assert.IsTrue(spanSet.Contains(diagnostic.Location.SourceSpan), $"Can't find expected span. Expected:\r\n{expected}");
+                Assert.IsTrue(spanSet.Contains(diagnostic.Location.SourceSpan), $"Can't find expected error. Expected:\r\n{expected}");
             }
         }
 

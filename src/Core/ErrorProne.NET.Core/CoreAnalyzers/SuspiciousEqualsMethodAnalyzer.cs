@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Linq;
-using ErrorProne.NET.Core;
+﻿using System.Linq;
+using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.CoreAnalyzers
+namespace ErrorProne.NET.Core.CoreAnalyzers
 {
+    /// <summary>
+    /// Analyzer that warns about suspicious implementation of <see cref="object.Equals(object)"/> methods.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class SuspiciousEqualsMethodAnalyzer : DiagnosticAnalyzerBase
     {
@@ -20,23 +21,24 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         private static readonly string Title = "Equals method does not use any instance members.";
         private static readonly string Description = "Suspicious Equals method implementation that does not uses any instance members.";
-        private const string Category = "Correctness";
+        private const string Category = "CodeSmell";
 
         // Using warning for visibility purposes
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
+        /// <nodoc />
+        private static readonly DiagnosticDescriptor InstanceMembersAreNotUsedRule =
+            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
+
+        /// <nodoc />
+        private static readonly DiagnosticDescriptor RightHandSideIsNotUsedRule =
+            new DiagnosticDescriptor(DiagnosticId, RhsTitle, RhsMessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
+
+        /// <nodoc />
         public SuspiciousEqualsMethodAnalyzer() 
             : base(InstanceMembersAreNotUsedRule, RightHandSideIsNotUsedRule)
         {
         }
-
-        /// <nodoc />
-        public static readonly DiagnosticDescriptor InstanceMembersAreNotUsedRule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
-        
-        /// <nodoc />
-        public static readonly DiagnosticDescriptor RightHandSideIsNotUsedRule =
-            new DiagnosticDescriptor(DiagnosticId, RhsTitle, RhsMessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
 
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
@@ -124,12 +126,20 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         private bool IsInstanceMember(INamedTypeSymbol methodContainingType, ISymbol symbol)
         {
-            if (symbol.IsStatic || (!(symbol is IPropertySymbol || symbol is IFieldSymbol || symbol is IEventSymbol)))
+            if (symbol.IsStatic)
             {
                 return false;
             }
 
-            return symbol.ContainingType.Equals(methodContainingType);
+            if (!(symbol is IPropertySymbol || symbol is IFieldSymbol || symbol is IEventSymbol ||
+                (symbol is IParameterSymbol ps && ps.IsThis)))
+            {
+                // If symbol is not one of these, it is definitely not an instance member reference
+                return false;
+            }
+
+            // Still need to check that the member belongs to this type.
+            return symbol.ContainingType?.Equals(methodContainingType) == true;
         }
     }
 }
