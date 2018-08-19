@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
-namespace ErrorProne.NET.Structs
+namespace ErrorProne.NET.Core
 {
     // Copied from internal ICompilationExtensions class from the roslyn codebase
     public static class CompilationExtensions
@@ -14,6 +14,12 @@ namespace ErrorProne.NET.Structs
 
         public static INamedTypeSymbol ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
+        public static bool IsSystemObject(this INamedTypeSymbol type, Compilation compilation)
+            => type.Equals(compilation.GetTypeByMetadataName("System.Object"));
+
+        public static bool IsSystemValueType(this INamedTypeSymbol type, Compilation compilation)
+            => type.Equals(compilation.GetTypeByMetadataName("System.ValueType"));
 
         public static (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTTypeOpt) GetTaskTypes(Compilation compilation)
         {
