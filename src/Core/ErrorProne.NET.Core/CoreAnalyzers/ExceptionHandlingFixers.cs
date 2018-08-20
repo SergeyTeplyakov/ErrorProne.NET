@@ -21,7 +21,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
         public const string Title = "Observe the whole exception instance.";
 
         /// <inheritdoc />
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SuspiciousExceptionHandlingAnalyzer.DiagnosticIdWithoutSuggestion);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SuspiciousExceptionHandlingAnalyzer.DiagnosticId);
 
         /// <inheritdoc />
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
