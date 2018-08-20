@@ -109,7 +109,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
                         Diagnostic.Create(DiagnosticDescriptor, location, messageUsage.Id.Identifier.Text));
 
                     context.ReportDiagnostic(
-                        Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, fadingSpan));
+                        Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, fadingSpan));
                 }
             }
         }
