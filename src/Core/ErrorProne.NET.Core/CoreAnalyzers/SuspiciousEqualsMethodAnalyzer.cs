@@ -141,7 +141,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
                 return false;
             }
 
-            if (symbol is IMethodSymbol ms && ms.Name == "Equals" && ms.Parameters.Length == 1)
+            if (symbol is IMethodSymbol ms && ms.Parameters.Length == 1 && (ms.Name == "Equals" || ms.Name == "CompareTo"))
             {
                 // Special case for Equals(object) => this is MyT && Equals((MyT)other).
                 return true;
