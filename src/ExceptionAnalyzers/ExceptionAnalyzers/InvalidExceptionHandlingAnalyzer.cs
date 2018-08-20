@@ -1,9 +1,11 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
+using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace ErrorProne.NET.Exceptions
 {
@@ -11,7 +13,7 @@ namespace ErrorProne.NET.Exceptions
     /// Checks that `catch` block uses `ex.Message`.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class ExceptionHandlingAnalyer : DiagnosticAnalyzer
+    public sealed class ExceptionHandlingAnalyer : DiagnosticAnalyzerBase
     {
         public const string DiagnosticId = RuleIds.OnlyExceptionMessageWasObserved;
 
@@ -19,9 +21,11 @@ namespace ErrorProne.NET.Exceptions
         internal const string MessageFormat = "Only ex.Message property was observed in exception block!";
         internal const string Category = "CodeSmell";
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        public ExceptionHandlingAnalyer() : base(DiagnosticId, Title)
+        {
+        }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -32,7 +36,7 @@ namespace ErrorProne.NET.Exceptions
         }
 
         // Called when Roslyn encounters a catch clause.
-        private static void AnalyzeCatchBlock(SyntaxNodeAnalysisContext context)
+        private void AnalyzeCatchBlock(SyntaxNodeAnalysisContext context)
         {
             var catchBlock = (CatchClauseSyntax) context.Node;
 
@@ -74,8 +78,10 @@ namespace ErrorProne.NET.Exceptions
 
                 foreach (var messageUsage in messageUsages)
                 {
+                    var location = Location.Create(context.Node.SyntaxTree,
+                        TextSpan.FromBounds(messageUsage.Parent.Span.Start, messageUsage.Parent.Span.End));
                     context.ReportDiagnostic(
-                        Diagnostic.Create(Rule, messageUsage.Id.Parent.GetLocation()));
+                        Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, location));
                 }
             }
         }

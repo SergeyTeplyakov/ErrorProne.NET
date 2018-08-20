@@ -27,7 +27,7 @@ namespace RoslynNunitTestRunner
         protected void NoDiagnostic(string code, string diagnosticId)
         {
             var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(code, LanguageName);
-            Assert.That(processedDocument.Spans.Count, Is.EqualTo(0), "Expected 0 expected diagnostics in the document!");
+            Assert.That(processedDocument.Spans.Count, Is.EqualTo(0), "Document without diagnostics should not have [| |] marker.");
             NoDiagnostic(processedDocument.Document, diagnosticId, processedDocument);
         }
 
@@ -48,7 +48,14 @@ namespace RoslynNunitTestRunner
             HasDiagnostics(processedDocument, diagnosticId);
         }
 
-        protected void HasDiagnostics(ProcessedCode processed, string diagnosticId)
+        protected void HasDiagnostics(string markupCode, string[] diagnosticId)
+        {
+            var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(markupCode, LanguageName);
+
+            HasDiagnostics(processedDocument, diagnosticId);
+        }
+
+        protected void HasDiagnostics(ProcessedCode processed, string[] diagnosticId)
         {
             var document = processed.Document;
             var spans = processed.Spans;
@@ -62,17 +69,27 @@ namespace RoslynNunitTestRunner
 
             string expected = processed.GetCodeWithMarkers(diagnostics.Select(d => d.Location.SourceSpan).ToList());
 
-            var message = $"Expected {spans.Count} diagnostic(s). Document with diagnostics:\r\n{expected}";
-            Assert.That(diagnostics.Length, Is.EqualTo(spans.Count), message);
+            int expectedNumberOfDiagnostics = Math.Max(spans.Count, diagnosticId.Length);
+            var message = $"Expected {expectedNumberOfDiagnostics} diagnostic(s). Document with diagnostics:\r\n{expected}";
+            
+            Assert.That(diagnostics.Length, Is.EqualTo(expectedNumberOfDiagnostics), message);
 
             var spanSet = new HashSet<TextSpan>(spans);
 
+            var diagnosticsSet = new HashSet<string>(diagnosticId);
+
             foreach (var diagnostic in diagnostics)
             {
-                Assert.That(diagnostic.Id, Is.EqualTo(diagnosticId));
+                Assert.True(diagnosticsSet.Contains(diagnostic.Id), 
+                    $"Diagnostic '{diagnostic.Id}' is unknown. Known diagnostics: {string.Join(", ", diagnosticId)}");
                 Assert.IsTrue(diagnostic.Location.IsInSource);
-                Assert.IsTrue(spanSet.Contains(diagnostic.Location.SourceSpan), $"Can't find expected span. Expected:\r\n{expected}");
+                Assert.IsTrue(spanSet.Contains(diagnostic.Location.SourceSpan), $"Can't find expected error. Expected:\r\n{expected}");
             }
+        }
+
+        protected void HasDiagnostics(ProcessedCode processed, string diagnosticId)
+        {
+            HasDiagnostics(processed, new []{diagnosticId});
         }
 
         protected void HasDiagnostic(Document document, TextSpan span, string diagnosticId)

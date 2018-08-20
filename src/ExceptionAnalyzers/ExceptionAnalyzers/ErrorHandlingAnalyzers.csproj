@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard1.3</TargetFramework>
-        <RootNamespace>ErrorProne.NET.Exceptions</RootNamespace>
+        <RootNamespace>ErrorProne.Net.ErrorHandlingAnalyzers</RootNamespace>
         <IncludeBuildOutput>true</IncludeBuildOutput>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
@@ -20,11 +20,11 @@
         <Copyright>Copyright</Copyright>
         <PackageTags>ErrorProne.NET.Exceptions, analyzers</PackageTags>
         <NoPackageAnalysis>true</NoPackageAnalysis>
-        <AssemblyName>ErrorProne.Net.ExceptionAnalyzers</AssemblyName>
+        <AssemblyName>ErrorProne.Net.ErrorHandlingAnalyzers</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.7.0" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.8.2" PrivateAssets="All" />
         <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
     </ItemGroup>
 

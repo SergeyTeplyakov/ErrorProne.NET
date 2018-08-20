@@ -86,10 +86,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj">
-      <Project>{3BEDEFBF-D75E-4FCE-A20C-727F3AF127B0}</Project>
+      <Project>{3bedefbf-d75e-4fce-a20c-727f3af127b0}</Project>
       <Name>ErrorProne.NET.Core</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\StructAnalyzers\StructAnalyzers.csproj">
       <Project>{bc1fdc25-3c4b-4f3d-b4c2-da417cc30e17}</Project>
