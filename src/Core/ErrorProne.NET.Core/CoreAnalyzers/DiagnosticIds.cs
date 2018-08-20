@@ -10,5 +10,8 @@
 
         /// <nodoc />
         public const string SuspiciousExceptionHandling = "EPC12";
+        
+        /// <nodoc />
+        public const string UnobservedResult = "EPC13";
     }
 }
