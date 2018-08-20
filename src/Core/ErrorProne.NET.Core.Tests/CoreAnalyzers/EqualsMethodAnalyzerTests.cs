@@ -31,6 +31,26 @@ class FooBar
         }
 
         [Test]
+        public void Warn_When_Only_Static_Members_Are_Used_In_Expression_Body_Impl()
+        {
+            string code = @"
+class Foo {public int X = 42;}
+class FooBar
+{
+    private int _n = 42;
+    private static int _s = 4;
+    private static Foo _f = new foo();
+
+    public override bool [|Equals|](object obj)
+       =>
+        _f.X == _s && 
+            System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(obj as FooBar);
+}
+";
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void Warn_When_Only_Static_Members_Are_Used_With_Instance_Props()
         {
             string code = @"

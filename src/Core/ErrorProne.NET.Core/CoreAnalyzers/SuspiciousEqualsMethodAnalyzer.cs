@@ -65,7 +65,8 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
                         return;
                     }
 
-                    var symbols = SymbolExtensions.GetAllUsedSymbols(context.Compilation, methodSyntax.Body).ToList();
+                    var bodyOrExpression = (SyntaxNode)methodSyntax.Body ?? methodSyntax.ExpressionBody;
+                    var symbols = SymbolExtensions.GetAllUsedSymbols(context.Compilation, bodyOrExpression).ToList();
 
                     if (HasInstanceMembers(method.ContainingType) && 
                         symbols.Count(s => IsInstanceMember(method.ContainingType, s)) == 0)
