@@ -20,7 +20,7 @@ namespace ErrorProne.NET.Core
             => type.Equals(compilation.GetTypeByMetadataName("System.Object"));
 
         public static bool IsClrType(this ISymbol type, Compilation compilation, Type clrType)
-            => type.Equals(compilation.GetTypeByMetadataName(clrType.FullName));
+            => type is ITypeSymbol ts && ts.OriginalDefinition.Equals(compilation.GetTypeByMetadataName(clrType.FullName));
 
         public static bool IsSystemValueType(this INamedTypeSymbol type, Compilation compilation)
             => type.Equals(compilation.GetTypeByMetadataName("System.ValueType"));

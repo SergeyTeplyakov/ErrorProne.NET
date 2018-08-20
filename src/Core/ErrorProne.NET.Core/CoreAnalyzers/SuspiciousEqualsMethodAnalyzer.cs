@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,11 +17,12 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.SuspiciousEqualsMethodImplementation;
 
-        private static readonly string RhsTitle = "Equals method does not use rhs-parameter.";
-        private static readonly string RhsMessageFormat = "Equals method does not use parameter {0}.";
+        private static readonly string RhsTitle = "Suspicious equality implementation: Equals method does not use rhs-parameter.";
+        private static readonly string RhsMessageFormat = "Suspicious equality implementation: parameter {0} is never used.";
+        private static readonly string RhsDescription = "Equals method implementation that does not uses another instance is suspicious.";
 
-        private static readonly string Title = "Equals method does not use any instance members.";
-        private static readonly string Description = "Suspicious Equals method implementation that does not uses any instance members.";
+        private static readonly string Title = "Suspicious equality implementation: no instance members are used.";
+        private static readonly string Description = "Equals method implementation that does not uses any instance members is suspicious.";
         private const string Category = "CodeSmell";
 
         // Using warning for visibility purposes
@@ -32,7 +34,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
 
         /// <nodoc />
         private static readonly DiagnosticDescriptor RightHandSideIsNotUsedRule =
-            new DiagnosticDescriptor(DiagnosticId, RhsTitle, RhsMessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
+            new DiagnosticDescriptor(DiagnosticId, RhsTitle, RhsMessageFormat, Category, Severity, isEnabledByDefault: true, description: RhsDescription);
 
         /// <nodoc />
         public SuspiciousEqualsMethodAnalyzer() 
@@ -46,6 +48,16 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
             context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
         }
 
+        private static bool OverridesEquals(IMethodSymbol method, Compilation compilation)
+            => method.IsOverride &&
+               method.OverriddenMethod.Name == "Equals" &&
+               (method.OverriddenMethod.ContainingType.IsSystemObject(compilation) ||
+                method.OverriddenMethod.ContainingType.IsSystemValueType(compilation));
+
+        private static bool ImplementsEquals(IMethodSymbol method, Compilation compilation)
+            => method.IsInterfaceImplementation(out var interfaceMethod) && interfaceMethod is IMethodSymbol ms &&
+               ms.ContainingType.IsClrType(compilation, typeof(IEquatable<>));
+
         private void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
         {
             var method = (IMethodSymbol)context.SemanticModel.GetDeclaredSymbol(context.Node);
@@ -53,10 +65,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
             if (method != null)
             {
                 // Method overrides System.Equals
-                if (method.IsOverride && 
-                    method.OverriddenMethod.Name == "Equals" && 
-                    (method.OverriddenMethod.ContainingType.IsSystemObject(context.Compilation) ||
-                    method.OverriddenMethod.ContainingType.IsSystemValueType(context.Compilation)))
+                if (OverridesEquals(method, context.Compilation) || ImplementsEquals(method, context.Compilation))
                 {
                     var methodSyntax = (MethodDeclarationSyntax)context.Node;
                     if (OnlyThrow(methodSyntax))
@@ -69,7 +78,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
                     var symbols = SymbolExtensions.GetAllUsedSymbols(context.Compilation, bodyOrExpression).ToList();
 
                     if (HasInstanceMembers(method.ContainingType) && 
-                        symbols.Count(s => IsInstanceMember(method.ContainingType, s)) == 0)
+                        symbols.Count(s => IsInstanceMember(method.ContainingType, s, context.Compilation)) == 0)
                     {
                         var diagnostic = Diagnostic.Create(
                             InstanceMembersAreNotUsedRule,
@@ -93,7 +102,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
                         
                         context.ReportDiagnostic(
                             Diagnostic.Create(
-                                UnnecessaryWithoutSuggestionDescriptor,
+                                UnnecessaryWithSuggestionDescriptor,
                                 location));
                     }
                 }
@@ -125,14 +134,20 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
                 .Any(m => m is IFieldSymbol || m is IPropertySymbol);
         }
 
-        private bool IsInstanceMember(INamedTypeSymbol methodContainingType, ISymbol symbol)
+        private bool IsInstanceMember(INamedTypeSymbol methodContainingType, ISymbol symbol, Compilation compilation)
         {
             if (symbol.IsStatic)
             {
                 return false;
             }
 
-            if (!(symbol is IPropertySymbol || symbol is IFieldSymbol || symbol is IEventSymbol ||
+            if (symbol is IMethodSymbol ms && ms.Name == "Equals" && ms.Parameters.Length == 1)
+            {
+                // Special case for Equals(object) => this is MyT && Equals((MyT)other).
+                return true;
+            }
+
+            if (!(symbol is IPropertySymbol || symbol is IFieldSymbol || symbol is IEventSymbol || symbol is ILocalSymbol ||
                 (symbol is IParameterSymbol ps && ps.IsThis)))
             {
                 // If symbol is not one of these, it is definitely not an instance member reference

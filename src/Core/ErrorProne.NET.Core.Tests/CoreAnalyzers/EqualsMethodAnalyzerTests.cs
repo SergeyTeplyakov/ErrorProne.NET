@@ -10,6 +10,68 @@ namespace ErrorProne.NET.Core.Tests.CoreAnalyzersTests
         public const string DiagnosticId = SuspiciousEqualsMethodAnalyzer.DiagnosticId;
 
         [Test]
+        public void Warn_For_Strongly_Typed_Equalsl()
+        {
+            string code = @"
+public class MyS : System.IEquatable<MyS>
+{
+    public int Line { get; }
+    public bool [|Equals|](MyS other) => other != null;
+}
+";
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoWarn_When_For_Pattern_Matching()
+        {
+            string code = @"
+public readonly struct MyS : System.IEquatable<MyS>
+{
+    public int Line { get; }
+
+    public override int GetHashCode() => 42;
+    public override bool Equals(object other) => other is MyS s && Equals(s);
+    
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoWarn_When_For_Pattern_As()
+        {
+            string code = @"
+public class MyS
+{
+    public int Line { get; }
+
+    public override int GetHashCode() => 42;
+    public override bool Equals(object other) => Equals(other as MyS);
+    public bool Equals(MyS s) => Line == s.Line;
+    
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoWarn_When_For_Is_Plus_Cast()
+        {
+            string code = @"
+public readonly struct MyS : System.IEquatable<MyS>
+{
+    public int Line { get; }
+
+    public override int GetHashCode() => 42;
+    public override bool Equals(object other) => other is MyS && Equals((MyS)s);
+    public bool Equals(MyS other) => Line == other.Line;
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void Warn_When_Only_Static_Members_Are_Used()
         {
             string code = @"

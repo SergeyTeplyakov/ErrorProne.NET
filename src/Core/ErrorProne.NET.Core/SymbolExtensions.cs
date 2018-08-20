@@ -67,12 +67,20 @@ namespace ErrorProne.NET.Core
         /// Returns true if a given <paramref name="method"/> is an implementation of an interface member.
         /// </summary>
         public static bool IsInterfaceImplementation(this IMethodSymbol method)
+            => IsInterfaceImplementation(method, out _);
+        
+        /// <summary>
+        /// Returns true if a given <paramref name="method"/> is an implementation of an interface member.
+        /// </summary>
+        public static bool IsInterfaceImplementation(this IMethodSymbol method, out ISymbol implementedMethod)
         {
             if (method.MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
+                implementedMethod = method;
                 return true;
             }
 
+            implementedMethod = null;
             if (method.DeclaredAccessibility != Accessibility.Public)
             {
                 return false;
@@ -88,6 +96,7 @@ namespace ErrorProne.NET.Core
                 {
                     if (method.Equals(containingType.FindImplementationForInterfaceMember(implementedInterfaceMember)))
                     {
+                        implementedMethod = implementedInterfaceMember;
                         return true;
                     }
                 }
@@ -95,6 +104,7 @@ namespace ErrorProne.NET.Core
 
             return false;
         }
+
         public static VariableDeclarationSyntax TryGetDeclarationSyntax(this IFieldSymbol symbol)
         {
             if (symbol.DeclaringSyntaxReferences.Length == 0)
