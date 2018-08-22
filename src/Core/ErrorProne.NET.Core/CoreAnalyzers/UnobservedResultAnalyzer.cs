@@ -141,22 +141,33 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
             context.ReportDiagnostic(diagnostic);
         }
 
-        private bool TypeMustBeObserved(ITypeSymbol type, /*CanBeNull*/IMethodSymbol ms, Compilation compilation)
+        private bool TypeMustBeObserved(ITypeSymbol type, /*CanBeNull*/IMethodSymbol method, Compilation compilation)
         {
-            if (ms?.IsContinueWith(compilation) == true)
+            if (method?.IsContinueWith(compilation) == true)
             {
                 // Task.ContinueWith is a bit special.
                 return false;
             }
 
-            return EnumerateBaseTypesAndSelf(type).Any(t => IsObserableType(t, compilation));
+            return EnumerateBaseTypesAndSelf(type).Any(t => IsObserableType(t, method, compilation));
         }
 
-        private bool IsObserableType(ITypeSymbol type, Compilation compilation)
+        private bool IsObserableType(ITypeSymbol type, /*CanBeNull*/IMethodSymbol method, Compilation compilation)
         {
-            if (type.IsClrType(compilation, typeof(Exception)) || type.IsClrType(compilation, typeof(Task)))
+            if (type.IsClrType(compilation, typeof(Exception)))
             {
-                // Exceptions and tasks are special
+                // 'ThrowExcpetion' method that throws but still returns an exception is quite common.
+                if (method?.Name.StartsWith("Throw") == true)
+                {
+                    return false;
+                }
+                
+                return true;
+            }
+
+            if (type.IsClrType(compilation, typeof(Task)))
+            {
+                // Tasks should be observed
                 return true;
             }
 

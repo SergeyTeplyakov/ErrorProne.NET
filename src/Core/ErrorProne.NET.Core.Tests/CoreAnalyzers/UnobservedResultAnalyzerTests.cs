@@ -216,5 +216,21 @@ class FooBar
 ";
             NoDiagnostic(code, DiagnosticId);
         }
+
+        [Test]
+        public void NoWarnings_For_Methods_Starts_With_THrow()
+        {
+            string code = @"
+class FooBar
+{
+    private static System.Exception Throw() {throw new System.Exception();}
+    public static void Test()
+    {
+        Throw();
+    }
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
     }
 }
