@@ -67,6 +67,27 @@ class FooBar
         }
 
         [Test]
+        public void Result_That_Flows_Through_Extension_Method_Is_Observed2()
+        {
+            string code = @"
+class Result {}
+static class ResultEx {
+    public static Result Handle(this Result r) => r;
+}
+class FooBar
+{
+    public static Result Foo => null;
+
+    public static void Test()
+    {
+        Foo.Handle();
+    }
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void Result_That_Flows_Through_Extension_Method_Is_Observed_For_Tasks()
         {
             string code = @"
@@ -218,7 +239,7 @@ class FooBar
         }
 
         [Test]
-        public void NoWarnings_For_Methods_Starts_With_THrow()
+        public void NoWarnings_For_Methods_Starts_With_Throw()
         {
             string code = @"
 class FooBar
@@ -227,6 +248,23 @@ class FooBar
     public static void Test()
     {
         Throw();
+    }
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void NoWarnings_When_Exception_Type_Is_Infered()
+        {
+            string code = @"
+class FooBar
+{
+    private static T Cast<T>(object o) => o as T;
+    public static void Test()
+    {
+        object o = null;
+        Cast<System.Exception>(o);
     }
 }
 ";

@@ -51,16 +51,30 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
 
-            // TODO: different error message should be used for UseReturnValueAttribute
             if (invocation.Parent is ExpressionStatementSyntax ex &&
                 context.SemanticModel.GetSymbolInfo(ex.Expression).Symbol is IMethodSymbol ms && 
                 TypeMustBeObserved(ms.ReturnType, ms, context.Compilation))
             {
-                if (!ResultObservedByExtensionMethod(invocation, ms, context.SemanticModel))
+                var operation = context.SemanticModel.GetOperation(invocation);
+                var invocationOperation = operation as IInvocationOperation;
+                if (invocationOperation != null &&
+                    ResultObservedByExtensionMethod(invocationOperation, context.SemanticModel))
                 {
-                    var diagnostic = Diagnostic.Create(Rule, invocation.GetNodeLocationForDiagnostic(), ms.ReturnType.Name);
-                    context.ReportDiagnostic(diagnostic);
+                    // Result is observed!
+                    return;
                 }
+
+                if (invocationOperation != null && IsException(invocationOperation.Type, context.Compilation) &&
+                    invocationOperation.TargetMethod.ConstructedFrom.ReturnType is ITypeParameterSymbol)
+                {
+                    // The inferred type is System.Exception (or one of it's derived types),
+                    // but the operation that is called is generic (i.e. exception type was inferred).
+                    // It means that there is nothing special about the return type and it can be ignored.
+                    return;
+                }
+
+                var diagnostic = Diagnostic.Create(Rule, invocation.GetNodeLocationForDiagnostic(), ms.ReturnType.Name);
+                context.ReportDiagnostic(diagnostic);
             }
         }
 
@@ -75,10 +89,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
                 if (operation is IAwaitOperation awaitOperation && operation.Type != null && TypeMustBeObserved(operation.Type, null, context.Compilation))
                 {
                     if (awaitOperation.Operation is IInvocationOperation invocation &&
-                        ResultObservedByExtensionMethod(
-                            invocation.Syntax as InvocationExpressionSyntax,
-                            invocation.TargetMethod,
-                            context.SemanticModel))
+                        ResultObservedByExtensionMethod(invocation, context.SemanticModel))
                     {
                         // Result is observed!
                         return;
@@ -93,20 +104,17 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
             }
         }
 
-        private bool ResultObservedByExtensionMethod(InvocationExpressionSyntax methodCall, IMethodSymbol methodSymbol, SemanticModel semanticModel)
+        private bool ResultObservedByExtensionMethod(IInvocationOperation operation, SemanticModel semanticModel)
         {
-            if (methodCall == null)
-            {
-                return false;
-            }
-
             // In some cases, the following pattern is used:
             // Foo().Handle();
             // Where Foo() returns 'possible' that is passed to 'Handle' extension method that returns the result.
             // But in this case we can safely assume that the result WAS observed.
 
+            var methodSymbol = operation.TargetMethod;
+
             // Exception for this rule is 'ConfigureAwait()'
-            if (methodSymbol.IsConfigureAwait(semanticModel.Compilation))
+            if (operation.TargetMethod.IsConfigureAwait(semanticModel.Compilation))
             {
                 return false;
             }
@@ -116,13 +124,8 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
                 (methodSymbol.ReturnType.Equals(methodSymbol.ReceiverType) ||
                  methodSymbol.ReturnType.Equals(methodSymbol.Parameters.FirstOrDefault()?.Type)))
             {
-                // Looking for 'Foo' in the example provided above
-                if (methodCall.Expression is MemberAccessExpressionSyntax mae &&
-                    mae.Expression is InvocationExpressionSyntax &&
-                    semanticModel.GetSymbolInfo(mae.Expression).Symbol is IMethodSymbol nestedMethod)
-                {
-                    return nestedMethod.ReturnType.Equals(methodSymbol.ReturnType);
-                }
+                // operation.Type returns a type for 'Foo()'.
+                return operation.Type.Equals(methodSymbol.ReturnType);
             }
 
             return false;
@@ -152,12 +155,12 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
             return EnumerateBaseTypesAndSelf(type).Any(t => IsObserableType(t, method, compilation));
         }
 
-        private bool IsObserableType(ITypeSymbol type, /*CanBeNull*/IMethodSymbol method, Compilation compilation)
+        private static bool IsObserableType(ITypeSymbol type, /*CanBeNull*/IMethodSymbol method, Compilation compilation)
         {
             if (type.IsClrType(compilation, typeof(Exception)))
             {
                 // 'ThrowExcpetion' method that throws but still returns an exception is quite common.
-                if (method?.Name.StartsWith("Throw") == true)
+                if (method?.Name.StartsWith("Throw") == true || method?.Name == "FailFast")
                 {
                     return false;
                 }
@@ -178,6 +181,11 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
             }
 
             return false;
+        }
+
+        private static bool IsException(ITypeSymbol type, Compilation compilation)
+        {
+            return EnumerateBaseTypesAndSelf(type).Any(t => t.IsClrType(compilation, typeof(Exception)));
         }
 
         public static IEnumerable<ITypeSymbol> EnumerateBaseTypesAndSelf(ITypeSymbol type)
