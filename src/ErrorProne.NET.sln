@@ -27,7 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{9A8D68AC-B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwitchAnalyzer", "Misc\SwitchAnalyzer\SwitchAnalyzer.csproj", "{AAEFFD98-236D-4371-91A2-AE5688995B17}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwitchAnalyzer.Test", "Misc\SwitchAnalyzer.Test\SwitchAnalyzer.Test.csproj", "{85F623AC-9EE9-4FE9-A4D1-4570DCD5B433}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwitchAnalyzer.Tests", "Misc\SwitchAnalyzer.Test\SwitchAnalyzer.Tests.csproj", "{85F623AC-9EE9-4FE9-A4D1-4570DCD5B433}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

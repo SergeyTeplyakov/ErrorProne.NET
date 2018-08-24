@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SwitchAnalyzer
 {
-    partial class EnumAnalyzer
+    public class EnumAnalyzer
     {
         private const string Category = "Correctness";
 

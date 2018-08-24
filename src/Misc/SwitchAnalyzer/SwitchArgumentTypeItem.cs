@@ -1,6 +1,6 @@
 ﻿namespace SwitchAnalyzer
 {
-    internal class SwitchArgumentTypeItem<T>
+    public class SwitchArgumentTypeItem<T>
     {
         public SwitchArgumentTypeItem(string prefix, string member, string fullName, T value)
         {

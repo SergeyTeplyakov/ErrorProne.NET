@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SwitchAnalyzer
 {
-    class InterfaceAnalyzer
+    public class InterfaceAnalyzer
     {
         private const string Category = "Correctness";
         public const string DiagnosticId = "SA002";
