@@ -13,5 +13,11 @@
         
         /// <nodoc />
         public const string UnobservedResult = "EPC13";
+        
+        /// <nodoc />
+        public const string RedundantConfigureAwait = "EPC14";
+        
+        /// <nodoc />
+        public const string ConfigureAwaitFalseMustBeUsed = "EPC15";
     }
 }
