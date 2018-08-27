@@ -1,10 +1,7 @@
-using Microsoft.CodeAnalysis;
-using System;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
-using TestHelper;
 
-namespace SwitchAnalyzer.Test
+namespace SwitchAnalyzer.Tests
 {
     [TestFixture]
     public class EnumSwitchAnalyzerTests : CSharpAnalyzerTestFixture<SwitchAnalyzer>
@@ -111,8 +108,8 @@ namespace OtherNamespace
             var test = $@"{codeStart}
                           {switchStatement}
                           {GetEndSection()}";
-            // todo: Check OtherNamespace.TestEnum.OtherNamespaceCase3
-            HasDiagnostic(test, EnumAnalyzer.DiagnosticId);
+
+            HasDiagnostic(test, EnumAnalyzer.DiagnosticId, AnalyzerMessage("OtherNamespace.TestEnum.OtherNamespaceCase3"));
         }
 
         [Test]
@@ -159,8 +156,8 @@ namespace OtherNamespace
                 var test = $@"{codeStart}
                           {switchStatement}
                           {GetEndSection(substitutedEnum)}";
-                // todo: Check OtherTypeEnum.Case2
-                HasDiagnostic(test, EnumAnalyzer.DiagnosticId);
+
+                HasDiagnostic(test, EnumAnalyzer.DiagnosticId, AnalyzerMessage("OtherTypeEnum.Case2"));
             }
         }
 
@@ -178,8 +175,7 @@ namespace OtherNamespace
                           {switchStatement}
                           {GetEndSection()}";
 
-            // todo: check TestEnum.Case3
-            HasDiagnostic(test, EnumAnalyzer.DiagnosticId);
+            HasDiagnostic(test, EnumAnalyzer.DiagnosticId, AnalyzerMessage("TestEnum.Case3"));
         }
 
         [Test]
@@ -199,8 +195,8 @@ namespace OtherNamespace
             var test = $@"{codeStart}
                           {switchStatement}
                           {GetEndSection()}";
-            // todo: check TestEnum.Case1
-            HasDiagnostic(test, EnumAnalyzer.DiagnosticId);
+
+            HasDiagnostic(test, EnumAnalyzer.DiagnosticId, AnalyzerMessage("TestEnum.Case1"));
         }
 
         [Test]
@@ -236,8 +232,7 @@ namespace OtherNamespace
                           {switchStatement}
                           {GetEndSection()}";
 
-            // todo: check "TestEnum.Case1", "TestEnum.Case3"
-            HasDiagnostic(test, EnumAnalyzer.DiagnosticId);
+            HasDiagnostic(test, EnumAnalyzer.DiagnosticId, AnalyzerMessage("TestEnum.Case1", "TestEnum.Case3"));
         }
 
         [Test]
@@ -288,8 +283,8 @@ namespace OtherNamespace
             var test = $@"{codeStart}
                           {switchStatement}
                           {GetEndSection()}";
-            // todo: check "TestEnum.Case1, TestEnum.Case2"
-            HasDiagnostic(test, EnumAnalyzer.DiagnosticId);
+
+            HasDiagnostic(test, EnumAnalyzer.DiagnosticId, AnalyzerMessage("TestEnum.Case1", "TestEnum.Case2"));
         }
 
         [Test]
@@ -339,8 +334,7 @@ namespace OtherNamespace
                           {switchStatement}
                           {GetEndSection()}";
 
-            // todo: check "TestEnum.Case2", "TestEnum.Case3"
-            HasDiagnostic(test, EnumAnalyzer.DiagnosticId);
+            HasDiagnostic(test, EnumAnalyzer.DiagnosticId, AnalyzerMessage("TestEnum.Case2", "TestEnum.Case3"));
         }
 
         [Test]
@@ -378,19 +372,6 @@ namespace OtherNamespace
             NoDiagnostic(test, EnumAnalyzer.DiagnosticId);
         }
 
-        private DiagnosticResult GetDiagnostic(params string[] expectedEnums)
-        {
-            return new DiagnosticResult
-            {
-                Id = "SA001",
-                Message = String.Format("Switch case should check enum value(s): {0}", string.Join(", ", expectedEnums)),
-                Severity = DiagnosticSeverity.Warning,
-                Locations =
-                    new[]
-                    {
-                        new DiagnosticResultLocation("Test0.cs", 25, 13)
-                    }
-            };
-        }
+        private string AnalyzerMessage(params string[] cases) => string.Format(EnumAnalyzer.Rule.MessageFormat.ToString(), string.Join(", ", cases));
     }
 }
