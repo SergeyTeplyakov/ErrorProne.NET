@@ -3,8 +3,7 @@ using RoslynNunitTestRunner;
 
 namespace SwitchAnalyzer.Tests
 {
-    [TestFixture]
-    public class ClassSwitchAnalyzerTests : CSharpAnalyzerTestFixture<SwitchAnalyzer>
+    public class ClassSwitchFixerTests : CSharpCodeFixTestFixture<SwitchAnalyzerCodeFixProvider>
     {
         private readonly string codeStart = @"
     using System;
@@ -56,94 +55,66 @@ namespace SwitchAnalyzer.Tests
     }";
 
         [Test]
-        public void SimpleValid()
+        public void FixSimple()
         {
             var switchStatement = @"
             BaseClass test = new TestClass2();
-            switch (test)
+            [|switch (test)
             {
-                case TestClass2 a: return TestEnum.Case1;
                 case TestClass3 a: return TestEnum.Case2;
                 case TestClass4 a: return TestEnum.Case3;
                 default: throw new NotImplementedException();
-            }";
-            var test = $@"{codeStart}
-                          {switchStatement}
-                          {codeEnd}";
-            NoDiagnostic(test, EnumAnalyzer.DiagnosticId);
-        }
-
-        [Test]
-        public void SimpleInvalid()
-        {
-            var switchStatement = @"
-            BaseClass test = new TestClass2();
-            [|switch (test)
-            {
-                case TestClass2 a: return TestEnum.Case1;
-                case TestClass4 a: return TestEnum.Case2;
-                default: throw new NotImplementedException();
             }|]";
-            var test = $@"{codeStart}
+            var code = $@"{codeStart}
                           {switchStatement}
                           {codeEnd}";
 
-            HasDiagnostic(test, ClassAnalyzer.DiagnosticId, AnalyzerMessage("TestClass3"));
-        }
-
-        [Test]
-        public void SameClassNotChecked()
-        {
-            var switchStatement = @"
+            var expectedFixSwitch = @"
             BaseClass test = new TestClass2();
             switch (test)
             {
-                case BaseClass a: return TestEnum.Case2;
-                default: throw new NotImplementedException();
-            }";
-            var test = $@"{codeStart}
-                          {switchStatement}
-                          {codeEnd}";
-
-            NoDiagnostic(test, ClassAnalyzer.DiagnosticId);
-        }
-
-        [Test]
-        public void MultipleValuesReturnedInDiagnostics()
-        {
-            var switchStatement = @"
-            BaseClass test = new TestClass2();
-            [|switch (test)
-            {
-                case TestClass2 a: return TestEnum.Case1;
-                default: throw new NotImplementedException();
-            }|]";
-            var test = $@"{codeStart}
-                          {switchStatement}
-                          {codeEnd}";
-
-            HasDiagnostic(test, ClassAnalyzer.DiagnosticId, AnalyzerMessage("TestClass3", "TestClass4"));
-        }
-
-        [Test]
-        public void EmptyExpressionValid()
-        {
-            var switchStatement = @"
-            BaseClass test = new TestClass2();
-            switch (test)
-            {
-                case TestClass2 a: return TestEnum.Case1;
-                case TestClass3 a:
+                case TestClass3 a: return TestEnum.Case2;
                 case TestClass4 a: return TestEnum.Case3;
+                case TestClass2 _:
                 default: throw new NotImplementedException();
             }";
-            var test = $@"{codeStart}
+            var expectedResult = $@"{codeStart}
+                          {expectedFixSwitch}
+                          {codeEnd}";
+
+            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule, MissingCases("TestClass2"));
+        }
+
+        [Test]
+        public void FixMoreThanOneValue()
+        {
+            var switchStatement = @"
+            BaseClass test = new TestClass2();
+            [|switch (test)
+            {
+                case TestClass3 a: return TestEnum.Case2;
+                default: throw new NotImplementedException();
+            }|]";
+            var code = $@"{codeStart}
                           {switchStatement}
                           {codeEnd}";
 
-            NoDiagnostic(test, ClassAnalyzer.DiagnosticId);
+            var expectedFixSwitch = @"
+            BaseClass test = new TestClass2();
+            switch (test)
+            {
+                case TestClass3 a: return TestEnum.Case2;
+                case TestClass2 _:
+                case TestClass4 _:
+                default: throw new NotImplementedException();
+            }";
+            var expectedResult = $@"{codeStart}
+                          {expectedFixSwitch}
+                          {codeEnd}";
+
+            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule, MissingCases("TestClass2", "TestClass4"));
         }
 
-        private string AnalyzerMessage(params string[] cases) => string.Format(ClassAnalyzer.Rule.MessageFormat.ToString(), string.Join(", ", cases));
+        private string MissingCases(params string[] cases) => string.Join(", ", cases);
     }
 }

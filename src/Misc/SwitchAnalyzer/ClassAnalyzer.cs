@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace SwitchAnalyzer
 {
-    class ClassAnalyzer
+    public class ClassAnalyzer
     {
         private const string Category = "Correctness";
         public const string DiagnosticId = "SA003";
