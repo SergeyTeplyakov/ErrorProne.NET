@@ -8,7 +8,7 @@ namespace SwitchAnalyzer
     public class ClassAnalyzer
     {
         private const string Category = "Correctness";
-        public const string DiagnosticId = "SA003";
+        public const string DiagnosticId = "EPW03";
         private const string Title = "Non exhaustive patterns in switch block";
         private const string MessageFormat = "Switch case should check implementation of type(s): {0}";
         private const string Description = "All class implementations in pattern matching switch statement should be checked.";

@@ -8,7 +8,7 @@ namespace SwitchAnalyzer
     public class InterfaceAnalyzer
     {
         private const string Category = "Correctness";
-        public const string DiagnosticId = "SA002";
+        public const string DiagnosticId = "EPW02";
         private const string Title = "Non exhaustive patterns in switch block";
         private const string MessageFormat = "Switch case should check interface implementation of type(s): {0}";
         private const string Description = "All interface implementations in pattern matching switch statement should be checked.";
