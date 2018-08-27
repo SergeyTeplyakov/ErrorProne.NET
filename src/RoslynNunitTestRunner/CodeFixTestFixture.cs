@@ -35,6 +35,11 @@ namespace RoslynNunitTestRunner
         {
             var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(markupCode, LanguageName);
 
+            if (!processedDocument.Spans.Any())
+            {
+                throw new InvalidOperationException("Code should contain a selection using [|error|].");
+            }
+
             TestNoCodeFix(processedDocument.Document, processedDocument.Spans.First(), descriptor);
         }
 
