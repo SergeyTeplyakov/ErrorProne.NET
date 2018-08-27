@@ -70,12 +70,12 @@ namespace OtherNamespace
         public void FixSimple()
         {
             var switchStatement = @"
-            switch (TestEnum.Case1)
+            [|switch (TestEnum.Case1)
             {
                 case TestEnum.Case2: return TestEnum.Case2;
                 case TestEnum.Case3: return TestEnum.Case3;
                 default: throw new NotImplementedException();
-            }";
+            }|]";
             var code = $@"{codeStart}
                           {switchStatement}
                           {GetEndSection()}";
@@ -92,8 +92,7 @@ namespace OtherNamespace
                           {expectedFixSwitch}
                           {GetEndSection()}";
 
-            // todo: check TestEnum.Case1
-            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule);
+            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule, MissingCases("TestEnum.Case1"));
         }
 
         [Test]
@@ -119,17 +118,17 @@ namespace OtherNamespace
             var expectedResult = $@"{codeStart}
                           {expectedFixSwitch}
                           {GetEndSection()}";
-            // todo: "TestEnum.Case1", "TestEnum.Case2", "TestEnum.Case3"
-            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule);
+
+            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule, MissingCases("TestEnum.Case1", "TestEnum.Case2", "TestEnum.Case3"));
         }
 
         [Test]
         public void FixWithoutDefault1()
         {
             var switchStatement = @"
-            switch (TestEnum.Case1)
+            [|switch (TestEnum.Case1)
             {
-            }
+            }|]
             return TestEnum.Case1;";
             var code = $@"{codeStart}
                           {switchStatement}
@@ -150,22 +149,21 @@ namespace OtherNamespace
                           {expectedFixSwitch}
                           {GetEndSection()}";
 
-            //todo: "TestEnum.Case1", "TestEnum.Case2", "TestEnum.Case3"
-            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule);
+            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule, MissingCases("TestEnum.Case1", "TestEnum.Case2", "TestEnum.Case3"));
         }
 
         [Test]
         public void FixWithoutDefault2()
         {
             var switchStatement = @"
-            switch (testValue)
+            [|switch (testValue)
             {
                 case TestEnum.Case1:
                     {
                         var k = 3;
                         break;
                     }
-            }
+            }|]
             return TestEnum.Case1;";
             var code = $@"{codeStart}
                           {switchStatement}
@@ -191,20 +189,19 @@ namespace OtherNamespace
                           {expectedFixSwitch}
                           {GetEndSection()}";
 
-            // todo: "TestEnum.Case2", "TestEnum.Case3"
-            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule);
+            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule, MissingCases("TestEnum.Case2", "TestEnum.Case3"));
         }
 
         [Test]
         public void FixWithNamespace()
         {
             var switchStatement = @"
-            switch (OtherNamespace.OtherEnum.Case1)
+            [|switch (OtherNamespace.OtherEnum.Case1)
             {
                 case OtherNamespace.OtherEnum.Case1: return TestEnum.Case1;
                 case OtherNamespace.OtherEnum.Case2: return TestEnum.Case2;
                 default: throw new NotImplementedException();
-            }";
+            }|]";
             var code = $@"{codeStart}
                           {switchStatement}
                           {GetEndSection()}";
@@ -221,10 +218,11 @@ namespace OtherNamespace
                           {expectedFixSwitch}
                           {GetEndSection()}";
 
-            // todo: "OtherNamespace.OtherEnum.Case3"
-            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule);
+            TestCodeFix(code, expectedResult, EnumAnalyzer.Rule, MissingCases("OtherNamespace.OtherEnum.Case3"));
         }
 
         private string GetEndSection(string additionalCode = "") => string.Format(codeEnd, additionalCode);
+
+        private string MissingCases(params string[] cases) => string.Join(", ", cases);
     }
 }
