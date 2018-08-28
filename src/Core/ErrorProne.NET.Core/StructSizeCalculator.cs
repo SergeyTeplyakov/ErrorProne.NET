@@ -102,6 +102,11 @@ namespace ErrorProne.NET.Core
 
         private static void GetSize(SemanticModel semanticModel, ITypeSymbol type, ref int capacity, ref int largestFieldSize, ref int actualSize)
         {
+            if (type == null)
+            {
+                return;
+            }
+
             int newLargestFieldSize = largestFieldSize;
             if (TryGetPrimitiveSize(type, out var currentItemSize, ref newLargestFieldSize))
             {

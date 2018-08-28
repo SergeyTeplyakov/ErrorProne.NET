@@ -50,6 +50,7 @@ namespace ErrorProne.NET.Core.CoreAnalyzers
 
         private static bool OverridesEquals(IMethodSymbol method, Compilation compilation)
             => method.IsOverride &&
+               method.OverriddenMethod != null &&
                method.OverriddenMethod.Name == "Equals" &&
                (method.OverriddenMethod.ContainingType.IsSystemObject(compilation) ||
                 method.OverriddenMethod.ContainingType.IsSystemValueType(compilation));

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,6 +35,23 @@ namespace ErrorProne.NET.Core
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns true if a given <paramref name="method"/> is <see cref="Task.ConfigureAwait(bool)"/>.
+        /// </summary>
+        public static bool IsConfigureAwait(this IMethodSymbol method, Compilation compilation)
+        {
+            // Naive implementation
+            return method.Name == "ConfigureAwait" && method.ReceiverType.IsTaskLike(compilation);
+        }
+
+        /// <summary>
+        /// Returns true if a given <paramref name="method"/> is <see cref="Task.ContinueWith(System.Action{System.Threading.Tasks.Task,object},object)"/>.
+        /// </summary>
+        public static bool IsContinueWith(this IMethodSymbol method, Compilation compilation)
+        {
+            return method.Name == "ContinueWith" && method.ReceiverType.IsTaskLike(compilation) && method.ReturnType.IsTaskLike(compilation);
         }
 
         /// <summary>

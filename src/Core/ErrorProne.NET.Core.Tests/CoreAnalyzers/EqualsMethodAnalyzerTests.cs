@@ -259,5 +259,19 @@ class FooBar
 }";
             NoDiagnostic(code, DiagnosticId);
         }
+
+        [Test]
+        public void No_Warn_When_GetType_Is_Called()
+        {
+            string code = @"
+class FooBar
+{
+    public override bool Equals(object obj)
+    {
+        return obj != null && obj.GetType() == this.GetType();
+    }
+}";
+            NoDiagnostic(code, DiagnosticId);
+        }
     }
 }
