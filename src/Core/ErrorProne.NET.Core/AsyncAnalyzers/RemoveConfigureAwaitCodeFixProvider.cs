@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace ErrorProne.NET.Core.AsyncAnalyzers
 {
@@ -64,7 +66,8 @@ namespace ErrorProne.NET.Core.AsyncAnalyzers
                     .Expression.Cast<InvocationExpressionSyntax>() // await fooBar.ConfigureAwait(false);
                     .Expression.Cast<MemberAccessExpressionSyntax>()
                     .Expression; // fooBar
-
+            // Need to remove a potential trailing new line.
+            newExpression = newExpression.WithTrailingTrivia();
             var newAwaitExpression = awaitExpression.WithExpression(newExpression);
             var newRoot = root.ReplaceNode(awaitExpression, newAwaitExpression);
             return document.WithSyntaxRoot(newRoot);
