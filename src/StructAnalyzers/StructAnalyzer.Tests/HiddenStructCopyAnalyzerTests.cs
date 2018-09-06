@@ -11,6 +11,28 @@ namespace ErrorProne.NET.Structs.Tests
         public const string DiagnosticId = HiddenStructCopyAnalyzer.DiagnosticId;
 
         [Test]
+        public void NoWarningsOnExtensionMethods()
+        {
+            string code = @"
+struct Struct
+{
+ public int X;
+}
+static class StructExtensions
+{
+  public static int Squared(in this Struct s) => s.X * s.X;
+}
+class Test
+{
+  void doSomething(in Struct s)
+  {
+    s.Squared(); // <- no hidden defensive copy happens, since Squared is an in-extension method only accessing fields readonly, which can not modify the struct
+  }
+}";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void NoNullRefeferenceExceptionWhenExtensionMethodIsCalledAsAMethod()
         {
             string code = @"
