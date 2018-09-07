@@ -19,5 +19,8 @@
         
         /// <nodoc />
         public const string ConfigureAwaitFalseMustBeUsed = "EPC15";
+        
+        /// <nodoc />
+        public const string NullCoalescingOperatorForAsyncMethods = "EPC16";
     }
 }
