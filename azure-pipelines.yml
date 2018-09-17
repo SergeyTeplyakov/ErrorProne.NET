@@ -24,7 +24,8 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: VSTest@2
+- task: DotNetCoreCLI@2
   inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    command: test
+    projects: 'src/**/*.Tests/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --logger:trx'
