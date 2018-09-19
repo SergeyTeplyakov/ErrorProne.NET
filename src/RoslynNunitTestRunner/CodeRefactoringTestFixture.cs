@@ -13,6 +13,7 @@ namespace RoslynNunitTestRunner
     {
         protected abstract CodeRefactoringProvider CreateProvider();
 
+        [Obsolete]
         protected void TestCodeRefactoring(string markupCode, string expected)
         {
             Assert.That(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out var document, out var span), Is.True);
@@ -32,13 +33,15 @@ namespace RoslynNunitTestRunner
         private ImmutableArray<CodeAction> GetCodeRefactorings(Document document, TextSpan span)
         {
             var builder = ImmutableArray.CreateBuilder<CodeAction>();
-            Action<CodeAction> registerRefactoring = a => builder.Add(a);
 
-            var context = new CodeRefactoringContext(document, span, registerRefactoring, CancellationToken.None);
+            var context = new CodeRefactoringContext(document, span, RegisterRefactoring, CancellationToken.None);
             var provider = CreateProvider();
             provider.ComputeRefactoringsAsync(context).Wait();
 
             return builder.ToImmutable();
+
+            // Local functions
+            void RegisterRefactoring(CodeAction a) => builder.Add(a);
         }
     }
 }

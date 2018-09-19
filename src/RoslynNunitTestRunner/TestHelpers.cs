@@ -152,8 +152,7 @@ namespace RoslynNunitTestRunner
         [Obsolete]
         public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, ImmutableList<MetadataReference> references, out Document document, out TextSpan span)
         {
-            string code;
-            if (!TryGetCodeAndSpanFromMarkup(markupCode, out code, out span))
+            if (!TryGetCodeAndSpanFromMarkup(markupCode, out var code, out span))
             {
                 document = null;
                 return false;
