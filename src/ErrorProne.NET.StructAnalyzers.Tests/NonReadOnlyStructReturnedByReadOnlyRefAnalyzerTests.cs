@@ -56,7 +56,7 @@ class FooBar
         {
             // Has diagnostics for ref return property
             yield return
-                @"struct S {public void Foo() {} } class FooBar {private S _s; public ref readonly S |]S => _s; }";
+                @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S => _s; }";
             
             // Has diagnostics for ref return method with expression body
             yield return

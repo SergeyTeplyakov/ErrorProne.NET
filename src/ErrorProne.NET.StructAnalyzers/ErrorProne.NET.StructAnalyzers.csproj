@@ -51,7 +51,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

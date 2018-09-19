@@ -85,11 +85,15 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj">
+    <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.Core.Analyzers.csproj">
+      <Project>{3dae1aeb-c520-4eeb-8e3d-d9c548f02a1b}</Project>
+      <Name>ErrorProne.NET.Core.Analyzers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj">
       <Project>{3bedefbf-d75e-4fce-a20c-727f3af127b0}</Project>
       <Name>ErrorProne.NET.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\StructAnalyzers\StructAnalyzers.csproj">
+    <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers\ErrorProne.NET.StructAnalyzers.csproj">
       <Project>{bc1fdc25-3c4b-4f3d-b4c2-da417cc30e17}</Project>
       <Name>StructAnalyzers</Name>
     </ProjectReference>
