@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System.Diagnostics.ContractsLight;
 using System.IO;
 
 namespace ErrorProne.NET.Cli.Utilities

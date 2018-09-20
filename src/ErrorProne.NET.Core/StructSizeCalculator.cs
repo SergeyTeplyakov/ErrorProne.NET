@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics.Contracts;
+using System.Diagnostics.ContractsLight;
 using System.Linq;
 using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
