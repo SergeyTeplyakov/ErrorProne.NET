@@ -30,6 +30,4 @@
     <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers\ErrorProne.NET.StructAnalyzers.csproj" />
   </ItemGroup>
 
-  <Import Project="$(SolutionDir)CommonSettings.targets" />
-
 </Project>

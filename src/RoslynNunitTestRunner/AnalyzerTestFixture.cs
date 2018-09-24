@@ -27,6 +27,7 @@ namespace RoslynNunitTestRunner
 
         protected void NoDiagnostic(string code, string diagnosticId)
         {
+            Contract.Requires(code != null);
             var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(code, LanguageName);
             Assert.That(processedDocument.Spans.Count, Is.EqualTo(0), "Document without diagnostics should not have [| |] marker.");
             NoDiagnostic(processedDocument.Document, diagnosticId, processedDocument);

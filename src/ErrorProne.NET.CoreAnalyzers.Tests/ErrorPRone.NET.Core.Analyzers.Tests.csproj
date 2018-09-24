@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+ <PropertyGroup>
+    <SolutionDir>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))\</SolutionDir>
+  </PropertyGroup>
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <ApplicationIcon />
@@ -29,6 +31,4 @@
     <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
     <ProjectReference Include="..\RoslynNUnitTestRunner\RoslynNUnitTestRunner.csproj" />
   </ItemGroup>
-
-  <Import Project="$(SolutionDir)CommonSettings.targets" />
 </Project>

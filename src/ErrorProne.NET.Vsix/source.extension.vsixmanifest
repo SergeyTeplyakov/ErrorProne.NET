@@ -12,8 +12,8 @@
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
     </Dependencies>
     <Assets>
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="StructAnalyzers" Path="|StructAnalyzers|"/>
-        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="StructAnalyzers" Path="|StructAnalyzers|"/>
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="ErrorProne.NET.StructAnalyzers" Path="|ErrorProne.NET.StructAnalyzers|"/>
+        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="ErrorProne.NET.StructAnalyzers" Path="|ErrorProne.NET.StructAnalyzers|"/>
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="ErrorProne.NET.Core" Path="|ErrorProne.NET.Core|" />
     </Assets>
     <Prerequisites>

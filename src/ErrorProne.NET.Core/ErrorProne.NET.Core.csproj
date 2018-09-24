@@ -17,6 +17,5 @@
     <PackageReference Include="RuntimeContracts" Version="0.1.6" />
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
   </ItemGroup>
-
-  <Import Project="$(SolutionDir)CommonSettings.targets" />
+  
 </Project>
