@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -26,6 +27,7 @@ namespace RoslynNunitTestRunner
 
         protected void NoDiagnostic(string code, string diagnosticId)
         {
+            Contract.Requires(code != null);
             var processedDocument = TestHelpers.GetDocumentAndSpansFromMarkup(code, LanguageName);
             Assert.That(processedDocument.Spans.Count, Is.EqualTo(0), "Document without diagnostics should not have [| |] marker.");
             NoDiagnostic(processedDocument.Document, diagnosticId, processedDocument);

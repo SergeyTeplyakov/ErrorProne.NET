@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
+using System.Diagnostics.ContractsLight;
 using System.IO;
 using System.Reflection;
 

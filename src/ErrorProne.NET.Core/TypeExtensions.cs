@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.ContractsLight;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 
@@ -12,13 +13,13 @@ namespace ErrorProne.NET.Utils
         /// </summary>
         public static bool IsEnum(this ITypeSymbol type)
         {
-            Debug.Assert(type != null);
+            Contract.Requires(type != null);
             return type.TypeKind == TypeKind.Enum;
         }
 
         public static ITypeSymbol GetEnumUnderlyingType(this ITypeSymbol enumType)
         {
-            Debug.Assert(enumType != null);
+            Contract.Requires(enumType != null);
 
             var namedTypeSymbol = enumType as INamedTypeSymbol;
             return namedTypeSymbol?.EnumUnderlyingType;

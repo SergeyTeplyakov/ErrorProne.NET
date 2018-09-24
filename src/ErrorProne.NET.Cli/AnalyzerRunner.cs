@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
+using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -66,7 +66,7 @@ namespace ErrorProne.NET.Cli
                 .Select(p => new { Project = p, Task = AnalyzeProjectAsync(p, analyzers) })
                 .ToList()
                 // Then we need to print all the results
-                .Select(p => new { Project = p.Project, Task = p.Task.ContinueWith(t =>
+                .Select(p => new { p.Project, Task = p.Task.ContinueWith(t =>
                     {
                         var diagnostics = t.Result.Where(d => ruleIds.Contains(d.Id)).ToImmutableArray();
                         if (!configuration.RunInfoLevelDiagnostics)

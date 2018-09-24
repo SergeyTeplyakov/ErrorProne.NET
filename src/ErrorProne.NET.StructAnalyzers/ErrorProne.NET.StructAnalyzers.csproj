@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <RootNamespace>ErrorProne.NET.Structs</RootNamespace>
+    <RootNamespace>ErrorProne.Net.StructAnalyzers</RootNamespace>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -39,6 +39,8 @@
    
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.7.0" PrivateAssets="all" />
+    <PackageReference Include="RuntimeContracts" Version="0.1.6" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
     <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
   </ItemGroup>
 

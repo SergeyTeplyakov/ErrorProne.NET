@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+ <PropertyGroup>
+    <SolutionDir>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))\</SolutionDir>
+  </PropertyGroup>
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <ApplicationIcon />
@@ -20,6 +22,8 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" PrivateAssets="all" />
     <PackageReference Include="NUnit" Version="3.10.1" PrivateAssets="all" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" PrivateAssets="all" />
+    <PackageReference Include="RuntimeContracts" Version="0.1.6" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,5 +31,4 @@
     <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
     <ProjectReference Include="..\RoslynNUnitTestRunner\RoslynNUnitTestRunner.csproj" />
   </ItemGroup>
-
 </Project>

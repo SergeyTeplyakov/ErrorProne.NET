@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
+using System.Diagnostics.ContractsLight;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
