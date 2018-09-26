@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using ErrorProne.NET.Core.CoreAnalyzers;
-using ErrorProne.NET.CoreAnalyzers;
+﻿using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 
-namespace ErrorProne.NET.Core.AsyncAnalyzers
+namespace ErrorProne.NET.AsyncAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RemoveConfigureAwaitAnalyzer : DiagnosticAnalyzerBase
@@ -49,7 +47,7 @@ namespace ErrorProne.NET.Core.AsyncAnalyzers
                 var operation = context.SemanticModel.GetOperation(invocation, context.CancellationToken);
                 if (operation is IAwaitOperation awaitOperation &&
                     awaitOperation.Operation is IInvocationOperation configureAwaitOperation &&
-                    configureAwaitOperation.TargetMethod.IsConfigureAwait(context.Compilation))
+                    TempExtensions.IsConfigureAwait(configureAwaitOperation.TargetMethod, context.Compilation))
                 {
                     if (configureAwaitOperation.Arguments.Length != 0 &&
                         configureAwaitOperation.Arguments[0].Value is ILiteralOperation literal &&

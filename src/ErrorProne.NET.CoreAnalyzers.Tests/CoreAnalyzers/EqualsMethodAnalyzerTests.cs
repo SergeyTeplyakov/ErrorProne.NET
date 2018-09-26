@@ -1,8 +1,7 @@
-﻿using ErrorProne.NET.Core.CoreAnalyzers;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.Core.Tests.CoreAnalyzersTests
+namespace ErrorProne.NET.CoreAnalyzers.Tests.CoreAnalyzers
 {
     [TestFixture]
     public class EqualsMethodAnalyzerTests : CSharpAnalyzerTestFixture<SuspiciousEqualsMethodAnalyzer>

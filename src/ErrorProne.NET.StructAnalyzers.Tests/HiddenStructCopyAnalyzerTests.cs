@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.Structs.Tests
+namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
     public class HiddenStructCopyAnalyzerTests : CSharpAnalyzerTestFixture<HiddenStructCopyAnalyzer>

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Reflection;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.Core.CoreAnalyzers
+namespace ErrorProne.NET.CoreAnalyzers
 {
     public readonly struct ExceptionReference
     {

@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Simplification;
 
-namespace ErrorProne.NET.Core.AsyncAnalyzers
+namespace ErrorProne.NET.AsyncAnalyzers
 {
     /// <summary>
     /// A fixer for <see cref="RemoveConfigureAwaitAnalyzer"/>.

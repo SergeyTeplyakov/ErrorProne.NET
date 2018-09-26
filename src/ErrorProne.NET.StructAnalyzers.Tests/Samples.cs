@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace ErrorProne.NET.Structs.Tests.Samples
+﻿namespace ErrorProne.NET.StructAnalyzers.Tests.Samples
 {
     public struct IdAndName
     {

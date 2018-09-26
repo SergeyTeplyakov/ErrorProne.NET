@@ -1,11 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
+using ErrorProne.NET.CoreAnalyzers;
+using ErrorProne.NET.ExceptionAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Exceptions
+namespace ErrorProne.NET.ExceptionsAnalyzers
 {
     /// <summary>
     /// Detects `catch` blocks that swallow an exception.
@@ -14,7 +16,7 @@ namespace ErrorProne.NET.Exceptions
     public sealed class SwallowAllExceptionAnalyzer : DiagnosticAnalyzer
     {
         // Catch is not empty, `catch` or `catch(Exception)` and some return statement exists. 
-        public const string DiagnosticId = RuleIds.AllExceptionSwalled;
+        public const string DiagnosticId = DiagnosticIds.AllExceptionSwalled;
         internal const string Title = "Unobserved exception in generic exception handler";
         internal const string MessageFormat = "Exit point '{0}' swallows an unobserved exception.";
         private const string Description = "Generic catch block swallows an exception that was not observed.";
@@ -35,9 +37,9 @@ namespace ErrorProne.NET.Exceptions
         {
             var catchBlock = (CatchClauseSyntax)context.Node;
 
-            if (catchBlock.Declaration == null || catchBlock.Declaration.CatchIsTooGeneric(context.SemanticModel))
+            if (catchBlock.Declaration == null || Helpers.CatchIsTooGeneric(catchBlock.Declaration, context.SemanticModel))
             {
-                var usages = context.SemanticModel.GetExceptionIdentifierUsages(catchBlock);
+                var usages = Helpers.GetExceptionIdentifierUsages(context.SemanticModel, catchBlock);
 
                     bool wasObserved =
                     usages.

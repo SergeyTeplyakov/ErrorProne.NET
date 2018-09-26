@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Threading.Tasks;
-using ErrorProne.NET.CoreAnalyzers;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace ErrorProne.NET.Core.CoreAnalyzers
+namespace ErrorProne.NET.CoreAnalyzers
 {
     /// <summary>
     /// Analyzer that warns when the result of a method invocation is ignore (when it potentially, shouldn't).

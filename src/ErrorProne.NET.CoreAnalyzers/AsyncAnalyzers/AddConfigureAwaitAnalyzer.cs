@@ -1,15 +1,13 @@
-﻿using System.Linq;
-using System.Runtime.CompilerServices;
-using ErrorProne.NET.Core.CoreAnalyzers;
+﻿using System.Runtime.CompilerServices;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Text;
+using CompilationExtensions = ErrorProne.NET.Core.CompilationExtensions;
 
-namespace ErrorProne.NET.Core.AsyncAnalyzers
+namespace ErrorProne.NET.AsyncAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class AddConfigureAwaitAnalyzer : DiagnosticAnalyzerBase
@@ -57,7 +55,7 @@ namespace ErrorProne.NET.Core.AsyncAnalyzers
                             return;
                         }
 
-                        if (configureAwaitOperation.Type.IsClrType(context.Compilation, typeof(YieldAwaitable)))
+                        if (CompilationExtensions.IsClrType(configureAwaitOperation.Type, context.Compilation, typeof(YieldAwaitable)))
                         {
                             return;
                         }

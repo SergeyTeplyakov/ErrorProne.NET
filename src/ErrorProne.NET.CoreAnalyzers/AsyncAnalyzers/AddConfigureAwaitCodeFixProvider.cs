@@ -8,9 +8,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace ErrorProne.NET.Core.AsyncAnalyzers
+namespace ErrorProne.NET.AsyncAnalyzers
 {
     /// <summary>
     /// A fixer for <see cref="AddConfigureAwaitAnalyzer"/>.
@@ -56,14 +55,14 @@ namespace ErrorProne.NET.Core.AsyncAnalyzers
         private async Task<Document> AddConfigureAwait(Document document, AwaitExpressionSyntax awaitExpression, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken);
-            var newExpr = InvocationExpression(
-                MemberAccessExpression(
+            var newExpr = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     awaitExpression.Expression,
-                    IdentifierName("ConfigureAwait")),
-                ArgumentList(
-                    SingletonSeparatedList(
-                        Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression))))
+                    SyntaxFactory.IdentifierName("ConfigureAwait")),
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))))
             );
 
             var newAwaitExpression = awaitExpression.WithExpression(newExpr);

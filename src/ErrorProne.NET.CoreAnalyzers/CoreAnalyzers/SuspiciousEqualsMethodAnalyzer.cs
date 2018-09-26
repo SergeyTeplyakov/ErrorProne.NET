@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
-using ErrorProne.NET.CoreAnalyzers;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Core.CoreAnalyzers
+namespace ErrorProne.NET.CoreAnalyzers
 {
     /// <summary>
     /// Analyzer that warns about suspicious implementation of <see cref="object.Equals(object)"/> methods.
