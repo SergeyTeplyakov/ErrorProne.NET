@@ -250,9 +250,9 @@
     <Analyzer Include="..\packages\RuntimeContracts.Analyzer.0.1.6\analyzers\dotnet\cs\RuntimeContracts.Analyzer.dll" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.Core.Analyzers.csproj">
+    <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj">
       <Project>{3dae1aeb-c520-4eeb-8e3d-d9c548f02a1b}</Project>
-      <Name>ErrorProne.NET.Core.Analyzers</Name>
+      <Name>ErrorProne.NET.CoreAnalyzers</Name>
     </ProjectReference>
     <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj">
       <Project>{3bedefbf-d75e-4fce-a20c-727f3af127b0}</Project>

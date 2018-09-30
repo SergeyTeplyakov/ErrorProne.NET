@@ -5,7 +5,7 @@ using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.Exceptions
+namespace ErrorProne.NET.ExceptionsAnalyzers
 {
     internal sealed class IfThrowPrecondition
     {

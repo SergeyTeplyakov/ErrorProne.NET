@@ -1,5 +1,4 @@
-﻿using ErrorProne.NET.Core.AsyncAnalyzers;
-using ErrorProne.NET.Core.CoreAnalyzers;
+﻿using ErrorProne.NET.AsyncAnalyzers;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 

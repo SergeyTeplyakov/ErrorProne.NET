@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Structs
+namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
     /// An analyzer that warns when a non-ref-readonly struct is returned by readonly reference.

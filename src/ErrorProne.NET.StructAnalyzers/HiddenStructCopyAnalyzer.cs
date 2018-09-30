@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics;
-using ErrorProne.NET.Core;
 using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Structs
+namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
     /// An analyzer that warns when the compiler copies a struct behind the scene.

@@ -1,13 +1,13 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Linq;
 using ErrorProne.NET.CoreAnalyzers;
+using ErrorProne.NET.ExceptionAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace ErrorProne.NET.Exceptions
+namespace ErrorProne.NET.ExceptionsAnalyzers
 {
     /// <summary>
     /// Checks that `catch` block uses `ex.Message`.
@@ -15,7 +15,7 @@ namespace ErrorProne.NET.Exceptions
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ExceptionHandlingAnalyer : DiagnosticAnalyzerBase
     {
-        public const string DiagnosticId = RuleIds.OnlyExceptionMessageWasObserved;
+        public const string DiagnosticId = DiagnosticIds.OnlyExceptionMessageWasObserved;
 
         internal const string Title = "Only ex.Message property was observed in exception block.";
         internal const string MessageFormat = "Only ex.Message property was observed in exception block!";
@@ -40,9 +40,9 @@ namespace ErrorProne.NET.Exceptions
         {
             var catchBlock = (CatchClauseSyntax) context.Node;
 
-            if (catchBlock.Declaration != null && catchBlock.Declaration.CatchIsTooGeneric(context.SemanticModel))
+            if (catchBlock.Declaration != null && Helpers.CatchIsTooGeneric(catchBlock.Declaration, context.SemanticModel))
             {
-                var usages = context.SemanticModel.GetExceptionIdentifierUsages(catchBlock);
+                var usages = Helpers.GetExceptionIdentifierUsages(context.SemanticModel, catchBlock);
                 if (usages.Count == 0)
                 {
                     // Exception was not observed. Warning would be emitted by different rule

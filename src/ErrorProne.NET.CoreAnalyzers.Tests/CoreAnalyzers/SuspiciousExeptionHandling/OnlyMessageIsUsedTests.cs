@@ -1,9 +1,7 @@
-﻿using System;
-using ErrorProne.NET.Core.CoreAnalyzers;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.Core.Tests.CoreAnalyzersTests.SuspiciousExeptionHandling
+namespace ErrorProne.NET.CoreAnalyzers.Tests.CoreAnalyzers.SuspiciousExeptionHandling
 {
     [TestFixture]
     public class OnlyMessageIsUsedTests : CSharpAnalyzerTestFixture<SuspiciousExceptionHandlingAnalyzer>

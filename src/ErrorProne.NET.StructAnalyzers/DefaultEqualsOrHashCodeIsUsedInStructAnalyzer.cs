@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Structs
+namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
     /// An analyzer that warns when a struct with default implementation of <see cref="Object.Equals(object)"/> or <see cref="Object.GetHashCode()"/> are used

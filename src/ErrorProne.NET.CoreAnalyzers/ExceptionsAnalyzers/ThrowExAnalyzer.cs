@@ -1,17 +1,18 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
+using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Exceptions
+namespace ErrorProne.NET.ExceptionsAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ThrowExAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = RuleIds.IncorrectExceptionPropagation;
+        public const string DiagnosticId = DiagnosticIds.IncorrectExceptionPropagation;
 
         internal const string Title = "Incorrect exception propagation";
         public const string MessageFormat = "Incorrect exception propagation. Use throw; instead.";

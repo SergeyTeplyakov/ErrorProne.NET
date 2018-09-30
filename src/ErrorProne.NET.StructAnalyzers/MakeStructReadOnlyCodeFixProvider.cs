@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.Structs
+namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
     /// A fixer for <see cref="MakeStructReadOnlyAnalyzer"/>.

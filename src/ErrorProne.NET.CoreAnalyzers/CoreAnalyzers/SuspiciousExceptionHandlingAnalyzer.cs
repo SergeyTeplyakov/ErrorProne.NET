@@ -1,13 +1,11 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
-using ErrorProne.NET.CoreAnalyzers;
+﻿using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace ErrorProne.NET.Core.CoreAnalyzers
+namespace ErrorProne.NET.CoreAnalyzers
 {
     /// <summary>
     /// Analyzer for suspicious or incorrect exception handling.

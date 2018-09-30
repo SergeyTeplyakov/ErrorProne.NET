@@ -11,11 +11,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorProne.NET.Cli", "Error
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.Core", "ErrorProne.NET.Core\ErrorProne.NET.Core.csproj", "{3BEDEFBF-D75E-4FCE-A20C-727F3AF127B0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.Core.Analyzers", "ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.Core.Analyzers.csproj", "{3DAE1AEB-C520-4EEB-8E3D-D9C548F02A1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers", "ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj", "{3DAE1AEB-C520-4EEB-8E3D-D9C548F02A1B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.Core.Analyzers.Tests", "ErrorProne.NET.CoreAnalyzers.Tests\ErrorProne.NET.Core.Analyzers.Tests.csproj", "{27102FB5-EB0F-4466-8113-A11CC9B640ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers.Tests", "ErrorProne.NET.CoreAnalyzers.Tests\ErrorProne.NET.CoreAnalyzers.Tests.csproj", "{27102FB5-EB0F-4466-8113-A11CC9B640ED}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.StructAnalyzers.Tests", "ErrorProne.NET.StructAnalyzers.Tests\ErrorProne.StructAnalyzers.Tests.csproj", "{4BBFAA2E-0FD9-4472-AD71-79096F417D7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.StructAnalyzers.Tests", "ErrorProne.NET.StructAnalyzers.Tests\ErrorProne.NET.StructAnalyzers.Tests.csproj", "{4BBFAA2E-0FD9-4472-AD71-79096F417D7B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorProne.NET.Vsix", "ErrorProne.NET.Vsix\ErrorProne.NET.Vsix.csproj", "{8DB525D3-010C-4D6B-A85E-04B3FEC74AB1}"
 EndProject

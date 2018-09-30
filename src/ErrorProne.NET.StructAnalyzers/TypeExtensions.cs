@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.Structs
+namespace ErrorProne.NET.StructAnalyzers
 {
     public static class TypeExtensions
     {

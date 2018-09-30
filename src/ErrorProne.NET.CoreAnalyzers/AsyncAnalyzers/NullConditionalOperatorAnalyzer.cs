@@ -1,11 +1,10 @@
-﻿using ErrorProne.NET.Core.CoreAnalyzers;
-using ErrorProne.NET.CoreAnalyzers;
+﻿using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Core.AsyncAnalyzers
+namespace ErrorProne.NET.AsyncAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class NullConditionalOperatorAnalyzer : DiagnosticAnalyzerBase

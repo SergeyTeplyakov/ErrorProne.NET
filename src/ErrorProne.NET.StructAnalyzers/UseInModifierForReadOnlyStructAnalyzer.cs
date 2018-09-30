@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.Structs
+namespace ErrorProne.NET.StructAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class UseInModifierForReadOnlyStructAnalyzer : DiagnosticAnalyzer

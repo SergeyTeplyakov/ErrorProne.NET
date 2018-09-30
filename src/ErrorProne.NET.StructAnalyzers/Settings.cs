@@ -1,4 +1,4 @@
-﻿namespace ErrorProne.NET.Structs
+﻿namespace ErrorProne.NET.StructAnalyzers
 {
     public static class Settings
     {

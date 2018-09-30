@@ -6,7 +6,7 @@ using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ErrorProne.NET.Exceptions
+namespace ErrorProne.NET.ExceptionAnalyzers
 {
     internal struct ExceptionReference
     {

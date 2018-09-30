@@ -1,7 +1,8 @@
 ﻿using System.Linq;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 
-namespace ErrorProne.NET.Core.AsyncAnalyzers
+namespace ErrorProne.NET.AsyncAnalyzers
 {
     public static class ConfigureAwaitConfiguration
     {
