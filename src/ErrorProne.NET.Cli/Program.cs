@@ -100,7 +100,7 @@ namespace ErrorProne.NET.Cli
                 return null;
             }
 
-            if (!string.IsNullOrEmpty(options.LogFile))
+            if (string.IsNullOrEmpty(options.LogFile))
             {
                 options.LogFile = Path.GetFullPath(options.LogFile);
                 WriteInfo($"Log file enabled ('{options.LogFile}')");
