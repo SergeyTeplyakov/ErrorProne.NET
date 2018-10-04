@@ -2,14 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
+    <AssemblyName>ErrorProne.Net.StructAnalyzers</AssemblyName>
     <RootNamespace>ErrorProne.Net.StructAnalyzers</RootNamespace>
-    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <!-- Needed here to copy all the dependencies to an output folder-->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   
   <PropertyGroup>
     <PackageId>ErrorProne.NET.Structs</PackageId>
-    <PackageVersion>0.1.0.0</PackageVersion>
+    <PackageVersion>0.1.1.10</PackageVersion>
     <Authors>Sergey Teplyakov</Authors>
     <PackageLicenseUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/</RepositoryUrl>
@@ -24,9 +27,8 @@
 * EPS06: detects that the compiler emits a defensive copy for a given expression.
 </PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
-    <PackageTags>ErrorProne.NET.Structs, analyzers</PackageTags>
+    <PackageTags>ErrorProne.NET, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
-    <AssemblyName>ErrorProne.Net.StructAnalyzers</AssemblyName>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -39,8 +41,8 @@
    
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.7.0" PrivateAssets="all" />
-    <PackageReference Include="RuntimeContracts" Version="0.1.6" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
+    <PackageReference Include="RuntimeContracts" Version="0.1.6" PrivateAssets="all" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" PrivateAssets="all" />
     <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
   </ItemGroup>
 
@@ -48,6 +50,7 @@
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\RuntimeContracts.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)\ErrorProne.NET.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)\ErrorProne.NET.Core.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
