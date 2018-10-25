@@ -72,9 +72,7 @@ namespace ErrorProne.NET.StructAnalyzers
                         continue;
                     }
 
-                    // Can't just use p.Location, because it will capture just a span for parameter name.
-                    var span = p.DeclaringSyntaxReferences[0].GetSyntax().FullSpan;
-                    var location = Location.Create(p.DeclaringSyntaxReferences[0].SyntaxTree, span);
+                    var location = p.GetParametersLocation();
 
                     var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);
 

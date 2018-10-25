@@ -38,6 +38,23 @@ namespace ErrorProne.NET.Core
         }
 
         /// <summary>
+        /// Returns location of a given parameter.
+        /// </summary>
+        public static Location GetParametersLocation(this IParameterSymbol parameter)
+        {
+            // When the code is partially correct (for instance, when the name is missing), then
+            // DeclaringSyntaxReferences is empty.
+            if (parameter.DeclaringSyntaxReferences.Length != 0)
+            {
+                // Can't just use p.Location, because it will capture just a span for parameter name.
+                var span = parameter.DeclaringSyntaxReferences[0].GetSyntax().FullSpan;
+                return Location.Create(parameter.DeclaringSyntaxReferences[0].SyntaxTree, span);
+            }
+
+            return parameter.Locations[0];
+        }
+
+        /// <summary>
         /// Returns true if a given <paramref name="method"/> is <see cref="Task.ConfigureAwait(bool)"/>.
         /// </summary>
         public static bool IsConfigureAwait(this IMethodSymbol method, Compilation compilation)

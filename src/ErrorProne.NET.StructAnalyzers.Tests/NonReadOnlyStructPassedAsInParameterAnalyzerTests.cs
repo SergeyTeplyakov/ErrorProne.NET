@@ -19,6 +19,14 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         }
 
         [Test]
+        public void NoFailuresOnPartiallyValidCode()
+        {
+            // There was a bug, that caused IndexOutOfRange exception when parameter name was missing
+            string code = @"class FooBar { public void Foo(in int[||]) {} }";
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void HasDiagnosticsForLocalMethod()
         {
             string code = @"
