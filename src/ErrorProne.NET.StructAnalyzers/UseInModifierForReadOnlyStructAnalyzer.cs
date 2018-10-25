@@ -85,19 +85,7 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(model, Settings.LargeStructThreashold))
             {
-                // Not sure why, but syntax could be missing.
-                Location location;
-                if (p.DeclaringSyntaxReferences.Length != 0)
-                {
-                    // Can't just use p.Location, because it will capture just a span for parameter name.
-                    var span = p.DeclaringSyntaxReferences[0].GetSyntax().FullSpan;
-                    location = Location.Create(p.DeclaringSyntaxReferences[0].SyntaxTree, span);
-                }
-                else
-                {
-                    location = p.Locations[0];
-                }
-
+                Location location = p.GetParametersLocation();
                 var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);
 
                 diagnosticReporter(diagnostic);
