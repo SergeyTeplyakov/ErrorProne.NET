@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.Core.Tests.AsyncAalyzersTests
+namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
     [TestFixture]
     public class AddConfigureAwaitAnalyzerTests : CSharpAnalyzerTestFixture<AddConfigureAwaitAnalyzer>
