@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.Core.Tests.CoreAnalyzers.SuspiciousExeptionHandling
+namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
     [TestFixture]
     public class AddConfigureAwaitCodeFixProviderTests : CSharpCodeFixTestFixture<AddConfigureAwaitCodeFixProvider>

@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.CoreAnalyzers.Tests.CoreAnalyzers
+namespace ErrorProne.NET.CoreAnalyzers.Tests
 {
     [TestFixture]
     public class UnobservedResultAnalyzerTests : CSharpAnalyzerTestFixture<UnobservedResultAnalyzer>

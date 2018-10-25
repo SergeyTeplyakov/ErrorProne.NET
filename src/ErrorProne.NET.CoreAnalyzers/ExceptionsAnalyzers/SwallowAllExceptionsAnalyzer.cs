@@ -13,7 +13,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
     /// Detects `catch` blocks that swallow an exception.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class SwallowAllExceptionAnalyzer : DiagnosticAnalyzer
+    public sealed class SwallowAllExceptionsAnalyzer : DiagnosticAnalyzer
     {
         // Catch is not empty, `catch` or `catch(Exception)` and some return statement exists. 
         public const string DiagnosticId = DiagnosticIds.AllExceptionSwalled;

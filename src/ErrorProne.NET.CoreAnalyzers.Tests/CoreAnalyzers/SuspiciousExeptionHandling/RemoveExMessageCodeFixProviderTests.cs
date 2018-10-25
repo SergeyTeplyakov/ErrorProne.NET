@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using RoslynNunitTestRunner;
 
-namespace ErrorProne.NET.CoreAnalyzers.Tests.CoreAnalyzers.SuspiciousExeptionHandling
+namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExeptionHandling
 {
     [TestFixture]
     public class RemoveExMessageCodeFixProviderTests : CSharpCodeFixTestFixture<ExceptionHandlingFixers>
