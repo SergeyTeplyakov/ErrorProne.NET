@@ -12,7 +12,6 @@
   
   <PropertyGroup>
     <PackageId>ErrorProne.NET.Structs</PackageId>
-    <PackageVersion>0.1.1.10</PackageVersion>
     <Authors>Sergey Teplyakov</Authors>
     <PackageLicenseUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/</RepositoryUrl>
