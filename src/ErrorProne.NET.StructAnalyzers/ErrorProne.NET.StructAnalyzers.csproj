@@ -29,6 +29,7 @@
     <Copyright>Copyright</Copyright>
     <PackageTags>ErrorProne.NET, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
