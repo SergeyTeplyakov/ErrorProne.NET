@@ -40,6 +40,7 @@
     <Copyright>Copyright Sergey Teplyakov</Copyright>
     <PackageTags>ErrorProne.NET, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
   <ItemGroup>
