@@ -15,7 +15,7 @@
         public const string NonReadOnlyStructReturnedByReadOnlyRefDiagnosticId = "EPS03";
 
         /// <nodoc />
-        public const string NonReadOnlyStructRefReadOnlyLocalDiagnosticId = "ESP04";
+        public const string NonReadOnlyStructRefReadOnlyLocalDiagnosticId = "EPS04";
 
         /// <nodoc />
         public const string UseInModifierForReadOnlyStructDiagnosticId = "EPS05";
