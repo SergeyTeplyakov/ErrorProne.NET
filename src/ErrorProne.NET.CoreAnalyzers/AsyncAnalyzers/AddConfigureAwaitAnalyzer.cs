@@ -28,7 +28,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
         /// <nodoc />
         public AddConfigureAwaitAnalyzer()
-            : base(Rule)
+            : base(supportFading: true, Rule)
         {
         }
 

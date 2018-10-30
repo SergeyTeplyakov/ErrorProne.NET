@@ -37,6 +37,12 @@ namespace ErrorProne.NET.Core
             }
         }
 
+        public static bool TryGetMethodSyntax(this IMethodSymbol method, out MethodDeclarationSyntax result)
+        {
+            result = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as MethodDeclarationSyntax;
+            return result != null;
+        }
+
         /// <summary>
         /// Returns location of a given parameter.
         /// </summary>

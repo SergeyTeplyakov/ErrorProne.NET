@@ -22,7 +22,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
         private const string Description = "Generic catch block swallows an exception that was not observed.";
         internal const string Category = "CodeSmell";
 
-        internal static readonly DiagnosticDescriptor Rule = 
+        internal static readonly DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, description: Description, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
@@ -41,15 +41,15 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
             {
                 var usages = Helpers.GetExceptionIdentifierUsages(context.SemanticModel, catchBlock);
 
-                    bool wasObserved =
-                    usages.
-                        Select(id => id.Identifier)
-                        .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
-                                  u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
-                                  // For instance in Console.WriteLine($"e = {e}");
-                                  u.Parent is InterpolationSyntax ||
-                                  // or Inner exception, Message or other properties were used
-                                  u.Parent is MemberAccessExpressionSyntax);
+                bool wasObserved =
+                usages.
+                    Select(id => id.Identifier)
+                    .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
+                              u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
+                                                                        // For instance in Console.WriteLine($"e = {e}");
+                              u.Parent is InterpolationSyntax ||
+                              // or Inner exception, Message or other properties were used
+                              u.Parent is MemberAccessExpressionSyntax);
 
                 if (wasObserved)
                 {

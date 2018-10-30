@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.ContractsLight;
-using ErrorProne.NET.Core;
+using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 
-namespace ErrorProne.NET.Utils
+namespace ErrorProne.NET.Core
 {
     public static class TypeExtensions
     {

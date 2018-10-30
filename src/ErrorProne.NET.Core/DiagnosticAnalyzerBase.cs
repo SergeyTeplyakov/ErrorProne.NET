@@ -24,33 +24,19 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <nodoc />
         protected readonly DiagnosticDescriptor UnnecessaryWithoutSuggestionDescriptor;
 
-        private readonly string _localizableTitle;
-        private readonly string _localizableMessageFormat;
-
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         /// <nodoc />
         protected DiagnosticAnalyzerBase(
-            string descriptorId,
-            string title,
-            string messageFormat = null,
-            string description = null)
+            params DiagnosticDescriptor[] diagnostics)
+        : this(supportFading: false, diagnostics)
         {
-            DescriptorId = descriptorId;
-            _localizableTitle = title;
-            _localizableMessageFormat = messageFormat ?? title;
-
-            Descriptor = CreateDescriptor();
-            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor();
-            UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(descriptorId + "WithoutSuggestion");
-
-            SupportedDiagnostics = ImmutableArray.Create(
-                Descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
         
         /// <nodoc />
         protected DiagnosticAnalyzerBase(
+            bool supportFading,
             params DiagnosticDescriptor[] diagnostics)
         {
             Contract.Requires(diagnostics != null);
@@ -58,16 +44,16 @@ namespace ErrorProne.NET.CoreAnalyzers
 
             Descriptor = diagnostics[0];
             DescriptorId = Descriptor.Id;
-            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor();
-            UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(DescriptorId + "WithoutSuggestion");
+            var supportedDiagnostics = diagnostics.ToImmutableArray();
+            if (supportFading)
+            {
+                UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor();
+                UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(DescriptorId + "WithoutSuggestion");
+                supportedDiagnostics = supportedDiagnostics.Add(UnnecessaryWithoutSuggestionDescriptor).Add(UnnecessaryWithSuggestionDescriptor);
+            }
 
-            SupportedDiagnostics = ImmutableArray.Create(
-                Descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
+            SupportedDiagnostics = supportedDiagnostics;
         }
-
-        /// <nodoc />
-        protected DiagnosticDescriptor CreateDescriptor(params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, customTags);
 
         /// <nodoc />
         protected DiagnosticDescriptor CreateDescriptorWithId(
@@ -93,7 +79,8 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <nodoc />
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
-                descriptorId, _localizableTitle, _localizableMessageFormat,
+                descriptorId, "foo", "bar",
+                //descriptorId, _localizableTitle, _localizableMessageFormat,
                 WellKnownDiagnosticTags.Unnecessary);
 
     }

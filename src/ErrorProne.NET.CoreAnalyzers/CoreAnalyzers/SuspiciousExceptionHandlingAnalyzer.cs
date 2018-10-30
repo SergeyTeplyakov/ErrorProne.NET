@@ -40,7 +40,7 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         /// <nodoc />
         public SuspiciousExceptionHandlingAnalyzer()
-            : base(DiagnosticDescriptor)
+            : base(supportFading: true, DiagnosticDescriptor)
         {
         }
 
@@ -56,7 +56,7 @@ namespace ErrorProne.NET.CoreAnalyzers
         // Called when Roslyn encounters a catch clause.
         private void AnalyzeCatchBlock(SyntaxNodeAnalysisContext context)
         {
-            var catchBlock = (CatchClauseSyntax) context.Node;
+            var catchBlock = (CatchClauseSyntax)context.Node;
 
             if (catchBlock.Declaration != null && catchBlock.Declaration.CatchIsTooGeneric(context.SemanticModel))
             {
@@ -70,7 +70,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                 // First of all we should find all usages for ex.Message
                 var messageUsages = usages
                     .Select(id =>
-                        new {Parent = id.Identifier.Parent as MemberAccessExpressionSyntax, Id = id.Identifier})
+                        new { Parent = id.Identifier.Parent as MemberAccessExpressionSyntax, Id = id.Identifier })
                     .Where(x => x.Parent != null && x.Parent.Name.GetText().ToString() == "Message")
                     .ToList();
 
@@ -85,7 +85,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                         .Except(messageUsages.Select(x => x.Id))
                         .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
                                   u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
-                                  // or Inner exception was used
+                                                                            // or Inner exception was used
                                   ((u.Parent as MemberAccessExpressionSyntax)?.Name?.Identifier)?.Text ==
                                   "InnerException");
 

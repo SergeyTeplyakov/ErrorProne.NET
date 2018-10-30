@@ -128,11 +128,6 @@ class FooBar
             HasDiagnostic(code, DiagnosticId);
         }
 
-        class FooBar
-        {
-            private int N() => 42;
-        }
-
         [Test]
         public void NoWarn_When_Only_Static_Members_Are_Used_With_Instance_Method()
         {
@@ -209,6 +204,23 @@ class FooBar
         }
 
         [Test]
+        public void NoWorn_When_other_is_used_via_pattern_matching()
+        {
+            string code = @"
+class FooBar
+{
+    private int _n = 42;
+    public bool Equals(FooBar other) => _n == other.n;
+    public override bool Equals(object obj)
+    {
+        return obj is FooBar fb && Equals(fb);
+    }
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void Warn_When_Rhs_Is_Not_Referenced()
         {
             string code = @"
@@ -265,9 +277,29 @@ class FooBar
             string code = @"
 class FooBar
 {
+    private readonly int _x = 42;
     public override bool Equals(object obj)
     {
-        return obj != null && obj.GetType() == this.GetType();
+        return obj != null && obj.GetType() == GetType();
+    }
+}";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void No_Warn_When_EqualsBase_Is_Called()
+        {
+            string code = @"
+class Base
+{
+    protected bool EqualsBase(Base other) => false;
+}
+class Derived : Base, System.IEquatable<Derived>
+{
+    public string Message {get;}
+    public bool Equals(Derived other)
+    {
+        return EqualsBase(other) && other != null;
     }
 }";
             NoDiagnostic(code, DiagnosticId);
