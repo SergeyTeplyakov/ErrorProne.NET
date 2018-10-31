@@ -37,7 +37,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
         {
             var catchBlock = (CatchClauseSyntax)context.Node;
 
-            if (catchBlock.Declaration == null || Helpers.CatchIsTooGeneric(catchBlock.Declaration, context.SemanticModel))
+            if (catchBlock.Declaration == null || catchBlock.Declaration.CatchIsTooGeneric(context.SemanticModel))
             {
                 var usages = Helpers.GetExceptionIdentifierUsages(context.SemanticModel, catchBlock);
 

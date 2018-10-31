@@ -35,9 +35,6 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
-        //public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        //    ImmutableArray.Create(DiagnosticDescriptor);
-
         /// <nodoc />
         public SuspiciousExceptionHandlingAnalyzer()
             : base(supportFading: true, DiagnosticDescriptor)

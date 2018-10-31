@@ -29,6 +29,21 @@ class Test
         }
 
         [Test]
+        public void NoWarnOnCatchWithFilter()
+        {
+            string code = @"
+class Test
+{
+  public void Foo()
+  {
+    try { new object(); }
+    catch(System.Exception e) when (e is System.IO.IOException) { }
+  }
+}";
+            NoDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+        }
+
+        [Test]
         public void WarnOnCatchWithStatementBlock()
         {
             string code = @"
