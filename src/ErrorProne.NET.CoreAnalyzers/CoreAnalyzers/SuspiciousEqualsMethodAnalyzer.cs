@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Immutable;
+using System.Diagnostics.ContractsLight;
 using System.Linq;
 using ErrorProne.NET.Core;
+using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -37,15 +40,79 @@ namespace ErrorProne.NET.CoreAnalyzers
             new DiagnosticDescriptor(DiagnosticId, RhsTitle, RhsMessageFormat, Category, Severity, isEnabledByDefault: true, description: RhsDescription);
 
         /// <nodoc />
-        public SuspiciousEqualsMethodAnalyzer() 
-            : base(InstanceMembersAreNotUsedRule, RightHandSideIsNotUsedRule)
+        public SuspiciousEqualsMethodAnalyzer()
+            : base(supportFading: true, InstanceMembersAreNotUsedRule, RightHandSideIsNotUsedRule)
         {
         }
 
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
+            // I didn't figure out the way to find all the symbols used in a method.
+            // The only solution to find if a method references instance members or not is to use
+            // a long chain of 'RegisterSomAction' methods.
+            context.RegisterCompilationStartAction(compilationContext =>
+            {
+                compilationContext.RegisterOperationBlockStartAction(blockStartContext =>
+                {
+                    // Only interested in 'object.Equals' and `IEquatable<T>.Equals' methods
+                    if (blockStartContext.OwningSymbol is IMethodSymbol ms &&
+                        !OnlyThrow(ms) &&
+                        (OverridesEquals(ms, blockStartContext.Compilation) || ImplementsEquals(ms, blockStartContext.Compilation)))
+                    {
+                        // Checking that Equals method accesses instance members
+                        if (HasInstanceMembers(ms.ContainingType))
+                        {
+                            bool isInstanceReferenced = false;
+
+                            blockStartContext.RegisterOperationAction(operationContext =>
+                            {
+                                isInstanceReferenced = true;
+                            }, OperationKind.InstanceReference);
+
+                            blockStartContext.RegisterOperationBlockEndAction(blockEndContext =>
+                            {
+                                if (!isInstanceReferenced)
+                                {
+                                    var diagnostic = Diagnostic.Create(
+                                        InstanceMembersAreNotUsedRule,
+                                        ms.Locations[0]);
+
+                                    blockEndContext.ReportDiagnostic(diagnostic);
+                                }
+
+                                // Checking that Equals method uses 'obj' parameter
+                                if (!ms.TryGetMethodSyntax(out var methodSyntax))
+                                {
+                                    return;
+                                }
+
+                                var bodyOrExpression = (SyntaxNode)methodSyntax.Body ?? methodSyntax.ExpressionBody;
+                                var symbols = SymbolExtensions.GetAllUsedSymbols(blockStartContext.Compilation, bodyOrExpression).ToList();
+                                if (!symbols.Any(s => s is IParameterSymbol p && p.ContainingSymbol == ms && !p.IsThis))
+                                {
+                                    var location = ms.Parameters[0].Locations[0];
+
+                                    // 'obj' is not used
+                                    var diagnostic = Diagnostic.Create(
+                                        RightHandSideIsNotUsedRule,
+                                        location,
+                                        ms.Parameters[0].Name);
+
+                                    blockEndContext.ReportDiagnostic(diagnostic);
+
+                                    // Fading 'obj' away
+
+                                    blockEndContext.ReportDiagnostic(
+                                        Diagnostic.Create(
+                                            UnnecessaryWithSuggestionDescriptor,
+                                            location));
+                                }
+                            });
+                        }
+                    }
+                });
+            });
         }
 
         private static bool OverridesEquals(IMethodSymbol method, Compilation compilation)
@@ -59,59 +126,16 @@ namespace ErrorProne.NET.CoreAnalyzers
             => method.IsInterfaceImplementation(out var interfaceMethod) && interfaceMethod is IMethodSymbol ms &&
                ms.ContainingType.IsClrType(compilation, typeof(IEquatable<>));
 
-        private void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
+        private static bool OnlyThrow(IMethodSymbol method)
         {
-            var method = (IMethodSymbol)context.SemanticModel.GetDeclaredSymbol(context.Node);
-
-            if (method != null)
-            {
-                // Method overrides System.Equals
-                if (OverridesEquals(method, context.Compilation) || ImplementsEquals(method, context.Compilation))
-                {
-                    var methodSyntax = (MethodDeclarationSyntax)context.Node;
-                    if (OnlyThrow(methodSyntax))
-                    {
-                        // It is ok, if Equals method just throws.
-                        return;
-                    }
-
-                    var bodyOrExpression = (SyntaxNode)methodSyntax.Body ?? methodSyntax.ExpressionBody;
-                    var symbols = SymbolExtensions.GetAllUsedSymbols(context.Compilation, bodyOrExpression).ToList();
-
-                    if (HasInstanceMembers(method.ContainingType) && 
-                        symbols.Count(s => IsInstanceMember(method.ContainingType, s, context.Compilation)) == 0)
-                    {
-                        var diagnostic = Diagnostic.Create(
-                            InstanceMembersAreNotUsedRule,
-                            method.Locations[0]);
-
-                        context.ReportDiagnostic(diagnostic);
-                    }
-
-                    if (!symbols.Any(s => s is IParameterSymbol p && p.ContainingSymbol == method && !p.IsThis))
-                    {
-                        var location = method.Parameters[0].Locations[0];
-                        // 'obj' is not used
-                        var diagnostic = Diagnostic.Create(
-                            RightHandSideIsNotUsedRule,
-                            location,
-                            method.Parameters[0].Name);
-
-                        context.ReportDiagnostic(diagnostic);
-
-                        // Fading 'obj' away
-                        
-                        context.ReportDiagnostic(
-                            Diagnostic.Create(
-                                UnnecessaryWithSuggestionDescriptor,
-                                location));
-                    }
-                }
-            }
+            Contract.Requires(method != null);
+            return method.TryGetMethodSyntax(out var syntax) && OnlyThrow(syntax);
         }
 
-        private bool OnlyThrow(MethodDeclarationSyntax method)
+        private static bool OnlyThrow(MethodDeclarationSyntax method)
         {
+            Contract.Requires(method != null);
+
             if (method.Body != null)
             {
                 if (method.Body.Statements.Count == 1 && method.Body.Statements[0].Kind() == SyntaxKind.ThrowStatement)
@@ -121,7 +145,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             }
             else
             {
-                return method.ExpressionBody.Expression.Kind() == SyntaxKind.ThrowExpression;
+                return method.ExpressionBody?.Expression.Kind() == SyntaxKind.ThrowExpression;
             }
 
             return false;
@@ -148,15 +172,27 @@ namespace ErrorProne.NET.CoreAnalyzers
                 return true;
             }
 
-            if (!(symbol is IPropertySymbol || symbol is IFieldSymbol || symbol is IEventSymbol || symbol is ILocalSymbol ||
+            if (!(
+                symbol is IMethodSymbol ||
+                symbol is IPropertySymbol ||
+                symbol is IFieldSymbol ||
+                symbol is IEventSymbol ||
+                symbol is ILocalSymbol ||
                 (symbol is IParameterSymbol ps && ps.IsThis)))
             {
                 // If symbol is not one of these, it is definitely not an instance member reference
                 return false;
             }
 
-            // Still need to check that the member belongs to this type.
-            return symbol.ContainingType?.Equals(methodContainingType) == true;
+            var symbolDeclaredType = symbol.ContainingType;
+            if (symbolDeclaredType == null)
+            {
+                return false;
+            }
+
+            // Still need to check that the member belongs to this type or one of its base types.
+            var typeHierarchy = methodContainingType.TraverseTypeAndItsBaseTypes().ToImmutableHashSet();
+            return typeHierarchy.Contains(symbolDeclaredType);
         }
     }
 }

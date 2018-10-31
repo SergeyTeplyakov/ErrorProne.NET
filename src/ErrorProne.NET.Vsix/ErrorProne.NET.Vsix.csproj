@@ -34,8 +34,8 @@
     <ProjectGuid>{8DB525D3-010C-4D6B-A85E-04B3FEC74AB1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ErrorProne.NET.Structs.Vsix</RootNamespace>
-    <AssemblyName>ErrorProne.NET.Structs</AssemblyName>
+    <RootNamespace>ErrorProne.NET.Vsix</RootNamespace>
+    <AssemblyName>ErrorProne.NET</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
@@ -88,6 +88,8 @@
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj">
       <Project>{3dae1aeb-c520-4eeb-8e3d-d9c548f02a1b}</Project>
       <Name>ErrorProne.NET.CoreAnalyzers</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj">
       <Project>{3bedefbf-d75e-4fce-a20c-727f3af127b0}</Project>

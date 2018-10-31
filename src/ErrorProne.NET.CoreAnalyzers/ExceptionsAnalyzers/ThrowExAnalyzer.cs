@@ -50,7 +50,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
             {
                 if (!(throwStatement.Expression is IdentifierNameSyntax identifier))
                     continue;
-                
+
                 {
                     var symbol = context.SemanticModel.GetSymbolInfo(identifier);
                     if (symbol.Symbol == null)

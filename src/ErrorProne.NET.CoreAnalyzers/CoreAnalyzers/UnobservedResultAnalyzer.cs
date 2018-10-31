@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,15 +17,15 @@ namespace ErrorProne.NET.CoreAnalyzers
     /// Analyzer that warns when the result of a method invocation is ignore (when it potentially, shouldn't).
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class UnobservedResultAnalyzer : DiagnosticAnalyzerBase
+    public sealed class UnobservedResultAnalyzer : DiagnosticAnalyzer
     {
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.UnobservedResult;
 
         private static readonly string Title = "Suspiciously unobserved result.";
-        private static readonly string Message = "Result of type '{0}' should better be observed.";
+        private static readonly string Message = "Result of type '{0}' should be observed.";
 
-        private static readonly string Description = "Result for some methods should better be observed";
+        private static readonly string Description = "Return values of some methods should be observed.";
         private const string Category = "CodeSmell";
 
         // Using warning for visibility purposes
@@ -34,9 +35,11 @@ namespace ErrorProne.NET.CoreAnalyzers
         private static readonly DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Message, Category, Severity, isEnabledByDefault: true, description: Description);
 
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+
         /// <nodoc />
         public UnobservedResultAnalyzer() 
-            : base(Rule)
+            //: base(supportFading: false, diagnostics: Rule)
         {
         }
 
@@ -160,7 +163,13 @@ namespace ErrorProne.NET.CoreAnalyzers
             if (type.IsClrType(compilation, typeof(Exception)))
             {
                 // 'ThrowExcpetion' method that throws but still returns an exception is quite common.
-                if (method?.Name.StartsWith("Throw") == true || method?.Name == "FailFast")
+                var methodName = method?.Name;
+                if (methodName == null)
+                {
+                    return false;
+                }
+
+                if (methodName.StartsWith("Throw") || methodName == "FailFast")
                 {
                     return false;
                 }

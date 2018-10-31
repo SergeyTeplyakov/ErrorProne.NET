@@ -27,7 +27,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
         /// <nodoc />
         public RemoveConfigureAwaitAnalyzer()
-            : base(Rule)
+            : base(supportFading: true, Rule)
         {
         }
 
@@ -47,7 +47,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 var operation = context.SemanticModel.GetOperation(invocation, context.CancellationToken);
                 if (operation is IAwaitOperation awaitOperation &&
                     awaitOperation.Operation is IInvocationOperation configureAwaitOperation &&
-                    TempExtensions.IsConfigureAwait(configureAwaitOperation.TargetMethod, context.Compilation))
+                    configureAwaitOperation.TargetMethod.IsConfigureAwait(context.Compilation))
                 {
                     if (configureAwaitOperation.Arguments.Length != 0 &&
                         configureAwaitOperation.Arguments[0].Value is ILiteralOperation literal &&
@@ -55,9 +55,9 @@ namespace ErrorProne.NET.AsyncAnalyzers
                         literal.ConstantValue.Value.Equals(false))
                     {
                         var location = configureAwaitOperation.Syntax.GetLocation();
-                        
+
                         // Need to find 'ConfigureAwait' node.
-                        if (configureAwaitOperation.Syntax is InvocationExpressionSyntax i && 
+                        if (configureAwaitOperation.Syntax is InvocationExpressionSyntax i &&
                             i.Expression is
                             MemberAccessExpressionSyntax mae)
                         {
@@ -65,7 +65,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
                             var argsLocation = i.ArgumentList.GetLocation();
                             var nameLocation = mae.Name.GetLocation().SourceSpan;
-                            location = Location.Create(argsLocation.SourceTree, 
+                            location = Location.Create(argsLocation.SourceTree,
                                 TextSpan.FromBounds(nameLocation.Start, argsLocation.SourceSpan.End));
                         }
 
