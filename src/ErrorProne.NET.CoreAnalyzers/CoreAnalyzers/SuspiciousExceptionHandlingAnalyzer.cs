@@ -26,7 +26,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             "Suspicious exception handling: only Message property is observed in exception block.";
 
         private const string MessageFormat =
-            "Suspicious excception handling: only {0}.Message is observed in exception block.";
+            "Suspicious exception handling: only {0}.Message is observed in exception block.";
 
         private const string Description =
             "In many cases Message property contains irrelevant information and actual data is kept in inner exceptions.";

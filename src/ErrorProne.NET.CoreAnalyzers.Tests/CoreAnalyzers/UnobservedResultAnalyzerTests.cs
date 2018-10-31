@@ -254,6 +254,23 @@ class FooBar
         }
 
         [Test]
+        public void NoWarnings_For_Methods_Starts_With_ThrowAsync()
+        {
+            string code = @"
+using System.Threading.Tasks;
+class FooBar
+{
+    private static Task<T> ThrowAsync<T>() where T : System.Exception {throw new T();}
+    public static async Task Test()
+    {
+        await Throw<System.Exception>();
+    }
+}
+";
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
         public void NoWarnings_When_Exception_Type_Is_Infered()
         {
             string code = @"

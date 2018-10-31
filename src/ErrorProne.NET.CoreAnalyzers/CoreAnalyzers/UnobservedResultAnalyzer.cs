@@ -163,7 +163,13 @@ namespace ErrorProne.NET.CoreAnalyzers
             if (type.IsClrType(compilation, typeof(Exception)))
             {
                 // 'ThrowExcpetion' method that throws but still returns an exception is quite common.
-                if (method?.Name.StartsWith("Throw") == true || method?.Name == "FailFast")
+                var methodName = method?.Name;
+                if (methodName == null)
+                {
+                    return false;
+                }
+
+                if (methodName.StartsWith("Throw") || methodName == "FailFast")
                 {
                     return false;
                 }
