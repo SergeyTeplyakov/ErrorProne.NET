@@ -38,22 +38,5 @@ namespace ErrorProne.NET.ExceptionAnalyzers
             return usages;
         }
 
-        public static bool CatchIsTooGeneric(this CatchDeclarationSyntax declaration, SemanticModel semanticModel)
-        {
-            if (declaration == null)
-            {
-                return true;
-            }
-
-            var symbol = semanticModel.GetSymbolInfo(declaration.Type);
-            if (symbol.Symbol == null)
-            {
-                return false;
-            }
-
-            var exception = semanticModel.Compilation.GetTypeByMetadataName(typeof(Exception).FullName);
-            var aggregateException = semanticModel.Compilation.GetTypeByMetadataName(typeof(AggregateException).FullName);
-            return symbol.Symbol.Equals(exception) || symbol.Symbol.Equals(aggregateException);
-        }
     }
 }

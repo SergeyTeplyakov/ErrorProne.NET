@@ -46,6 +46,12 @@ namespace ErrorProne.NET.CoreAnalyzers
                 return true;
             }
 
+            if (declaration.Parent is CatchClauseSyntax catchSyntax && catchSyntax.Filter != null)
+            {
+                // catch block is not too generic when a filter is specified.
+                return false;
+            }
+
             var symbol = semanticModel.GetSymbolInfo(declaration.Type).Symbol;
             if (symbol == null)
             {
