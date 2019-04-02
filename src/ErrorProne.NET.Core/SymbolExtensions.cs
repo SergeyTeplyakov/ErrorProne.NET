@@ -11,6 +11,11 @@ namespace ErrorProne.NET.Core
     /// <nodoc />
     public static class SymbolExtensions
     {
+        public static bool IsConstructor(this ISymbol symbol)
+        {
+            return (symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Constructor);
+        }
+
         public static IEnumerable<ISymbol> GetAllUsedSymbols(Compilation compilation, SyntaxNode root)
         {
             var noDuplicates = new HashSet<ISymbol>();

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using NUnit.Framework;
 using RoslynNunitTestRunner;
 
@@ -8,6 +9,123 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
     public class MakeStructReadOnlyAnalyzerTests : CSharpAnalyzerTestFixture<MakeStructReadOnlyAnalyzer>
     {
         public const string DiagnosticId = MakeStructReadOnlyAnalyzer.DiagnosticId;
+
+        [Test]
+        public void ThisAssignmentShouldPreventTheWarning()
+        {
+            string code = @"struct SelfAssign {
+    public readonly int Field;
+
+    public void M(SelfAssign other) {
+if (other.Field > 0)      
+this = other;
+    }
+}";
+            NoDiagnostic(code, DiagnosticId);
+
+            string code2 = @"struct SelfAssign {
+    public readonly int Field;
+
+    public void M(SelfAssign other) => 
+      this = other;
+    
+}";
+
+            NoDiagnostic(code2, DiagnosticId);
+
+            string code3 = @"struct SelfAssign
+        {
+            public readonly int Field;
+            public SelfAssign(int f) => Field = f;
+
+            public void Foo()
+            {
+                ref SelfAssign x = ref this;
+                x = new SelfAssign(42);
+            }
+        }";
+            NoDiagnostic(code3, DiagnosticId);
+        }
+
+        [Test]
+        public void ThisAssignmentInPropertyShouldPreventTheWarning()
+        {
+            string code = @"struct SelfAssign2
+        {
+            public int X
+            {
+                get
+                {
+                    this = new SelfAssign2();
+                    return 32;
+                }
+            }
+        }";
+
+            NoDiagnostic(code, DiagnosticId);
+
+            string code2 = @"struct SelfAssign2
+        {
+            public int X
+            {
+                set
+                {
+                    this = new SelfAssign2();
+                }
+            }
+        }";
+
+            NoDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void HasDiagnosticSelfAssignmentInConstructor()
+        {
+            string code = @"struct [|SelfAssign2|]
+        {
+            private readonly int _x;
+            public SelfAssign2(int x)
+            {
+                _x = x;
+                this = new SelfAssign2();
+            }
+        }";
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void HasDiagnosticForRefReadonly()
+        {
+            string code = @"struct [|SelfAssign|]
+        {
+            public readonly int Field;
+            public SelfAssign(int f) => Field = f;
+
+            public void Foo()
+            {
+                ref readonly SelfAssign x = ref this;
+            }
+        }";
+            HasDiagnostic(code, DiagnosticId);
+        }
+
+        [Test]
+        public void HasDiagnosticForIn()
+        {
+            string code = @"struct [|SelfAssign|]
+        {
+            public readonly int Field;
+            public SelfAssign(int f) => Field = f;
+
+            public void Foo()
+            {
+                Bar(in this);
+            }
+            public void Bar(in SelfAssign sa) {}
+        }";
+
+            HasDiagnostic(code, DiagnosticId);
+        }
 
         [Test]
         public void HasDiagnosticsForEmptyStruct()
