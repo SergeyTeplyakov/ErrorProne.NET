@@ -17,6 +17,16 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         }
 
         [Test]
+        public void MakePartialStructReadOnly()
+        {
+            string code = @"internal partial struct [|FooBar|] {}";
+
+            string expected = @"internal readonly partial struct FooBar {}";
+
+            TestCodeFix(code, expected, MakeStructReadOnlyAnalyzer.Rule);
+        }
+
+        [Test]
         public void MakeStructReadOnlyForPublicStruct()
         {
             string code = @"public struct [|FooBar|] {}";

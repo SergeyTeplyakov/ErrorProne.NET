@@ -55,7 +55,19 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private async Task<Document> MakeReadOnlyAsync(Document document, StructDeclarationSyntax typeDecl, CancellationToken cancellationToken)
         {
-            var newType = typeDecl.WithModifiers(typeDecl.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)));
+            var readonlyToken = SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword);
+            SyntaxTokenList modifiers;
+            int partialIndex = typeDecl.Modifiers.IndexOf(SyntaxKind.PartialKeyword);
+            if (partialIndex != -1)
+            {
+                modifiers = typeDecl.Modifiers.Insert(partialIndex, readonlyToken);
+            }
+            else
+            {
+                modifiers = typeDecl.Modifiers.Add(readonlyToken);
+            }
+
+            var newType = typeDecl.WithModifiers(modifiers);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(root.ReplaceNode(typeDecl, newType));
