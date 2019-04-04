@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.StructAnalyzers.HiddenStructCopyAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
-    public class HiddenStructCopyAnalyzerTests : CSharpAnalyzerTestFixture<HiddenStructCopyAnalyzer>
+    public class HiddenStructCopyAnalyzerTests
     {
-        public const string DiagnosticId = HiddenStructCopyAnalyzer.DiagnosticId;
-
         [Test]
-        public void NoWarningsOnExtensionMethods()
+        public async Task NoWarningsOnExtensionMethods()
         {
             string code = @"
 struct Struct
@@ -28,36 +30,42 @@ class Test
     s.Squared(); // <- no hidden defensive copy happens, since Squared is an in-extension method only accessing fields readonly, which can not modify the struct
   }
 }";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoNullRefeferenceExceptionWhenExtensionMethodIsCalledAsAMethod()
+        public async Task NoNullRefeferenceExceptionWhenExtensionMethodIsCalledAsAMethod()
         {
             string code = @"
 static class Ex {
     public static void Foo(this object o) {}
     public static void Example(object o) => Ex.Foo(o);
 }";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void HasDiagnosticsForMethodCallsOnReadOnlyField()
+        public async Task HasDiagnosticsForMethodCallsOnReadOnlyField()
         {
             string code = @"struct S {private readonly long l1,l2; public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void HasDiagnosticsForMethodCallsOnInParameter()
+        public async Task HasDiagnosticsForMethodCallsOnInParameter()
         {
             string code = @"struct S {private readonly long l1,l2; public int Foo() => 42;} class Foo {public int Bar(in S s) => s.[|Foo|]();}";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
-        
+
         [Test]
-        public void HasDiagnosticsForMethodCallsOnRefReadOnly()
+        public async Task HasDiagnosticsForMethodCallsOnRefReadOnly()
         {
             string code = @"
 struct S { private readonly long l1,l2; public int Foo() => 42; }
@@ -68,11 +76,14 @@ class Foo {
         return rs.[|Foo|]();
     }
 }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void HasDiagnosticsForIndexerOnReadOnlyField()
+        public async Task HasDiagnosticsForIndexerOnReadOnlyField()
         {
             string code = @"
 struct S {
@@ -83,11 +94,14 @@ public class C {
     private readonly S _s;
     public string M() => [|_s|][0];
 }"; ;
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void HasDiagnosticsWhenExtensionMethodIsUsedThatTakesStructByValue()
+        public async Task HasDiagnosticsWhenExtensionMethodIsUsedThatTakesStructByValue()
         {
             string code = @"
 readonly struct S {
@@ -100,11 +114,14 @@ readonly struct S {
 static class C {
     public static void Foo(this S s) {}
 }"; ;
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void NoDiagnosticsWhenExtensionMethodIsUsedThatTakesStructByIn()
+        public async Task NoDiagnosticsWhenExtensionMethodIsUsedThatTakesStructByIn()
         {
             string code = @"
 readonly struct S {
@@ -116,11 +133,11 @@ readonly struct S {
 public static class C {
     public static void Foo(this in S s) {}
 }"; ;
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoDiagnosticsForNullableTypes()
+        public async Task NoDiagnosticsForNullableTypes()
         {
             string code = @"
 public struct Large {private long l1, l2;}
@@ -130,11 +147,11 @@ public class C {
        if (s.HasValue) System.Console.WriteLine(s.Value);
    }
 }"; ;
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoDiagnosticsFieldOfReferencecType()
+        public async Task NoDiagnosticsFieldOfReferencecType()
         {
             string code = @"
 class S {
@@ -144,22 +161,22 @@ public class C {
     private readonly S _s;
     public string M() => _s[0];
 }"; ;
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoDiagnosticsFieldOfInParameter()
+        public async Task NoDiagnosticsFieldOfInParameter()
         {
             string code = @"
 struct S {
     public int X;
     public int Foo(in S other) => other.X;
 }";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoDiagnosticsFielUsedFromReadOnlyReference()
+        public async Task NoDiagnosticsFielUsedFromReadOnlyReference()
         {
             string code = @"
 struct S {
@@ -170,11 +187,11 @@ struct S {
         return otherRef.X;
     }
 }";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoDiagnosticsFieldOfEnumType()
+        public async Task NoDiagnosticsFieldOfEnumType()
         {
             string code = @"
 enum S {X};
@@ -182,22 +199,25 @@ static class SEx {
    public static string Get(this S s) => s.ToString();
 }
 class Foo {private readonly S _s; public string Bar() => _s.X.Get();";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoDiagnosticsWhenFieldIsReferencedDeeperToCallAMethod()
+        public async Task NoDiagnosticsWhenFieldIsReferencedDeeperToCallAMethod()
         {
             string code = @"
 struct S {public int X; }
 class Foo {private readonly S _s; public string Bar() => _s.X.ToString();";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
-        public void HasDiagnosticCases(string code)
+        public async Task HasDiagnosticCases(string code)
         {
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()
@@ -239,18 +259,18 @@ struct S {
 public class C {
     private readonly S _s;
     private ref readonly S GetS() => ref _s;
-    private static void Test() {
+    private void Test() {
        string s = GetS().[|ToString|]()
     }
 }";
         }
         
         [TestCaseSource(nameof(GetNoDiagnosticCases))]
-        public void NoDiagnosticCases(string code)
+        public async Task NoDiagnosticCases(string code)
         {
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
-        
+
         public static IEnumerable<string> GetNoDiagnosticCases()
         {
             // No diagnostics for a small struct

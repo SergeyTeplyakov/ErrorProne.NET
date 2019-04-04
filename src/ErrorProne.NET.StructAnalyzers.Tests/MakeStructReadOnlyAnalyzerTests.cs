@@ -1,17 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.StructAnalyzers.MakeStructReadOnlyAnalyzer,
+    ErrorProne.NET.StructAnalyzers.MakeStructReadOnlyCodeFixProvider>;
 
 namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
-    public class MakeStructReadOnlyAnalyzerTests : CSharpAnalyzerTestFixture<MakeStructReadOnlyAnalyzer>
+    public class MakeStructReadOnlyAnalyzerTests
     {
-        public const string DiagnosticId = MakeStructReadOnlyAnalyzer.DiagnosticId;
-
         [Test]
-        public void ThisAssignmentShouldPreventTheWarning()
+        public async Task ThisAssignmentShouldPreventTheWarning()
         {
             string code = @"struct SelfAssign {
     public readonly int Field;
@@ -21,7 +22,7 @@ if (other.Field > 0)
 this = other;
     }
 }";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
 
             string code2 = @"struct SelfAssign {
     public readonly int Field;
@@ -31,7 +32,7 @@ this = other;
     
 }";
 
-            NoDiagnostic(code2, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code2);
 
             string code3 = @"struct SelfAssign
         {
@@ -44,11 +45,11 @@ this = other;
                 x = new SelfAssign(42);
             }
         }";
-            NoDiagnostic(code3, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code3);
         }
 
         [Test]
-        public void ThisAssignmentInPropertyShouldPreventTheWarning()
+        public async Task ThisAssignmentInPropertyShouldPreventTheWarning()
         {
             string code = @"struct SelfAssign2
         {
@@ -62,7 +63,7 @@ this = other;
             }
         }";
 
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
 
             string code2 = @"struct SelfAssign2
         {
@@ -75,11 +76,11 @@ this = other;
             }
         }";
 
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void HasDiagnosticSelfAssignmentInConstructor()
+        public async Task HasDiagnosticSelfAssignmentInConstructor()
         {
             string code = @"struct [|SelfAssign2|]
         {
@@ -90,11 +91,14 @@ this = other;
                 this = new SelfAssign2();
             }
         }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void HasDiagnosticForRefReadonly()
+        public async Task HasDiagnosticForRefReadonly()
         {
             string code = @"struct [|SelfAssign|]
         {
@@ -106,11 +110,14 @@ this = other;
                 ref readonly SelfAssign x = ref this;
             }
         }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void HasDiagnosticForIn()
+        public async Task HasDiagnosticForIn()
         {
             string code = @"struct [|SelfAssign|]
         {
@@ -124,20 +131,29 @@ this = other;
             public void Bar(in SelfAssign sa) {}
         }";
 
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void HasDiagnosticsForEmptyStruct()
+        public async Task HasDiagnosticsForEmptyStruct()
         {
             string code = @"struct [|FooBar|] {}";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
-        public void HasDiagnosticCases(string code)
+        public async Task HasDiagnosticCases(string code)
         {
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()
@@ -232,23 +248,23 @@ this = other;
         }
 
         [Test]
-        public void NoDiagnosticCasesWhenStructIsAlreadyReadonly()
+        public async Task NoDiagnosticCasesWhenStructIsAlreadyReadonly()
         {
             string code = @"readonly struct FooBar {}";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoDiagnosticCasesWhenStructIsAlreadyReadonlyWithPartialDeclaation()
+        public async Task NoDiagnosticCasesWhenStructIsAlreadyReadonlyWithPartialDeclaation()
         {
             string code = @"partial struct FooBar {} readonly partial struct FooBar {}";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [TestCaseSource(nameof(GetNoDiagnosticCases))]
-        public void NoDiagnosticCases(string code)
+        public async Task NoDiagnosticCases(string code)
         {
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         public static IEnumerable<string> GetNoDiagnosticCases()

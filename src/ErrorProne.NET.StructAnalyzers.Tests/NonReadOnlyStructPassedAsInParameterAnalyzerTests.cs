@@ -1,33 +1,41 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.StructAnalyzers.NonReadOnlyStructPassedAsInParameterAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
-    public class NonReadOnlyStructPassedAsInParameterAnalyzerTests : CSharpAnalyzerTestFixture<NonReadOnlyStructPassedAsInParameterAnalyzer>
+    public class NonReadOnlyStructPassedAsInParameterAnalyzerTests
     {
-        public const string DiagnosticId = NonReadOnlyStructPassedAsInParameterAnalyzer.DiagnosticId;
-
         [Test]
-        public void HasDiagnosticsForInt()
+        public async Task HasDiagnosticsForInt()
         {
             // This is actually potentially dangerous case, because people may pass
             // primitives by in just for the sake of readability.
             string code = @"class FooBar { public void Foo([|in int n|]) {} }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void NoFailuresOnPartiallyValidCode()
+        public async Task NoFailuresOnPartiallyValidCode()
         {
             // There was a bug, that caused IndexOutOfRange exception when parameter name was missing
             string code = @"class FooBar { public void Foo(in int[||]) {} }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void HasDiagnosticsForLocalMethod()
+        public async Task HasDiagnosticsForLocalMethod()
         {
             string code = @"
 struct S {
@@ -36,13 +44,19 @@ struct S {
         void ByIn([|in S s|]) {}
     }
 }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [TestCaseSource(nameof(GetHasDiagnosticsTestCases))]
-        public void HasDiagnosticsTestCases(string code)
+        public async Task HasDiagnosticsTestCases(string code)
         {
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         public static IEnumerable<string> GetHasDiagnosticsTestCases()
@@ -70,9 +84,9 @@ class D : B {public override void Foo(in S s) {}}";
         }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
-        public void NoDiagnosticsTestCases(string code)
+        public async Task NoDiagnosticsTestCases(string code)
         {
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         public static IEnumerable<string> GetNoDiagnosticsTestCases()
@@ -99,8 +113,8 @@ class D : B {public override void Foo(in S s) {}}";
             yield return @"class FooBar { public void Foo(in (int x, int y) t) {}";
         }
 
-        // [Test] // not implemented yet.
-        public void HasDiagnosticsWhenNonReadOnlyStructIsUsedWithGenericMethodThatPassesTByIn()
+        [Test] // not implemented yet.
+        public async Task HasDiagnosticsWhenNonReadOnlyStructIsUsedWithGenericMethodThatPassesTByIn()
         {
             string code = @"
 struct S {}
@@ -109,7 +123,7 @@ class FooBar
     public static void Foo<T>(in T t) {}
     public static void Usage(int n) => Foo<int>([|n|]);
 }";
-            HasDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
     }
 }

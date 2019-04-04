@@ -1,40 +1,58 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
-using RoslynNunitTestRunner;
+using RoslynNUnitTestRunner;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.StructAnalyzers.HashTableIncompatibilityAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
-    public class HashTableIncompatibilityAnalyzerTests : CSharpAnalyzerTestFixture<HashTableIncompatibilityAnalyzer>
+    public class HashTableIncompatibilityAnalyzerTests
     {
-        public const string DiagnosticId = HashTableIncompatibilityAnalyzer.DiagnosticId;
-
         [Test]
-        public void WarnForISetForField()
+        public async Task WarnForISetForField()
         {
             string code = @"
 struct MyStruct {}
 static class Ex {
     private [|System.Collections.Generic.ISet<MyStruct>|] hs = null;
 }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void WarnForHashSetForReturnType()
+        public async Task WarnForHashSetForReturnType()
         {
             string code = @"
 struct MyStruct {}
 static class Ex {
     private [|System.Collections.Generic.HashSet<MyStruct>|] P() => null;
 }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
-        
+
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
-        public void HasDiagnosticCases(string code)
+        public async Task HasDiagnosticCases(string code)
         {
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()
@@ -193,11 +211,11 @@ static class Ex {
         }
         
         [TestCaseSource(nameof(GetNoDiagnosticCases))]
-        public void NoDiagnosticCases(string code)
+        public async Task NoDiagnosticCases(string code)
         {
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
-        
+
         public static IEnumerable<string> GetNoDiagnosticCases()
         {
             yield return @"

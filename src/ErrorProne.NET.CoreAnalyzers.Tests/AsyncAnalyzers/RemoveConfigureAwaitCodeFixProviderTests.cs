@@ -1,14 +1,20 @@
 ﻿using ErrorProne.NET.AsyncAnalyzers;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
-using RoslynNunitTestRunner;
+using RoslynNUnitTestRunner;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.AsyncAnalyzers.RemoveConfigureAwaitAnalyzer,
+    ErrorProne.NET.AsyncAnalyzers.RemoveConfigureAwaitCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
     [TestFixture]
-    public class RemoveConfigureAwaitCodeFixProviderTests : CSharpCodeFixTestFixture<RemoveConfigureAwaitCodeFixProvider>
+    public class RemoveConfigureAwaitCodeFixProviderTests
     {
         [Test]
-        public void RemoveConfigureAwaitFalse()
+        public async Task RemoveConfigureAwaitFalse()
         {
             string code = @"
 [assembly:DoNotUseConfigureAwait()]
@@ -16,7 +22,7 @@ public class MyClass
 {
     public static async System.Threading.Tasks.Task Foo()
     {
-       await System.Threading.Tasks.Task.Delay(42).[|ConfigureAwait(false)|];
+       await System.Threading.Tasks.Task.Delay(42).ConfigureAwait(false);
     }
 }";
 
@@ -30,11 +36,25 @@ public class MyClass
     }
 }";
 
-            TestCodeFix(code, expected, RemoveConfigureAwaitAnalyzer.Rule);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(RemoveConfigureAwaitAnalyzer.Rule).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(7, 52, 7, 73).WithMessage("bar"),
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { expected },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void RemoveConfigureAwaitFalse_With_Right_Formatting()
+        public async Task RemoveConfigureAwaitFalse_With_Right_Formatting()
         {
             string code = @"
 [assembly:DoNotUseConfigureAwait()]
@@ -43,7 +63,7 @@ public class MyClass
     public static async System.Threading.Tasks.Task Foo()
     {
        await System.Threading.Tasks.Task.Delay(42)
-         .[|ConfigureAwait(false)|];
+         .ConfigureAwait(false);
     }
 }";
 
@@ -57,7 +77,21 @@ public class MyClass
     }
 }";
 
-            TestCodeFix(code, expected, RemoveConfigureAwaitAnalyzer.Rule);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(RemoveConfigureAwaitAnalyzer.Rule).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(8, 11, 8, 32).WithMessage("bar"),
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { expected },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
     }
 }

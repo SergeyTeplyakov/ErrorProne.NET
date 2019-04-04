@@ -4,17 +4,21 @@
 //  
 // --------------------------------------------------------------------
 
-using ErrorProne.NET.ExceptionsAnalyzers;
+using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
-using RoslynNunitTestRunner;
+using RoslynNUnitTestRunner;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.ExceptionsAnalyzers.SwallowAllExceptionsAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExeptionHandling
 {
     [TestFixture]
-    public class SwallowAllExceptionsAnalyzerTests : CSharpAnalyzerTestFixture<SwallowAllExceptionsAnalyzer>
+    public class SwallowAllExceptionsAnalyzerTests
     {
         [Test]
-        public void WarnOnEmptyCatchBlock()
+        public async Task WarnOnEmptyCatchBlock()
         {
             string code = @"
 class Test
@@ -25,11 +29,14 @@ class Test
     catch {[|}|]
   }
 }";
-            HasDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void NoWarnOnCatchWithFilter()
+        public async Task NoWarnOnCatchWithFilter()
         {
             string code = @"
 class Test
@@ -40,11 +47,11 @@ class Test
     catch(System.Exception e) when (e is System.IO.IOException) { }
   }
 }";
-            NoDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void WarnOnCatchWithStatementBlock()
+        public async Task WarnOnCatchWithStatementBlock()
         {
             string code = @"
 using System;
@@ -56,11 +63,14 @@ class Test
     catch {Console.WriteLine(42);[|}|]
   }
 }";
-            HasDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void WarnOnException()
+        public async Task WarnOnException()
         {
             string code = @"
 using System;
@@ -72,11 +82,14 @@ class Test
     catch(Exception) {Console.WriteLine(42);[|}|]
   }
 }";
-            HasDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void WarningOnEmptyCatchBlockWithConditionalReturn()
+        public async Task WarningOnEmptyCatchBlockWithConditionalReturn()
         {
             string code = @"
 using System;
@@ -88,11 +101,17 @@ class Test
     catch {Console.WriteLine(); if (n == 42) [|return;|] throw;}
   }
 }";
-            HasDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void WarningOnConditionalObservation()
+        public async Task WarningOnConditionalObservation()
         {
             string code = @"
 using System;
@@ -104,11 +123,17 @@ class Test
     catch(Exception e) {if (e is System.ArggregateException) throw;[|}|]
   }
 }";
-            HasDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void WarnsOnCatchWithExceptionThatWasNotUsed()
+        public async Task WarnsOnCatchWithExceptionThatWasNotUsed()
         {
             string code = @"
 using System;
@@ -120,11 +145,14 @@ class Test
     catch(Exception e) {if (n != 0) throw; Console.WriteLine(42);[|}|]
   }
 }";
-            HasDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void NoWarnOnReThrow()
+        public async Task NoWarnOnReThrow()
         {
             string code = @"
 using System;
@@ -136,11 +164,11 @@ class Test
     catch {Console.WriteLine(); throw;}
   }
 }";
-            NoDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoWarnIfExceptionWasObserved()
+        public async Task NoWarnIfExceptionWasObserved()
         {
             string code = @"
 using System;
@@ -152,11 +180,11 @@ class Test
     catch(Exception e) {Console.WriteLine(e.Message); } // should be another warning when only e.Message was observed!
   }
 }";
-            NoDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoWarnWhenExceptionObservedInInterpolatedString()
+        public async Task NoWarnWhenExceptionObservedInInterpolatedString()
         {
             string code = @"
 using System;
@@ -168,11 +196,11 @@ class Test
     catch(Exception e) {Console.WriteLine($""Error: {e}""); } // should be another warning when only e.Message was observed!
   }
 }";
-            NoDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoWarnsOnNonSystemException()
+        public async Task NoWarnsOnNonSystemException()
         {
             string code = @"
 using System;
@@ -184,7 +212,7 @@ class Test
     catch(ArgumentException) {Console.WriteLine(42);}
   }
 }";
-            NoDiagnostic(code, SwallowAllExceptionsAnalyzer.DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
     }
 }

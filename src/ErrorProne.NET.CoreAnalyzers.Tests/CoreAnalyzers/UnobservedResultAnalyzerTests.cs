@@ -1,15 +1,18 @@
-﻿using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using Microsoft.CodeAnalysis.Testing;
+using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.CoreAnalyzers.UnobservedResultAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests
 {
     [TestFixture]
-    public class UnobservedResultAnalyzerTests : CSharpAnalyzerTestFixture<UnobservedResultAnalyzer>
+    public class UnobservedResultAnalyzerTests
     {
-        public const string DiagnosticId = UnobservedResultAnalyzer.DiagnosticId;
-
         [Test]
-        public void Method_That_Returns_Exception_Should_Be_Observed()
+        public async Task Method_That_Returns_Exception_Should_Be_Observed()
         {
             string code = @"
 class FooBar
@@ -22,11 +25,14 @@ class FooBar
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void Method_That_Returns_Result_Should_Be_Observed()
+        public async Task Method_That_Returns_Result_Should_Be_Observed()
         {
             string code = @"
 class Result {}
@@ -41,11 +47,14 @@ class FooBar
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void Result_That_Flows_Through_Extension_Method_Is_Observed()
+        public async Task Result_That_Flows_Through_Extension_Method_Is_Observed()
         {
             string code = @"
 class Result {}
@@ -62,11 +71,11 @@ class FooBar
     }
 }
 ";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void Result_That_Flows_Through_Extension_Method_Is_Observed2()
+        public async Task Result_That_Flows_Through_Extension_Method_Is_Observed2()
         {
             string code = @"
 class Result {}
@@ -83,11 +92,11 @@ class FooBar
     }
 }
 ";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void Result_That_Flows_Through_Extension_Method_Is_Observed_For_Tasks()
+        public async Task Result_That_Flows_Through_Extension_Method_Is_Observed_For_Tasks()
         {
             string code = @"
 class Result {}
@@ -104,11 +113,11 @@ class FooBar
     }
 }
 ";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void Method_That_Returns_Result_Should_Be_Observed_In_Await()
+        public async Task Method_That_Returns_Result_Should_Be_Observed_In_Await()
         {
             string code = @"
 class Result {}
@@ -123,11 +132,14 @@ class FooBar
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void Method_That_Returns_Result_Should_Be_Observed_In_Await_With_ConfigureAwait()
+        public async Task Method_That_Returns_Result_Should_Be_Observed_In_Await_With_ConfigureAwait()
         {
             string code = @"
 class Result {}
@@ -142,11 +154,14 @@ class FooBar
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void Warn_On_Awaiting_The_Task_That_Returns_Result()
+        public async Task Warn_On_Awaiting_The_Task_That_Returns_Result()
         {
             string code = @"
 class Result {}
@@ -161,11 +176,14 @@ class FooBar
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void Warn_On_Awaiting_The_Task_That_Returns_Result_Without_ConfigureAwait()
+        public async Task Warn_On_Awaiting_The_Task_That_Returns_Result_Without_ConfigureAwait()
         {
             string code = @"
 class Result {}
@@ -180,11 +198,14 @@ class FooBar
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void Method_That_Returns_ResultBase_Should_Be_Observed()
+        public async Task Method_That_Returns_ResultBase_Should_Be_Observed()
         {
             string code = @"
 class ResultBase {}
@@ -200,11 +221,14 @@ class FooBar
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void Method_That_Returns_Possible_Should_Be_Observed()
+        public async Task Method_That_Returns_Possible_Should_Be_Observed()
         {
             string code = @"
 struct Possible<T> {}
@@ -219,11 +243,14 @@ class FooBar
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void NoWarnings_For_Tasks_ContinueWith()
+        public async Task NoWarnings_For_Tasks_ContinueWith()
         {
             string code = @"
 class FooBar
@@ -234,11 +261,11 @@ class FooBar
     }
 }
 ";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoWarnings_For_Methods_Starts_With_Throw()
+        public async Task NoWarnings_For_Methods_Starts_With_Throw()
         {
             string code = @"
 class FooBar
@@ -250,11 +277,11 @@ class FooBar
     }
 }
 ";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoWarnings_For_Methods_Starts_With_ThrowAsync()
+        public async Task NoWarnings_For_Methods_Starts_With_ThrowAsync()
         {
             string code = @"
 using System.Threading.Tasks;
@@ -267,11 +294,11 @@ class FooBar
     }
 }
 ";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
-        public void NoWarnings_When_Exception_Type_Is_Infered()
+        public async Task NoWarnings_When_Exception_Type_Is_Infered()
         {
             string code = @"
 class FooBar
@@ -284,7 +311,7 @@ class FooBar
     }
 }
 ";
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
     }
 }
