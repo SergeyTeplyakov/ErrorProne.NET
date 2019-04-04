@@ -1,5 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
-<PropertyGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
     <AssemblyName>ErrorProne.Net.CoreAnalyzers</AssemblyName>
     <RootNamespace>ErrorProne.NET</RootNamespace>
@@ -32,26 +33,39 @@
     <PackageTags>ErrorProne.NET, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <DevelopmentDependency>true</DevelopmentDependency>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.9.0" PrivateAssets="all" />
-    <PackageReference Include="RuntimeContracts" Version="0.1.7.2" PrivateAssets="all" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" PrivateAssets="all" />
-    <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.9.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.0" PrivateAssets="all" />
+    <PackageReference Include="RuntimeContracts" Version="0.1.7.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="$(OutputPath)\RuntimeContracts.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="$(OutputPath)\ErrorProne.NET.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="$(OutputPath)\ErrorProne.NET.Core.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" PrivateAssets="All" />
+    <None Update="tools\*.ps1" Pack="true" PackagePath="" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Analyzer packages should not have any dependencies. -->
+    <PackageReference Update="@(PackageReference)" PrivateAssets="all" />
+    <ProjectReference Update="@(ProjectReference)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="_GetFilesToPackage">
+    <ItemGroup>
+      <_File Include="$(OutputPath)$(AssemblyName).dll" />
+      <_File Include="$(OutputPath)$(AssemblyName).pdb" />
+      <_File Include="$(OutputPath)RuntimeContracts.dll" />
+      <_File Include="$(OutputPath)ErrorProne.NET.Core.dll" />
+      <_File Include="$(OutputPath)ErrorProne.NET.Core.pdb" />
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+    </ItemGroup>
+  </Target>
 
 </Project>
