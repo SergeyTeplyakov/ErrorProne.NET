@@ -21,7 +21,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         [Test]
         public async Task NoDiagnosticsForIteratorBlock()
         {
-            string code = @"readonly struct S {public System.Collections.Generics.IEnumerable<int> Foo(S s) {yield break;} }";
+            string code = @"readonly struct S {public System.Collections.{|CS0234:Generics|}.IEnumerable<int> {|CS1624:Foo|}(S s) {yield break;} }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
@@ -57,7 +57,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             yield return @"readonly struct FooBar {readonly long l, l2; public static System.Func<FooBar> Foo([|FooBar fb|]) => null; }";
             
             // Diagnostic for extension method.
-            yield return @"readonly struct FooBar {readonly long l, l2; public static string Foo([|this FooBar fb|]) => null; }";
+            yield return @"readonly struct {|CS1106:FooBar|} {readonly long l, l2; public static string Foo([|this FooBar fb|]) => null; }";
 
             // Diagnostic for a delegate
             yield return @"readonly struct S { readonly long l, l2; } delegate void Foo([|S s|]);";
@@ -70,7 +70,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             yield return
                 @"readonly struct S { readonly long l,l2; }
 abstract class B {public virtual void Foo([|S s|]) {}}
-class D : B {public override void Foo(S s) {}
+class D : B {public override void Foo(S s) {}{|CS1513:|}
 ";
 
             // Diagnostic for local function: not supported yet!
@@ -87,7 +87,7 @@ class D : B {public override void Foo(S s) {}
         {
             // No diagnostic for property with a setter
             yield return @"
-readonly struct Foo { private long l1, l2; }
+readonly struct Foo { private long {|CS8340:l1|}, {|CS8340:l2|}; }
 class FooBar { public Foo F {get;set;} }";
             
             // No diagnostic if returns Task
@@ -104,7 +104,7 @@ readonly struct Foo {
             // No diagnostic if returns ValueTask<T>
             yield return @"
 readonly struct Foo {
-  public System.Threading.Tasks.ValueTask<int> FooAsync(Foo f) => null;
+  public System.Threading.Tasks.ValueTask<int> FooAsync(Foo f) => {|CS0037:null|};
 }";
 
             // No diagnostic if implements interface

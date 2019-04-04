@@ -27,7 +27,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         public async Task NoFailuresOnPartiallyValidCode()
         {
             // There was a bug, that caused IndexOutOfRange exception when parameter name was missing
-            string code = @"class FooBar { public void Foo(in int[||]) {} }";
+            string code = @"class FooBar { public void Foo(in int[||]{|CS1001:)|} {} }";
             await new VerifyCS.Test
             {
                 TestState = { Sources = { code } },
@@ -77,10 +77,10 @@ class D : B {public override void Foo(in S s) {}}";
             yield return @"struct S {public void Foo() {}} class FooBar { public void Foo([|in int n|], [|in S s|]) {} }";
 
             // For generic struct
-            yield return @"struct S<T> {public void Foo() {}} class FooBar<T> {public void Foo([|in S<T> s|]) {}";
+            yield return @"struct S<T> {public void Foo() {}} class FooBar<T> {public void Foo([|in S<T> s|]) {}{|CS1513:|}";
 
             // Non readonly struct without fields used in the struct
-            yield return @"struct S {private int S {get;} public void Foo([|in S s|]) {} }";
+            yield return @"struct S {private int {|CS0542:S|} {get;} public void Foo([|in S s|]) {} }";
         }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
@@ -110,7 +110,7 @@ class D : B {public override void Foo(in S s) {}}";
             yield return @"struct S {public int x; public void Foo() {} } class FooBar { public void Foo(in S n) {} }";
 
             // No diagnostics for tuples
-            yield return @"class FooBar { public void Foo(in (int x, int y) t) {}";
+            yield return @"class FooBar { public void Foo(in (int x, int y) t) {}{|CS1513:|}";
         }
 
         [Test] // not implemented yet.

@@ -106,6 +106,10 @@ class Test
                 TestState =
                 {
                     Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        DiagnosticResult.CompilerError("CS0103").WithSpan(8, 37, 8, 38).WithMessage("The name 'n' does not exist in the current context"),
+                    },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
@@ -128,6 +132,10 @@ class Test
                 TestState =
                 {
                     Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        DiagnosticResult.CompilerError("CS0234").WithSpan(8, 41, 8, 60).WithMessage("The type or namespace name 'ArggregateException' does not exist in the namespace 'System' (are you missing an assembly reference?)"),
+                    },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }

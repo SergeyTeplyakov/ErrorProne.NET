@@ -33,6 +33,8 @@ public class MyClass
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
+                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)"),
+                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalse' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(8, 8, 8, 51),
                     },
                 },
@@ -53,7 +55,10 @@ public class MyClass
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(code);
+            await VerifyCS.VerifyAnalyzerAsync(
+                code,
+                DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)"),
+                DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalse' could not be found (are you missing a using directive or an assembly reference?)"));
         }
 
         [Test]
@@ -78,6 +83,8 @@ public class MyClass
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
+                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)"),
+                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalse' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(9, 8, 9, 20),
                     },
                 },

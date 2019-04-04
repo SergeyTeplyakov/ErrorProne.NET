@@ -47,7 +47,7 @@ static class Ex {
         [Test]
         public async Task HasDiagnosticsForMethodCallsOnReadOnlyField()
         {
-            string code = @"struct S {private readonly long l1,l2; public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();";
+            string code = @"struct S {private readonly long l1,l2; public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();{|CS1513:|}";
             await new VerifyCS.Test
             {
                 TestState = { Sources = { code } },
@@ -131,7 +131,7 @@ readonly struct S {
     }
 }
 public static class C {
-    public static void Foo(this in S s) {}
+    public static void {|CS0051:Foo|}(this in S s) {}
 }"; ;
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
@@ -198,7 +198,7 @@ enum S {X};
 static class SEx {
    public static string Get(this S s) => s.ToString();
 }
-class Foo {private readonly S _s; public string Bar() => _s.X.Get();";
+class Foo {private readonly S _s; public string Bar() => {|CS0176:_s.X|}.Get();{|CS1513:|}";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
@@ -207,7 +207,7 @@ class Foo {private readonly S _s; public string Bar() => _s.X.Get();";
         {
             string code = @"
 struct S {public int X; }
-class Foo {private readonly S _s; public string Bar() => _s.X.ToString();";
+class Foo {private readonly S _s; public string Bar() => _s.X.ToString();{|CS1513:|}";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
@@ -260,7 +260,7 @@ public class C {
     private readonly S _s;
     private ref readonly S GetS() => ref _s;
     private void Test() {
-       string s = GetS().[|ToString|]()
+       string s = GetS().[|ToString|](){|CS1002:|}
     }
 }";
         }
@@ -304,7 +304,7 @@ static class SEx {
             yield return "struct S {public int X;} class Foo {private readonly S _s; public int Bar() => _s.X;}";
 
             // No diagnostics for enum
-            yield return "enum S {X}; class Foo {private readonly S _s; public int Bar() => _s.X;}";
+            yield return "enum S {X}; class Foo {private readonly S _s; public int Bar() => {|CS0176:_s.X|};}";
         }
     }
 }

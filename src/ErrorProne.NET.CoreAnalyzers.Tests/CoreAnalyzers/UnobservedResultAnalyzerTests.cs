@@ -113,7 +113,12 @@ class FooBar
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(code);
+            await VerifyCS.VerifyAnalyzerAsync(
+                code,
+                DiagnosticResult.CompilerError("CS4016").WithSpan(4, 115, 4, 116).WithMessage("Since this is an async method, the return expression must be of type 'Result' rather than 'Task<Result>'"),
+                DiagnosticResult.CompilerError("CS0246").WithSpan(10, 25, 10, 29).WithMessage("The type or namespace name 'Task' could not be found (are you missing a using directive or an assembly reference?)"),
+                DiagnosticResult.CompilerError("CS0161").WithSpan(10, 30, 10, 34).WithMessage("'FooBar.Test()': not all code paths return a value"),
+                DiagnosticResult.CompilerError("CS1983").WithSpan(10, 30, 10, 34).WithMessage("The return type of an async method must be void, Task or Task<T>"));
         }
 
         [Test]
@@ -294,7 +299,10 @@ class FooBar
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(code);
+            await VerifyCS.VerifyAnalyzerAsync(
+                code,
+                DiagnosticResult.CompilerError("CS0304").WithSpan(5, 78, 5, 85).WithMessage("Cannot create an instance of the variable type 'T' because it does not have the new() constraint"),
+                DiagnosticResult.CompilerError("CS0103").WithSpan(8, 15, 8, 38).WithMessage("The name 'Throw' does not exist in the current context"));
         }
 
         [Test]
@@ -311,7 +319,7 @@ class FooBar
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(code);
+            await VerifyCS.VerifyAnalyzerAsync(code, DiagnosticResult.CompilerError("CS0413").WithSpan(4, 43, 4, 49).WithMessage("The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint"));
         }
     }
 }

@@ -206,12 +206,12 @@ this = other;
         {
             get
             {
-                return _buffer[Index];
+                return _buffer[{|CS0103:Index|}];
             }
 
             set
             {
-                _buffer[Index] = value;
+                _buffer[{|CS0103:Index|}] = value;
             }
         }
 }";

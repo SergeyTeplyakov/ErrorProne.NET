@@ -31,7 +31,11 @@ class Test
   }
 }";
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
+            await VerifyCS.VerifyAnalyzerAsync(
+                test,
+                DiagnosticResult.CompilerError("CS0246").WithSpan(4, 20, 4, 29).WithMessage("The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)"),
+                DiagnosticResult.CompilerError("CS0103").WithSpan(7, 13, 7, 20).WithMessage("The name 'Console' does not exist in the current context"),
+                DiagnosticResult.CompilerError("CS0246").WithSpan(8, 13, 8, 22).WithMessage("The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)"));
         }
 
         [Test]
@@ -48,7 +52,10 @@ class Test
   }
 }";
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
+            await VerifyCS.VerifyAnalyzerAsync(
+                test,
+                DiagnosticResult.CompilerError("CS0246").WithSpan(4, 20, 4, 29).WithMessage("The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)"),
+                DiagnosticResult.CompilerError("CS0103").WithSpan(7, 12, 7, 19).WithMessage("The name 'Console' does not exist in the current context"));
         }
 
         [Test]
@@ -70,6 +77,11 @@ class Test
                 TestState =
                 {
                     Sources = { test },
+                    ExpectedDiagnostics =
+                    {
+                        DiagnosticResult.CompilerError("CS0246").WithSpan(4, 20, 4, 29).WithMessage("The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)"),
+                        DiagnosticResult.CompilerError("CS0103").WithSpan(7, 12, 7, 19).WithMessage("The name 'Console' does not exist in the current context"),
+                    },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
@@ -92,6 +104,10 @@ class Test
                 TestState =
                 {
                     Sources = { test },
+                    ExpectedDiagnostics =
+                    {
+                        DiagnosticResult.CompilerError("CS0103").WithSpan(6, 12, 6, 19).WithMessage("The name 'Console' does not exist in the current context"),
+                    },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
