@@ -70,11 +70,11 @@ class FooBar
         {
             // Has diagnostics for ref return property
             yield return
-                @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S => {|CS8150:_s|}; }";
+                @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S => ref _s; }";
             
             // Has diagnostics for ref return method with expression body
             yield return
-                @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S() => {|CS8150:_s|}; }";
+                @"struct S {public void Foo() {} } class FooBar {private S _s; public [|ref readonly S |]S() => ref _s; }";
         }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
@@ -87,11 +87,11 @@ class FooBar
         {
             // No diagnostics for ref return property
             yield return
-                @"struct S {} class FooBar {private S _s; public ref readonly S S => {|CS8150:_s|}; }";
+                @"struct S {} class FooBar {private S _s; public ref readonly S S => ref _s; }";
             
             // No diagnostics for ref return method with expression body
             yield return
-                @"struct S {} class FooBar {private S _s; public ref readonly S S() => {|CS8150:_s|}; }";
+                @"struct S {} class FooBar {private S _s; public ref readonly S S() => ref _s; }";
         }
 
         [Test]

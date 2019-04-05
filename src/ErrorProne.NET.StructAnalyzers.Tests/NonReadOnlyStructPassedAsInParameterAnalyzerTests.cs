@@ -77,7 +77,7 @@ class D : B {public override void Foo(in S s) {}}";
             yield return @"struct S {public void Foo() {}} class FooBar { public void Foo([|in int n|], [|in S s|]) {} }";
 
             // For generic struct
-            yield return @"struct S<T> {public void Foo() {}} class FooBar<T> {public void Foo([|in S<T> s|]) {}{|CS1513:|}";
+            yield return @"struct S<T> {public void Foo() {}} class FooBar<T> {public void Foo([|in S<T> s|]) {} }";
 
             // Non readonly struct without fields used in the struct
             yield return @"struct S {private int {|CS0542:S|} {get;} public void Foo([|in S s|]) {} }";
@@ -110,7 +110,7 @@ class D : B {public override void Foo(in S s) {}}";
             yield return @"struct S {public int x; public void Foo() {} } class FooBar { public void Foo(in S n) {} }";
 
             // No diagnostics for tuples
-            yield return @"class FooBar { public void Foo(in (int x, int y) t) {}{|CS1513:|}";
+            yield return @"class FooBar { public void Foo(in (int x, int y) t) {}}";
         }
 
         [Test]

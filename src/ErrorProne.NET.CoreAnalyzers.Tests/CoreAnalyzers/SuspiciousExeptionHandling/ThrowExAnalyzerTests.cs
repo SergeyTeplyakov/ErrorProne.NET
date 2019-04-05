@@ -4,7 +4,6 @@
 //  
 // --------------------------------------------------------------------
 
-using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
 using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
@@ -21,6 +20,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExeptionHandling
         public async Task NoWarningWhenThrowingInstanceVariable()
         {
             var test = @"
+using System;
 class Test
 {
   private readonly Exception ex;
@@ -31,17 +31,14 @@ class Test
   }
 }";
 
-            await VerifyCS.VerifyAnalyzerAsync(
-                test,
-                DiagnosticResult.CompilerError("CS0246").WithSpan(4, 20, 4, 29).WithMessage("The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)"),
-                DiagnosticResult.CompilerError("CS0103").WithSpan(7, 13, 7, 20).WithMessage("The name 'Console' does not exist in the current context"),
-                DiagnosticResult.CompilerError("CS0246").WithSpan(8, 13, 8, 22).WithMessage("The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)"));
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Test]
         public async Task NoWarningOnEmptyCatch()
         {
             var test = @"
+using System;
 class Test
 {
   private readonly Exception ex;
@@ -52,16 +49,14 @@ class Test
   }
 }";
 
-            await VerifyCS.VerifyAnalyzerAsync(
-                test,
-                DiagnosticResult.CompilerError("CS0246").WithSpan(4, 20, 4, 29).WithMessage("The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)"),
-                DiagnosticResult.CompilerError("CS0103").WithSpan(7, 12, 7, 19).WithMessage("The name 'Console' does not exist in the current context"));
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Test]
         public async Task WarningOnThrowWithEnclosingFieldEx()
         {
             var test = @"
+using System;
 class Test
 {
   private readonly Exception ex;
@@ -77,11 +72,6 @@ class Test
                 TestState =
                 {
                     Sources = { test },
-                    ExpectedDiagnostics =
-                    {
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(4, 20, 4, 29).WithMessage("The type or namespace name 'Exception' could not be found (are you missing a using directive or an assembly reference?)"),
-                        DiagnosticResult.CompilerError("CS0103").WithSpan(7, 12, 7, 19).WithMessage("The name 'Console' does not exist in the current context"),
-                    },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
@@ -90,6 +80,7 @@ class Test
         public async Task WarningOnThrowEx()
         {
             var test = @"
+using System;
 class Test
 {
   public void Foo()
@@ -104,10 +95,6 @@ class Test
                 TestState =
                 {
                     Sources = { test },
-                    ExpectedDiagnostics =
-                    {
-                        DiagnosticResult.CompilerError("CS0103").WithSpan(6, 12, 6, 19).WithMessage("The name 'Console' does not exist in the current context"),
-                    },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }

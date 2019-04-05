@@ -201,17 +201,18 @@ this = other;
             // With indexer
             yield return
 @"struct [|FooBar|]<T> {
+    private const int Index = 0;
     private readonly T[] _buffer;
     public T Value
         {
             get
             {
-                return _buffer[{|CS0103:Index|}];
+                return _buffer[Index];
             }
 
             set
             {
-                _buffer[{|CS0103:Index|}] = value;
+                _buffer[Index] = value;
             }
         }
 }";

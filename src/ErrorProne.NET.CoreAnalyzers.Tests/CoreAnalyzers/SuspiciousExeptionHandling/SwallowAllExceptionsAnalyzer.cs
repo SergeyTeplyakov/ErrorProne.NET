@@ -4,7 +4,6 @@
 //  
 // --------------------------------------------------------------------
 
-using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
 using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
@@ -95,7 +94,7 @@ class Test
 using System;
 class Test
 {
-  public void Foo()
+  public void Foo(int n)
   {
     try { Console.WriteLine(); }
     catch {Console.WriteLine(); if (n == 42) [|return;|] throw;}
@@ -106,10 +105,6 @@ class Test
                 TestState =
                 {
                     Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        DiagnosticResult.CompilerError("CS0103").WithSpan(8, 37, 8, 38).WithMessage("The name 'n' does not exist in the current context"),
-                    },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
@@ -124,7 +119,7 @@ class Test
   public void Foo()
   {
     try { Console.WriteLine(); }
-    catch(Exception e) {if (e is System.ArggregateException) throw;[|}|]
+    catch(Exception e) {if (e is System.AggregateException) throw;[|}|]
   }
 }";
             await new VerifyCS.Test
@@ -132,10 +127,6 @@ class Test
                 TestState =
                 {
                     Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        DiagnosticResult.CompilerError("CS0234").WithSpan(8, 41, 8, 60).WithMessage("The type or namespace name 'ArggregateException' does not exist in the namespace 'System' (are you missing an assembly reference?)"),
-                    },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }

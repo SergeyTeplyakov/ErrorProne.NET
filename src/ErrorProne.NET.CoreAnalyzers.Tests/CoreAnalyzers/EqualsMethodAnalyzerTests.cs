@@ -45,10 +45,11 @@ public readonly struct MyS : System.IEquatable<MyS>
 
     public override int GetHashCode() => 42;
     public override bool Equals(object other) => other is MyS s && Equals(s);
+    public bool Equals(MyS s) => Line == s.Line;
     
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(code, DiagnosticResult.CompilerError("CS0535").WithSpan(2, 30, 2, 52).WithMessage("'MyS' does not implement interface member 'IEquatable<MyS>.Equals(MyS)'"));
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
@@ -77,11 +78,11 @@ public readonly struct MyS : System.IEquatable<MyS>
     public int Line { get; }
 
     public override int GetHashCode() => 42;
-    public override bool Equals(object other) => other is MyS && Equals((MyS)s);
+    public override bool Equals(object other) => other is MyS && Equals((MyS)other);
     public bool Equals(MyS other) => Line == other.Line;
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(code, DiagnosticResult.CompilerError("CS0103").WithSpan(7, 78, 7, 79).WithMessage("The name 's' does not exist in the current context"));
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
@@ -93,7 +94,7 @@ class FooBar
 {
     private int _n = 42;
     private static int _s = 4;
-    private static Foo _f = new foo();
+    private static Foo _f = new Foo();
 
     public override bool Equals(object obj)
     {
@@ -109,7 +110,6 @@ class FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(7, 33, 7, 36).WithMessage("The type or namespace name 'foo' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.InstanceMembersAreNotUsedRule).WithSpan(9, 26, 9, 32),
                     },
                 },
@@ -125,7 +125,7 @@ class FooBar
 {
     private int _n = 42;
     private static int _s = 4;
-    private static Foo _f = new foo();
+    private static Foo _f = new Foo();
 
     public override bool Equals(object obj)
        =>
@@ -140,7 +140,6 @@ class FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(7, 33, 7, 36).WithMessage("The type or namespace name 'foo' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.InstanceMembersAreNotUsedRule).WithSpan(9, 26, 9, 32),
                     },
                 },
@@ -201,7 +200,7 @@ struct FooBar
 {
     private int _n;
     private static int _s = 4;
-    private static Foo _f = new foo();
+    private static Foo _f = new Foo();
 
     public override bool Equals(object obj)
     {
@@ -217,7 +216,6 @@ struct FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(7, 33, 7, 36).WithMessage("The type or namespace name 'foo' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.InstanceMembersAreNotUsedRule).WithSpan(9, 26, 9, 32),
                         DiagnosticResult.CompilerError("CS0077").WithSpan(12, 80, 12, 93).WithMessage("The as operator must be used with a reference type or nullable type ('FooBar' is a non-nullable value type)"),
                     },
@@ -233,7 +231,7 @@ class FooBar
 {
     private static int _n = 42;
     private static int _s = 4;
-    private static Foo _f = new foo();
+    private static Foo _f = new Foo();
 
     public override bool Equals(object obj)
     {
@@ -245,7 +243,7 @@ class FooBar
             await VerifyCS.VerifyAnalyzerAsync(
                 code,
                 DiagnosticResult.CompilerError("CS0246").WithSpan(6, 20, 6, 23).WithMessage("The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)"),
-                DiagnosticResult.CompilerError("CS0246").WithSpan(6, 33, 6, 36).WithMessage("The type or namespace name 'foo' could not be found (are you missing a using directive or an assembly reference?)"));
+                DiagnosticResult.CompilerError("CS0246").WithSpan(6, 33, 6, 36).WithMessage("The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)"));
         }
 
         [Test]
@@ -271,14 +269,14 @@ class FooBar
 class FooBar
 {
     private int _n = 42;
-    public bool Equals(FooBar other) => _n == other.n;
+    public bool Equals(FooBar other) => _n == other._n;
     public override bool Equals(object obj)
     {
         return obj is FooBar fb && Equals(fb);
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(code, DiagnosticResult.CompilerError("CS1061").WithSpan(5, 53, 5, 54).WithMessage("'FooBar' does not contain a definition for 'n' and no accessible extension method 'n' accepting a first argument of type 'FooBar' could be found (are you missing a using directive or an assembly reference?)"));
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
@@ -290,7 +288,7 @@ class FooBar
 {
     private int _n = 42;
     private static int _s = 4;
-    private static Foo _f = new foo();
+    private static Foo _f = new Foo();
 
     public override bool Equals(object obj)
     {
@@ -306,7 +304,6 @@ class FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(7, 33, 7, 36).WithMessage("The type or namespace name 'foo' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.RightHandSideIsNotUsedRule).WithSpan(9, 40, 9, 43).WithArguments("obj"),
                         VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.RightHandSideIsNotUsedRule).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(9, 40, 9, 43).WithMessage("bar"),
                     },

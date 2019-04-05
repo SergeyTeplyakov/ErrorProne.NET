@@ -47,7 +47,7 @@ static class Ex {
         [Test]
         public async Task HasDiagnosticsForMethodCallsOnReadOnlyField()
         {
-            string code = @"struct S {private readonly long l1,l2; public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();{|CS1513:|}";
+            string code = @"struct S {private readonly long l1,l2; public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();}";
             await new VerifyCS.Test
             {
                 TestState = { Sources = { code } },
@@ -124,14 +124,14 @@ static class C {
         public async Task NoDiagnosticsWhenExtensionMethodIsUsedThatTakesStructByIn()
         {
             string code = @"
-readonly struct S {
+public readonly struct S {
     public static void Sample() {
        S s = default(S);
        s.Foo();
     }
 }
 public static class C {
-    public static void {|CS0051:Foo|}(this in S s) {}
+    public static void Foo(this in S s) {}
 }"; ;
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
@@ -260,7 +260,7 @@ public class C {
     private readonly S _s;
     private ref readonly S GetS() => ref _s;
     private void Test() {
-       string s = GetS().[|ToString|](){|CS1002:|}
+       string s = GetS().[|ToString|]();
     }
 }";
         }

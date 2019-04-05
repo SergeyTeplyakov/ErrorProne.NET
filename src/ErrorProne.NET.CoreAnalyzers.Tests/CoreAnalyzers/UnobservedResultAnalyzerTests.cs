@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis.Testing;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
 using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
@@ -101,24 +100,19 @@ class FooBar
             string code = @"
 class Result {}
 static class ResultEx {
-    public static async System.Threading.Tasks.Task<Result> Handle(this System.Threading.Tasks.Task<Result> r) => r;
+    public static System.Threading.Tasks.Task<Result> Handle(this System.Threading.Tasks.Task<Result> r) => r;
 }
 class FooBar
 {
     public static async System.Threading.Tasks.Task<Result> Foo() => null;
 
-    public static async Task Test()
+    public static async System.Threading.Tasks.Task Test()
     {
         await Foo().Handle();
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(
-                code,
-                DiagnosticResult.CompilerError("CS4016").WithSpan(4, 115, 4, 116).WithMessage("Since this is an async method, the return expression must be of type 'Result' rather than 'Task<Result>'"),
-                DiagnosticResult.CompilerError("CS0246").WithSpan(10, 25, 10, 29).WithMessage("The type or namespace name 'Task' could not be found (are you missing a using directive or an assembly reference?)"),
-                DiagnosticResult.CompilerError("CS0161").WithSpan(10, 30, 10, 34).WithMessage("'FooBar.Test()': not all code paths return a value"),
-                DiagnosticResult.CompilerError("CS1983").WithSpan(10, 30, 10, 34).WithMessage("The return type of an async method must be void, Task or Task<T>"));
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
@@ -292,17 +286,14 @@ class FooBar
 using System.Threading.Tasks;
 class FooBar
 {
-    private static Task<T> ThrowAsync<T>() where T : System.Exception {throw new T();}
+    private static Task<T> ThrowAsync<T>() where T : System.Exception, new() {throw new T();}
     public static async Task Test()
     {
-        await Throw<System.Exception>();
+        await ThrowAsync<System.Exception>();
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(
-                code,
-                DiagnosticResult.CompilerError("CS0304").WithSpan(5, 78, 5, 85).WithMessage("Cannot create an instance of the variable type 'T' because it does not have the new() constraint"),
-                DiagnosticResult.CompilerError("CS0103").WithSpan(8, 15, 8, 38).WithMessage("The name 'Throw' does not exist in the current context"));
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
@@ -311,7 +302,7 @@ class FooBar
             string code = @"
 class FooBar
 {
-    private static T Cast<T>(object o) => o as T;
+    private static T Cast<T>(object o) where T : class => o as T;
     public static void Test()
     {
         object o = null;
@@ -319,7 +310,7 @@ class FooBar
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(code, DiagnosticResult.CompilerError("CS0413").WithSpan(4, 43, 4, 49).WithMessage("The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint"));
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
     }
 }
