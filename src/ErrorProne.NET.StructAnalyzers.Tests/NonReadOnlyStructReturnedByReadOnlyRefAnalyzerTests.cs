@@ -94,7 +94,8 @@ class FooBar
                 @"struct S {} class FooBar {private S _s; public ref readonly S S() => {|CS8150:_s|}; }";
         }
 
-        [Test] // not implemented yet.
+        [Test]
+        [Ignore("not implemented yet")]
         public async Task HasDiagnosticsWhenNonReadOnlyStructIsUsedWithGenericMethodThatPassesTByIn()
         {
             string code = @"

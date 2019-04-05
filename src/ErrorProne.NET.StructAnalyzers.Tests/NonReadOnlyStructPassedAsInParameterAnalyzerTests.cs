@@ -113,7 +113,8 @@ class D : B {public override void Foo(in S s) {}}";
             yield return @"class FooBar { public void Foo(in (int x, int y) t) {}{|CS1513:|}";
         }
 
-        [Test] // not implemented yet.
+        [Test]
+        [Ignore("not implemented yet")]
         public async Task HasDiagnosticsWhenNonReadOnlyStructIsUsedWithGenericMethodThatPassesTByIn()
         {
             string code = @"
