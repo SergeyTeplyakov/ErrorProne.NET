@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
     <ProjectReference Include="..\RoslynNUnitTestRunner\RoslynNUnitTestRunner.csproj" />

@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
+    <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers.CodeFixes\ErrorProne.NET.StructAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\RoslynNUnitTestRunner\RoslynNUnitTestRunner.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers\ErrorProne.NET.StructAnalyzers.csproj" />
   </ItemGroup>
