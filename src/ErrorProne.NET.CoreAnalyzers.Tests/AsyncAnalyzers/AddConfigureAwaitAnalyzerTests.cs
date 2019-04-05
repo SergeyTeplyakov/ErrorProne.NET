@@ -1,5 +1,4 @@
 ﻿using ErrorProne.NET.AsyncAnalyzers;
-using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
 using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
@@ -33,12 +32,10 @@ public class MyClass
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)"),
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalse' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(8, 8, 8, 51),
                     },
                 },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
 
         [Test]
@@ -55,10 +52,10 @@ public class MyClass
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(
-                code,
-                DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)"),
-                DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalse' could not be found (are you missing a using directive or an assembly reference?)"));
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
 
         [Test]
@@ -83,12 +80,10 @@ public class MyClass
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)"),
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalse' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(9, 8, 9, 20),
                     },
                 },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
     }
 }

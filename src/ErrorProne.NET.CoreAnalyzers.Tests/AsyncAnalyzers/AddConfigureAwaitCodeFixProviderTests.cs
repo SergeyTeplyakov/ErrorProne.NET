@@ -1,5 +1,4 @@
 ﻿using ErrorProne.NET.AsyncAnalyzers;
-using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
 using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
@@ -42,8 +41,6 @@ public class MyClass
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)"),
-                        DiagnosticResult.CompilerError("CS0246").WithSpan(2, 11, 2, 33).WithMessage("The type or namespace name 'UseConfigureAwaitFalse' could not be found (are you missing a using directive or an assembly reference?)"),
                         VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(7, 8, 7, 51),
                     },
                 },
@@ -51,7 +48,7 @@ public class MyClass
                 {
                     Sources = { expected },
                 },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
     }
 }
