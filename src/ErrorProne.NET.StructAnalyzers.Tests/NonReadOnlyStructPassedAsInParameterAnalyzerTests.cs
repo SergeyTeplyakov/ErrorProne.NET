@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.CodeAnalysis.Testing;
+using NUnit.Framework;
 using RoslynNUnitTestRunner;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -27,10 +28,18 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         public async Task NoFailuresOnPartiallyValidCode()
         {
             // There was a bug, that caused IndexOutOfRange exception when parameter name was missing
-            string code = @"class FooBar { public void Foo(in int[||]{|CS1001:)|} {} }";
+            string code = @"class FooBar { public void Foo(in int[||]) {} }";
             await new VerifyCS.Test
             {
-                TestState = { Sources = { code } },
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        // We are intentionally testing with incorrect syntax
+                        DiagnosticResult.CompilerError("CS1001").WithSpan(1, 38, 1, 39).WithMessage("Identifier expected"),
+                    },
+                },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
