@@ -198,7 +198,7 @@ enum S {X};
 static class SEx {
    public static string Get(this S s) => s.ToString();
 }
-class Foo {private readonly S _s; public string Bar() => {|CS0176:_s.X|}.Get();{|CS1513:|}";
+class Foo {private readonly S _s; public string Bar() => _s.Get();}";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
@@ -207,7 +207,7 @@ class Foo {private readonly S _s; public string Bar() => {|CS0176:_s.X|}.Get();{
         {
             string code = @"
 struct S {public int X; }
-class Foo {private readonly S _s; public string Bar() => _s.X.ToString();{|CS1513:|}";
+class Foo {private readonly S _s; public string Bar() => _s.ToString();}";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
@@ -304,7 +304,7 @@ static class SEx {
             yield return "struct S {public int X;} class Foo {private readonly S _s; public int Bar() => _s.X;}";
 
             // No diagnostics for enum
-            yield return "enum S {X}; class Foo {private readonly S _s; public int Bar() => {|CS0176:_s.X|};}";
+            yield return "enum S {X}; class Foo {private readonly S _s; public int Bar() => (int)_s;}";
         }
     }
 }

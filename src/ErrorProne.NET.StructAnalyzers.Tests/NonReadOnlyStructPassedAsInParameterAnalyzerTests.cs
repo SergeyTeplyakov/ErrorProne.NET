@@ -89,7 +89,7 @@ class D : B {public override void Foo(in S s) {}}";
             yield return @"struct S<T> {public void Foo() {}} class FooBar<T> {public void Foo([|in S<T> s|]) {} }";
 
             // Non readonly struct without fields used in the struct
-            yield return @"struct S {private int {|CS0542:S|} {get;} public void Foo([|in S s|]) {} }";
+            yield return @"struct S {private int S2 {get;} public void Foo([|in S s|]) {} }";
         }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
