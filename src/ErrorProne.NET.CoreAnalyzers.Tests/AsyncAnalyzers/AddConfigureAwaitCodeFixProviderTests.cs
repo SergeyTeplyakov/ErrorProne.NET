@@ -1,14 +1,18 @@
 ﻿using ErrorProne.NET.AsyncAnalyzers;
 using NUnit.Framework;
-using RoslynNunitTestRunner;
+using RoslynNUnitTestRunner;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.AsyncAnalyzers.AddConfigureAwaitAnalyzer,
+    ErrorProne.NET.AsyncAnalyzers.AddConfigureAwaitCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
     [TestFixture]
-    public class AddConfigureAwaitCodeFixProviderTests : CSharpCodeFixTestFixture<AddConfigureAwaitCodeFixProvider>
+    public class AddConfigureAwaitCodeFixProviderTests
     {
         [Test]
-        public void AddConfigureAwaitFalse()
+        public async Task AddConfigureAwaitFalse()
         {
             string code = @"
 [assembly:UseConfigureAwaitFalse()]
@@ -16,7 +20,7 @@ public class MyClass
 {
     public static async System.Threading.Tasks.Task Foo()
     {
-       [|await System.Threading.Tasks.Task.Delay(42)|];
+       await System.Threading.Tasks.Task.Delay(42);
     }
 }";
 
@@ -30,7 +34,21 @@ public class MyClass
     }
 }";
 
-            TestCodeFix(code, expected, AddConfigureAwaitAnalyzer.Rule);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(7, 8, 7, 51),
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { expected },
+                },
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
     }
 }

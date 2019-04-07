@@ -1,18 +1,23 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.StructAnalyzers.DefaultEqualsOrHashCodeIsUsedInStructAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
-    public class DefaultEqualsOrHashCodeIsUsedInStructAnalyzerTests : CSharpAnalyzerTestFixture<DefaultEqualsOrHashCodeIsUsedInStructAnalyzer>
+    public class DefaultEqualsOrHashCodeIsUsedInStructAnalyzerTests
     {
-        public const string DiagnosticId = DefaultEqualsOrHashCodeIsUsedInStructAnalyzer.DiagnosticId;
-                
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
-        public void HasDiagnosticCases(string code)
+        public async Task HasDiagnosticCases(string code)
         {
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()
@@ -48,11 +53,11 @@ struct AnotherStruct : System.IEquatable<AnotherStruct>
         }
         
         [TestCaseSource(nameof(GetNoDiagnosticCases))]
-        public void NoDiagnosticCases(string code)
+        public async Task NoDiagnosticCases(string code)
         {
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
-        
+
         public static IEnumerable<string> GetNoDiagnosticCases()
         {
             yield break;

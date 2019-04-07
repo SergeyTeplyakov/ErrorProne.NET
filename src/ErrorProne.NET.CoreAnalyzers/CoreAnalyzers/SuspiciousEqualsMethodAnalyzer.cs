@@ -32,11 +32,11 @@ namespace ErrorProne.NET.CoreAnalyzers
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
         /// <nodoc />
-        private static readonly DiagnosticDescriptor InstanceMembersAreNotUsedRule =
+        internal static readonly DiagnosticDescriptor InstanceMembersAreNotUsedRule =
             new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
 
         /// <nodoc />
-        private static readonly DiagnosticDescriptor RightHandSideIsNotUsedRule =
+        internal static readonly DiagnosticDescriptor RightHandSideIsNotUsedRule =
             new DiagnosticDescriptor(DiagnosticId, RhsTitle, RhsMessageFormat, Category, Severity, isEnabledByDefault: true, description: RhsDescription);
 
         /// <nodoc />

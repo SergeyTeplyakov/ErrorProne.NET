@@ -55,8 +55,8 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             if (!document.SupportsSemanticModel)
             {
-                // Don't have a semantic model. Not sure what to do in this case.
-                return false;
+                // Don't have a semantic model. Not sure what to do in this case, so avoid showing the code fix.
+                return true;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(token);
@@ -66,11 +66,10 @@ namespace ErrorProne.NET.StructAnalyzers
             var syntaxRoot = await document.GetSyntaxRootAsync(token).ConfigureAwait(false);
 
             var method = parameter.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-
             if (method == null)
             {
-                Debug.Assert(false, "Can'tfind method for the parameter");
-                return false;
+                // Don't have a method (could be an indexer). This is not yet supported, so avoid showing the code fix.
+                return true;
             }
 
             foreach (var reference in references)

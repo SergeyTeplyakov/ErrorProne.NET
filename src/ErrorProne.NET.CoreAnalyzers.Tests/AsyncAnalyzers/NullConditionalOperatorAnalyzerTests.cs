@@ -1,16 +1,17 @@
-﻿using ErrorProne.NET.AsyncAnalyzers;
-using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.AsyncAnalyzers.NullConditionalOperatorAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
     [TestFixture]
-    public class NullConditionalOperatorAnalyzerTests : CSharpAnalyzerTestFixture<NullConditionalOperatorAnalyzer>
+    public class NullConditionalOperatorAnalyzerTests
     {
-        public const string DiagnosticId = NullConditionalOperatorAnalyzer.DiagnosticId;
-
         [Test]
-        public void Warn_For_Null_Conditional()
+        public async Task Warn_For_Null_Conditional()
         {
             string code = @"
 public class MyClass
@@ -21,7 +22,10 @@ public class MyClass
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
    }
 }

@@ -1,40 +1,57 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.StructAnalyzers.HashTableIncompatibilityAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
-    public class HashTableIncompatibilityAnalyzerTests : CSharpAnalyzerTestFixture<HashTableIncompatibilityAnalyzer>
+    public class HashTableIncompatibilityAnalyzerTests
     {
-        public const string DiagnosticId = HashTableIncompatibilityAnalyzer.DiagnosticId;
-
         [Test]
-        public void WarnForISetForField()
+        public async Task WarnForISetForField()
         {
             string code = @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.ISet<MyStruct>|] hs = null;
+    private static [|System.Collections.Generic.ISet<MyStruct>|] hs = null;
 }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void WarnForHashSetForReturnType()
+        public async Task WarnForHashSetForReturnType()
         {
             string code = @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.HashSet<MyStruct>|] P() => null;
+    private static [|System.Collections.Generic.HashSet<MyStruct>|] P() => null;
 }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
-        
+
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
-        public void HasDiagnosticCases(string code)
+        public async Task HasDiagnosticCases(string code)
         {
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()
@@ -43,27 +60,27 @@ static class Ex {
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.ISet<System.Tuple<MyStruct, int>>|] hs = null;
+    private static [|System.Collections.Generic.ISet<System.Tuple<MyStruct, int>>|] hs = null;
 }";
             // Warn on Tuple
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.ISet<(MyStruct, int)>|] hs = null;
+    private static [|System.Collections.Generic.ISet<(MyStruct, int)>|] hs = null;
 }";
             
             // Warn on IDictionary
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.IDictionary<MyStruct, int>|] hs = null;
+    private static [|System.Collections.Generic.IDictionary<MyStruct, int>|] hs = null;
 }";
             
             // Warn on ISet
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.ISet<MyStruct>|] hs = null;
+    private static [|System.Collections.Generic.ISet<MyStruct>|] hs = null;
 }";
             
             // using
@@ -74,7 +91,7 @@ struct MyStruct { }";
             // Base type with interface
             yield return @"
 struct MyStruct {}
-abstract class Ex : IBar : [|System.Collections.Generic.HashSet<MyStruct>|] {
+abstract class Ex : {|CS0246:IBar|} {|CS1003::|} {|CS1721:[|{|CS1003:System|}.Collections.Generic.HashSet<MyStruct>|]|} {
 }";
             
             // Base type
@@ -113,91 +130,91 @@ class Ex {
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.HashSet<MyStruct>[]|] P() => null;
+    private static [|System.Collections.Generic.HashSet<MyStruct>[]|] P() => null;
 }";
             
             // Method's return type
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.HashSet<MyStruct>|] P() => null;
+    private static [|System.Collections.Generic.HashSet<MyStruct>|] P() => null;
 }";
             // Method's parameter
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private void Foo([|System.Collections.Generic.HashSet<MyStruct>|] arg) {}
+    private static void Foo([|System.Collections.Generic.HashSet<MyStruct>|] arg) {}
 }";
             // Property
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.HashSet<MyStruct>|] P {get;}
+    private static [|System.Collections.Generic.HashSet<MyStruct>|] P {get;}
 }";
             
             // Property with getter and setter
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.HashSet<MyStruct>|] P {get; private set;}
+    private static [|System.Collections.Generic.HashSet<MyStruct>|] P {get; set;}
 }";
             
             // Property with getter only
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.HashSet<MyStruct>|] P {get => null;}
+    private static [|System.Collections.Generic.HashSet<MyStruct>|] P {get => null;}
 }";
 
             // ImmutableDictionary
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Immutable.ImmutableDictionary<MyStruct, int>|] hs = null;
+    private static [|System.Collections.Immutable.ImmutableDictionary<MyStruct, int>|] hs = null;
 }";
             
             // ImmutableHashSet
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Immutable.ImmutableHashSet<MyStruct>|] hs = null;
+    private static [|System.Collections.Immutable.ImmutableHashSet<MyStruct>|] hs = null;
 }";
             
             // ConcurrentDictionary
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Concurrent.ConcurrentDictionary<MyStruct, int>|] hs = null;
+    private static [|System.Collections.Concurrent.ConcurrentDictionary<MyStruct, int>|] hs = null;
 }";
             
             // Dictionary
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private [|System.Collections.Generic.Dictionary<MyStruct, int>|] hs = null;
+    private static [|System.Collections.Generic.Dictionary<MyStruct, int>|] hs = null;
 }";
             
             // Only GetHashCode
             yield return @"
 struct MyStruct {public override int GetHashCode() => 42;}
 static class Ex {
-    private [|System.Collections.Generic.HashSet<MyStruct>|] hs = null;
+    private static [|System.Collections.Generic.HashSet<MyStruct>|] hs = null;
 }";
             
             // Only Equals
             yield return @"
 struct MyStruct {public override bool Equals(object other) => true;}
 static class Ex {
-    private [|System.Collections.Generic.HashSet<MyStruct>|] hs = null;
+    private static [|System.Collections.Generic.HashSet<MyStruct>|] hs = null;
 }";
         }
         
         [TestCaseSource(nameof(GetNoDiagnosticCases))]
-        public void NoDiagnosticCases(string code)
+        public async Task NoDiagnosticCases(string code)
         {
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
-        
+
         public static IEnumerable<string> GetNoDiagnosticCases()
         {
             yield return @"
@@ -213,47 +230,47 @@ static class Ex {
             yield return @"
 struct MyStruct { public override int GetHashCode() => 42; public override bool Equals(object other) => true;}
 static class Ex {
-    private System.Collections.Generic.HashSet<MyStruct> hs = null;
+    private static System.Collections.Generic.HashSet<MyStruct> hs = null;
 }";
 
             // No diagnostic for class
             yield return @"
 class MyClass { }
 static class Ex {
-    private System.Collections.Generic.HashSet<MyClass> hs = null;
+    private static System.Collections.Generic.HashSet<MyClass> hs = null;
 }";
 
             // No diagnostic for enum
             yield return @"
 enum MyEnum { value1 = 42, value2 }
 static class Ex {
-    private System.Collections.Generic.HashSet<MyEnum> hs = null;
+    private static System.Collections.Generic.HashSet<MyEnum> hs = null;
 }";
 
             // No diagnostic for interfaces
             yield return @"
 interface I { }
 static class Ex {
-    private System.Collections.Generic.HashSet<I> hs = null;
+    private static System.Collections.Generic.HashSet<I> hs = null;
 }";
 
             // No diagnostic for second type parameter
             yield return @"
 struct MyStruct {}
 static class Ex {
-    private System.Collections.Generic.Dictionary<int, MyStruct> hs = null;
+    private static System.Collections.Generic.Dictionary<int, MyStruct> hs = null;
 }";
             
             // No diagnostic for second type parameter
             yield return @"
 static class Ex {
-    private System.Collections.Generic.ISet<T> GetSet<T>() => null;
+    private static System.Collections.Generic.ISet<T> GetSet<T>() => null;
 }";
             
             // No diagnostic for T with constraint
             yield return @"
 static class Ex {
-    private System.Collections.Generic.ISet<T> GetSet<T>() where T : struct => null;
+    private static System.Collections.Generic.ISet<T> GetSet<T>() where T : struct => null;
 }";
         }
     }

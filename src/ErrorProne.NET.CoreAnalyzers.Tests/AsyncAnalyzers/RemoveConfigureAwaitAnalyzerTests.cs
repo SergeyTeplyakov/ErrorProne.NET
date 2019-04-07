@@ -1,16 +1,19 @@
 ﻿using ErrorProne.NET.AsyncAnalyzers;
+using Microsoft.CodeAnalysis;
 using NUnit.Framework;
-using RoslynNunitTestRunner;
+using RoslynNUnitTestRunner;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.AsyncAnalyzers.RemoveConfigureAwaitAnalyzer,
+    ErrorProne.NET.AsyncAnalyzers.RemoveConfigureAwaitCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
     [TestFixture]
-    public class RemoveConfigureAwaitAnalyzerTests : CSharpAnalyzerTestFixture<RemoveConfigureAwaitAnalyzer>
+    public class RemoveConfigureAwaitAnalyzerTests
     {
-        public const string DiagnosticId = RemoveConfigureAwaitAnalyzer.DiagnosticId;
-
         [Test]
-        public void Warn_For_Task_Delay()
+        public async Task Warn_For_Task_Delay()
         {
             string code = @"
 [assembly:DoNotUseConfigureAwait()]
@@ -19,15 +22,25 @@ public class MyClass
 {
     public static async System.Threading.Tasks.Task Foo()
     {
-       await System.Threading.Tasks.Task.Delay(42).[|ConfigureAwait(false)|];
+       await System.Threading.Tasks.Task.Delay(42).ConfigureAwait(false);
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(RemoveConfigureAwaitAnalyzer.Rule).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(8, 52, 8, 73).WithMessage("bar"),
+                    },
+                },
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
 
         [Test]
-        public void Warn_For_Property()
+        public async Task Warn_For_Property()
         {
             string code = @"
 [assembly:DoNotUseConfigureAwait()]
@@ -37,11 +50,21 @@ public class MyClass
     private static System.Threading.Tasks.Task MyTask => null;
     public static async System.Threading.Tasks.Task Foo()
     {
-       await MyTask.[|ConfigureAwait(false)|];
+       await MyTask.ConfigureAwait(false);
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(RemoveConfigureAwaitAnalyzer.Rule).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(9, 21, 9, 42).WithMessage("bar"),
+                    },
+                },
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
     }
 }

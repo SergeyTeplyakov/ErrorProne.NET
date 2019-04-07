@@ -1,25 +1,30 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.StructAnalyzers.NonReadOnlyStructRefReadOnlyLocalAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
-    public class NonReadOnlyStructRefReadOnlyLocalAnalyzerTests : CSharpAnalyzerTestFixture<NonReadOnlyStructRefReadOnlyLocalAnalyzer>
+    public class NonReadOnlyStructRefReadOnlyLocalAnalyzerTests
     {
-        public const string DiagnosticId = NonReadOnlyStructRefReadOnlyLocalAnalyzer.DiagnosticId;
-
         [Test]
-        public void HasDiagnosticsForNonReadOnlyStruct()
+        public async Task HasDiagnosticsForNonReadOnlyStruct()
         {
             string code = @"struct S {public void Foo(S s) { [|ref readonly var|] rs = ref s;} }";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [TestCaseSource(nameof(GetHasDiagnosticsTestCases))]
-        public void HasDiagnosticsTestCases(string code)
+        public async Task HasDiagnosticsTestCases(string code)
         {
-            HasDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         public static IEnumerable<string> GetHasDiagnosticsTestCases()
@@ -28,9 +33,9 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         }
 
         [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
-        public void NoDiagnosticsTestCases(string code)
+        public async Task NoDiagnosticsTestCases(string code)
         {
-            NoDiagnostic(code, DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         public static IEnumerable<string> GetNoDiagnosticsTestCases()

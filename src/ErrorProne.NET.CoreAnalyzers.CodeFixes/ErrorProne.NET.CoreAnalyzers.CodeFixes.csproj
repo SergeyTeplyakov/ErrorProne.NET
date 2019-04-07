@@ -1,0 +1,73 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <AssemblyName>ErrorProne.Net.CoreAnalyzers.CodeFixes</AssemblyName>
+    <RootNamespace>ErrorProne.NET</RootNamespace>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <!-- Needed here to copy all the dependencies to an output folder-->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>ErrorProne.NET.CoreAnalyzers</PackageId>
+    <Authors>Sergey Teplyakov</Authors>
+    <PackageLicenseUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/</RepositoryUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Description>Core .NET analyzers for detecting the most common coding issues</Description>
+    <PackageReleaseNotes>
+* EPC11: warns when Equals method is potentially implemented incorrectly.
+* EPC12: warns when generic exception instance is not fully observed (only `Message` was accessed in catch block).
+* EPC13: warns when possible-like result is not observed.
+* EPC14: warns when `ConfigureAwait(false)` is used even though a project is configured not to use it.
+* EPC15: warns when `ConfigureAwait(false)` is not used on an awaited task but a project is configured to always use it.
+* EPC16: null-conditional operator is used in await expression causing NRE if a task is null.
+</PackageReleaseNotes>
+    <Copyright>Copyright Sergey Teplyakov</Copyright>
+    <PackageTags>ErrorProne.NET, analyzers</PackageTags>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.9.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.0" PrivateAssets="all" />
+    <PackageReference Include="RuntimeContracts" Version="0.1.7.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="tools\*.ps1" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Analyzer packages should not have any dependencies. -->
+    <PackageReference Update="@(PackageReference)" PrivateAssets="all" />
+    <ProjectReference Update="@(ProjectReference)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="_GetFilesToPackage">
+    <ItemGroup>
+      <_File Include="$(OutputPath)$(AssemblyName).dll" />
+      <_File Include="$(OutputPath)$(AssemblyName).pdb" />
+      <_File Include="$(OutputPath)ErrorProne.Net.CoreAnalyzers.dll" />
+      <_File Include="$(OutputPath)ErrorProne.Net.CoreAnalyzers.pdb" />
+      <_File Include="$(OutputPath)RuntimeContracts.dll" />
+      <_File Include="$(OutputPath)ErrorProne.NET.Core.dll" />
+      <_File Include="$(OutputPath)ErrorProne.NET.Core.pdb" />
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

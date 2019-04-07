@@ -1,31 +1,41 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
-using RoslynNunitTestRunner;
+﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.StructAnalyzers.UseInModifierForReadOnlyStructAnalyzer,
+    ErrorProne.NET.StructAnalyzers.UseInModifierForReadOnlyStructCodeFixProvider>;
 
 namespace ErrorProne.NET.StructAnalyzers.Tests
 {
     [TestFixture]
-    public class UseInModifierForReadOnlyStructCodeFixProviderTests : CSharpCodeFixTestFixture<UseInModifierForReadOnlyStructCodeFixProvider>
+    public class UseInModifierForReadOnlyStructCodeFixProviderTests
     {
         [Test]
-        public void AddInModifier()
+        public async Task AddInModifier()
         {
-            string code = @"readonly struct FooBar { public static void Foo([|FooBar fb|]) {} }";
+            string code = @"readonly struct FooBar { public static void Foo([|FooBar fb|]) {} readonly (long, long, long) data; }";
 
-            string expected = @"readonly struct FooBar { public static void Foo(in FooBar fb) {} }";
+            string expected = @"readonly struct FooBar { public static void Foo(in FooBar fb) {} readonly (long, long, long) data; }";
 
-            TestCodeFix(code, expected, UseInModifierForReadOnlyStructAnalyzer.Rule);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+                FixedState = { Sources = { expected } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void AddInModifierWithTrivia()
+        public async Task AddInModifierWithTrivia()
         {
             string code = @"readonly struct FooBar
 {
     public static void Foo(
-        [|FooBar fb|])
+[|        FooBar fb|])
     {
     }
+
+    readonly (long, long, long) data;
 }";
 
             string expected = @"readonly struct FooBar
@@ -34,13 +44,19 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         in FooBar fb)
     {
     }
+
+    readonly (long, long, long) data;
 }";
 
-            TestCodeFix(code, expected, UseInModifierForReadOnlyStructAnalyzer.Rule);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+                FixedState = { Sources = { expected } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void NoCodeFixWhenUsedAsOut()
+        public async Task NoCodeFixWhenUsedAsOut()
         {
             string code = @"
 public readonly struct RS
@@ -51,12 +67,18 @@ public readonly struct RS
     }
 
     public static void UseAsOut(out RS rs) => rs = default;
+
+    readonly (long, long, long) data;
 }";
-            TestNoCodeFix(code, UseInModifierForReadOnlyStructAnalyzer.Rule);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+                FixedState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void NoCodeFixWhenUsedAsRef()
+        public async Task NoCodeFixWhenUsedAsRef()
         {
             string code = @"
 public readonly struct RS
@@ -67,30 +89,40 @@ public readonly struct RS
     }
 
     public static void UseAsOut(ref RS rs) => rs = default;
+
+    readonly (long, long, long) data;
 }";
-            TestNoCodeFix(code, UseInModifierForReadOnlyStructAnalyzer.Rule);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+                FixedState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
-        //[TestCaseSource(nameof(GetDoNothingCodeFixes))]
-        public void DoNothingCodeFixes(string code)
+        [TestCaseSource(nameof(GetDoNothingCodeFixes))]
+        public async Task DoNothingCodeFixes(string code)
         {
-            TestNoCodeFix(code, UseInModifierForReadOnlyStructAnalyzer.Rule);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+                FixedState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         public static IEnumerable<string> GetDoNothingCodeFixes()
         {
             // Captured in indexer
-            yield return @"readonly struct FooBar { }
-        class FooClass { public System.Func<FooBar> this[[|FooBar fb|]] => () => fb; }";
+            yield return @"readonly struct FooBar { readonly (long, long, long) data; }
+        class FooClass { public System.Func<FooBar> this[FooBar [|fb|]] => () => fb; }";
 
             // Captured in anonymous delegate
-            yield return @"readonly struct FooBar { public static void Foo([|FooBar fb|]) { System.Func<FooBar> a = delegate(){ return fb;}; } }";
+            yield return @"readonly struct FooBar { public static void Foo([|FooBar fb|]) { System.Func<FooBar> a = delegate(){ return fb;}; } readonly (long, long, long) data; }";
 
             // Captured in lambda
-            yield return @"readonly struct FooBar { public static void Foo([|FooBar fb|]) {System.Func<FooBar> a = () => fb; } }";
+            yield return @"readonly struct FooBar { public static void Foo([|FooBar fb|]) {System.Func<FooBar> a = () => fb; } readonly (long, long, long) data; }";
 
             // Captured in lambda2
-            yield return @"readonly struct FooBar { public static System.Func<FooBar> Foo([|FooBar fb|]) => () => fb; }";
+            yield return @"readonly struct FooBar { public static System.Func<FooBar> Foo([|FooBar fb|]) => () => fb; readonly (long, long, long) data; }";
         }
     }
 }

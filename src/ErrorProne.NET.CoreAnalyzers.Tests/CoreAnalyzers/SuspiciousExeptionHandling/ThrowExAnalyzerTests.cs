@@ -4,19 +4,23 @@
 //  
 // --------------------------------------------------------------------
 
-using ErrorProne.NET.ExceptionsAnalyzers;
 using NUnit.Framework;
-using RoslynNunitTestRunner;
+using RoslynNUnitTestRunner;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.ExceptionsAnalyzers.ThrowExAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExeptionHandling
 {
     [TestFixture]
-    public class ThrowExAnalyzerTests : CSharpAnalyzerTestFixture<ThrowExAnalyzer>
+    public class ThrowExAnalyzerTests
     {
         [Test]
-        public void NoWarningWhenThrowingInstanceVariable()
+        public async Task NoWarningWhenThrowingInstanceVariable()
         {
             var test = @"
+using System;
 class Test
 {
   private readonly Exception ex;
@@ -27,13 +31,14 @@ class Test
   }
 }";
 
-            NoDiagnostic(test, ThrowExAnalyzer.DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Test]
-        public void NoWarningOnEmptyCatch()
+        public async Task NoWarningOnEmptyCatch()
         {
             var test = @"
+using System;
 class Test
 {
   private readonly Exception ex;
@@ -44,13 +49,14 @@ class Test
   }
 }";
 
-            NoDiagnostic(test, ThrowExAnalyzer.DiagnosticId);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         [Test]
-        public void WarningOnThrowWithEnclosingFieldEx()
+        public async Task WarningOnThrowWithEnclosingFieldEx()
         {
             var test = @"
+using System;
 class Test
 {
   private readonly Exception ex;
@@ -61,13 +67,20 @@ class Test
   }
 }";
 
-            HasDiagnostic(test, ThrowExAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { test },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void WarningOnThrowEx()
+        public async Task WarningOnThrowEx()
         {
             var test = @"
+using System;
 class Test
 {
   public void Foo()
@@ -77,11 +90,17 @@ class Test
   }
 }";
 
-            HasDiagnostic(test, ThrowExAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { test },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
-        public void WarningOnThrowExComplex()
+        public async Task WarningOnThrowExComplex()
         {
             var test = @"
 using System;
@@ -105,12 +124,15 @@ class Test
     }
 }";
 
-            HasDiagnostic(test, ThrowExAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { test } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
 
         [Test]
-        public void TestTwoWarnings()
+        public async Task TestTwoWarnings()
         {
             var test = @"
 class Test
@@ -126,7 +148,10 @@ class Test
     }
 }";
 
-            HasDiagnostic(test, ThrowExAnalyzer.DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { test } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
     }
 }

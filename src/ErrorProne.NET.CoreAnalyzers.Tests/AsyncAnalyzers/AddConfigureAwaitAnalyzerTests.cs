@@ -1,16 +1,18 @@
 ﻿using ErrorProne.NET.AsyncAnalyzers;
 using NUnit.Framework;
-using RoslynNunitTestRunner;
+using RoslynNUnitTestRunner;
+using System.Threading.Tasks;
+using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+    ErrorProne.NET.AsyncAnalyzers.AddConfigureAwaitAnalyzer,
+    ErrorProne.NET.AsyncAnalyzers.AddConfigureAwaitCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
     [TestFixture]
-    public class AddConfigureAwaitAnalyzerTests : CSharpAnalyzerTestFixture<AddConfigureAwaitAnalyzer>
+    public class AddConfigureAwaitAnalyzerTests
     {
-        public const string DiagnosticId = AddConfigureAwaitAnalyzer.DiagnosticId;
-
         [Test]
-        public void Warn_For_Task_Delay()
+        public async Task Warn_For_Task_Delay()
         {
             string code = @"
 [assembly:UseConfigureAwaitFalse()]
@@ -19,15 +21,25 @@ public class MyClass
 {
     public static async System.Threading.Tasks.Task Foo()
     {
-       [|await System.Threading.Tasks.Task.Delay(42)|];
+       await System.Threading.Tasks.Task.Delay(42);
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(8, 8, 8, 51),
+                    },
+                },
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
 
         [Test]
-        public void NoWarn_For_Task_Yield()
+        public async Task NoWarn_For_Task_Yield()
         {
             string code = @"
 [assembly:UseConfigureAwaitFalse()]
@@ -40,11 +52,14 @@ public class MyClass
     }
 }
 ";
-            NoDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
 
         [Test]
-        public void Warn_For_Property()
+        public async Task Warn_For_Property()
         {
             string code = @"
 [assembly:UseConfigureAwaitFalse()]
@@ -54,11 +69,21 @@ public class MyClass
     private static System.Threading.Tasks.Task MyTask => null;
     public static async System.Threading.Tasks.Task Foo()
     {
-       [|await MyTask|];
+       await MyTask;
     }
 }
 ";
-            HasDiagnostic(code, DiagnosticId);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(9, 8, 9, 20),
+                    },
+                },
+            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
         }
     }
 }
