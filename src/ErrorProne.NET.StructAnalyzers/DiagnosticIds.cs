@@ -28,5 +28,8 @@
         
         /// <nodoc />
         public const string DefaultEqualsOrHashCodeIsUsedInStructDiagnosticId = "EPS08";
+
+        /// <nodoc />
+        public const string ExplicitInParameterDiagnosticId = "EPS09";
     }
 }
