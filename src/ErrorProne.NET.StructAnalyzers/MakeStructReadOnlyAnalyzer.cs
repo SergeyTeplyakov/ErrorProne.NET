@@ -32,6 +32,8 @@ namespace ErrorProne.NET.StructAnalyzers
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
             context.RegisterSymbolAction(AnalyzeStructDeclaration, SymbolKind.NamedType);
         }
 

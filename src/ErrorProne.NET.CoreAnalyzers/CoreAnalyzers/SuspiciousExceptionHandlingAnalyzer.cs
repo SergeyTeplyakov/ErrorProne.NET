@@ -44,6 +44,8 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
             // I don't know why yet, but selecting SytaxKind.CatchClause lead to very strange behavior:
             // AnalyzeSyntax method would called for a few times and the same warning would be added to diagnostic list!
             // Using IdentifierName syntax instead.

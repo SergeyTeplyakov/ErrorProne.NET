@@ -32,6 +32,8 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
             // The following call registers only analysis for top level methods.
             // Need a special logic to cover local functions.
             context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);

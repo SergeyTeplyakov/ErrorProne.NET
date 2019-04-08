@@ -52,6 +52,8 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
             context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
             context.RegisterSymbolAction(AnalyzeField, SymbolKind.Field);
             context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
