@@ -10,6 +10,8 @@ variables:
   solution: 'src/ErrorProne.NET.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  # Disable VSIX deployment for CI builds to improve performance
+  DeployExtension: 'false'
 
 steps:
 - task: NuGetToolInstaller@0
