@@ -29,6 +29,8 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
             context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.CatchClause);
         }
 
