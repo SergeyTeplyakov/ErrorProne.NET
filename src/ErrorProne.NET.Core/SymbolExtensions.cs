@@ -58,7 +58,7 @@ namespace ErrorProne.NET.Core
             if (parameter.DeclaringSyntaxReferences.Length != 0)
             {
                 // Can't just use p.Location, because it will capture just a span for parameter name.
-                var span = parameter.DeclaringSyntaxReferences[0].GetSyntax().FullSpan;
+                var span = parameter.DeclaringSyntaxReferences[0].GetSyntax().Span;
                 return Location.Create(parameter.DeclaringSyntaxReferences[0].SyntaxTree, span);
             }
 
