@@ -70,7 +70,10 @@ namespace ErrorProne.NET.Core
                 return false;
             }
 
-            if (type.IsReferenceType)
+            if (type.IsReferenceType
+                || type.TypeKind == TypeKind.Pointer
+                || type.SpecialType == SpecialType.System_IntPtr
+                || type.SpecialType == SpecialType.System_UIntPtr)
             {
                 switch (compilation.Options.Platform)
                 {
