@@ -248,5 +248,19 @@ struct MyStruct {
 
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
+
+        [Test]
+        [WorkItem(134, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/134")]
+        public async Task OmittedArgumentForOptionalParameter()
+        {
+            string code = @"
+struct SomeStruct {
+  void Method(in SomeStruct value = default) { }
+  void Caller() { Method(); }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
     }
 }

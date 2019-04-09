@@ -43,6 +43,11 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
+                if (argument.IsImplicit)
+                {
+                    continue;
+                }
+
                 var argumentSyntax = argument.Syntax as ArgumentSyntax;
                 if (argumentSyntax.RefKindKeyword.IsKind(SyntaxKind.InKeyword))
                 {
