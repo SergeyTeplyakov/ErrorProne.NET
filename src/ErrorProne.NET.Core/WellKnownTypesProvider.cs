@@ -12,12 +12,12 @@ namespace ErrorProne.NET.Core
 
         public static INamedTypeSymbol GetBoolType(this SemanticModel model)
         {
-            return model.Compilation.GetTypeByMetadataName(typeof(bool).FullName);
+            return model.Compilation.GetSpecialType(SpecialType.System_Boolean);
         }
 
         public static INamedTypeSymbol GetObjectType(this SemanticModel model)
         {
-            return model.Compilation.GetTypeByMetadataName(typeof(object).FullName);
+            return model.Compilation.GetSpecialType(SpecialType.System_Object);
         }
 
         public static INamedTypeSymbol GetClrType(this SemanticModel model, Type type)
