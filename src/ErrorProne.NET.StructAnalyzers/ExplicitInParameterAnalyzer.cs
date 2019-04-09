@@ -54,6 +54,13 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
+                if (argument.Value is IInstanceReferenceOperation instanceReference
+                    && instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance
+                    && argument.Value.Type.IsReferenceType)
+                {
+                    continue;
+                }
+
                 context.ReportDiagnostic(Diagnostic.Create(Rule, argument.Syntax.GetLocation(), argument.Parameter.Name));
             }
         }

@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
 using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.ExplicitInParameterAnalyzer,
@@ -62,6 +63,40 @@ class Class {
     const int Value = 0;
     void Method(in int value) => throw null;
     void Caller() => Method(Value);
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Test]
+        [WorkItem(131, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/131")]
+        public async Task NoReferenceToThisClass()
+        {
+            string code = @"
+class SomeClass {
+  void Method(in SomeClass value) { }
+  void Caller() { Method(this); }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Test]
+        [WorkItem(131, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/131")]
+        public async Task ReferenceToThisStruct()
+        {
+            string code = @"
+struct SomeStruct {
+  void Method(in SomeStruct value) { }
+  void Caller() { Method([|this|]); }
+}
+";
+            string expected = @"
+struct SomeStruct {
+  void Method(in SomeStruct value) { }
+  void Caller() { Method(in this); }
 }
 ";
 
