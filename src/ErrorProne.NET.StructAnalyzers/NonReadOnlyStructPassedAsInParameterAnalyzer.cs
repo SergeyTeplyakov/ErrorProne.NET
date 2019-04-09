@@ -74,7 +74,7 @@ namespace ErrorProne.NET.StructAnalyzers
                         continue;
                     }
 
-                    var location = p.GetParametersLocation();
+                    var location = p.GetParameterLocation();
 
                     var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);
 

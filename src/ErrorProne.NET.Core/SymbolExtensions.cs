@@ -51,7 +51,7 @@ namespace ErrorProne.NET.Core
         /// <summary>
         /// Returns location of a given parameter.
         /// </summary>
-        public static Location GetParametersLocation(this IParameterSymbol parameter)
+        public static Location GetParameterLocation(this IParameterSymbol parameter)
         {
             // When the code is partially correct (for instance, when the name is missing), then
             // DeclaringSyntaxReferences is empty.
