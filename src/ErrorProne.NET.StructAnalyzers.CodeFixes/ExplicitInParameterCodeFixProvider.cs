@@ -47,6 +47,13 @@ namespace ErrorProne.NET.StructAnalyzers
             }
 
             var newArgument = argument.WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.InKeyword));
+            if (newArgument.Expression is ConditionalExpressionSyntax conditionalExpression)
+            {
+                newArgument = newArgument.ReplaceNodes(
+                    new[] { conditionalExpression.WhenTrue, conditionalExpression.WhenFalse },
+                    (originalNode, rewrittenNode) => SyntaxFactory.RefExpression(rewrittenNode));
+            }
+
             return document.WithSyntaxRoot(root.ReplaceNode(argument, newArgument));
         }
     }

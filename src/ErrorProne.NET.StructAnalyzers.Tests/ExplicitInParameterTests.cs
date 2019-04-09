@@ -276,5 +276,31 @@ struct SomeStruct {
 
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
+
+        [Test]
+        [WorkItem(142, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/142")]
+        public async Task CodeFixForTernary()
+        {
+            string code = @"
+readonly struct Value {
+  static readonly Value _value1;
+  static readonly Value _value2;
+
+  void Method(in Value value) { }
+  void Caller(bool b) { Method([|b ? _value1 : _value2|]); }
+}
+";
+            string expected = @"
+readonly struct Value {
+  static readonly Value _value1;
+  static readonly Value _value2;
+
+  void Method(in Value value) { }
+  void Caller(bool b) { Method(in b ? ref _value1 : ref _value2); }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
+        }
     }
 }
