@@ -87,7 +87,7 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(model, Settings.LargeStructThreashold))
             {
-                Location location = p.GetParametersLocation();
+                Location location = p.GetParameterLocation();
                 var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);
 
                 diagnosticReporter(diagnostic);
