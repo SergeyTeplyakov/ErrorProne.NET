@@ -1,9 +1,5 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
 <PropertyGroup>
   <DefineConstants>$(DefineConstants);CONTRACTS_LIGHT_PRECONDITIONS;CONTRACTS_LIGHT_ASSERTS</DefineConstants>
-</PropertyGroup>
-
-<PropertyGroup>
-  <PackageVersion>0.1.2.0</PackageVersion>
 </PropertyGroup>
 </Project>

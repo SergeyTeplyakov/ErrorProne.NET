@@ -5,4 +5,8 @@
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.138" PrivateAssets="all" />
+  </ItemGroup>
+
 </Project>
