@@ -59,6 +59,11 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
+                if (argument.Value is IObjectCreationOperation)
+                {
+                    continue;
+                }
+
                 if (argument.Value is IInstanceReferenceOperation instanceReference
                     && instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance
                     && argument.Value.Type.IsReferenceType)

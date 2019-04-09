@@ -262,5 +262,19 @@ struct SomeStruct {
 
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
+
+        [Test]
+        [WorkItem(143, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/143")]
+        public async Task NoReferenceToNewInstance()
+        {
+            string code = @"
+struct SomeStruct {
+  void Method(in SomeStruct value) { }
+  void Caller() { Method(new SomeStruct()); }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
     }
 }
