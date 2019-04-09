@@ -1,15 +1,16 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
-using ErrorProne.NET.Utils;
-using Microsoft.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace ErrorProne.NET.Core
 {
     public static class StructSizeCalculator
     {
-        private static readonly ConcurrentDictionary<ITypeSymbol, int> _typeSizeCache = new ConcurrentDictionary<ITypeSymbol, int>();
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>> _typeSizeCache =
+            new ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>>();
 
         /// <summary>
         /// Computes size of the struct.
@@ -30,15 +31,25 @@ namespace ErrorProne.NET.Core
         /// For nested composite field the same rule applied recursively:
         /// 
         /// </remarks>
-        public static int ComputeStructSize(this ITypeSymbol type, SemanticModel semanticModel)
+        public static int ComputeStructSize(this ITypeSymbol type, Compilation compilation)
         {
-            // TODO: add a proper caching here!
+            var cache = _typeSizeCache.GetOrCreateValue(compilation);
+            if (cache.TryGetValue(type, out var size))
+            {
+                return size;
+            }
+
+            return ComputeStructSizeSlow(type, cache, compilation);
+        }
+
+        private static int ComputeStructSizeSlow(ITypeSymbol type, ConcurrentDictionary<ITypeSymbol, int> cache, Compilation compilation)
+        {
             // TODO: respect structlayout attribute.
             // TODO: if a struct has a reference type in it, the algorithm is different!
             Contract.Requires(type != null);
             Contract.Requires(type.IsValueType);
 
-            return _typeSizeCache.GetOrAdd(type, t =>
+            return cache.GetOrAdd(type, t =>
             {
                 // Current implementation does not respect StructLayoutAttribute.
                 // It just adjusts a size based on ptr size.
@@ -46,12 +57,12 @@ namespace ErrorProne.NET.Core
                 int capacity = 0;
                 int largestFieldSize = 0;
 
-                GetSize(semanticModel, type, ref capacity, ref largestFieldSize, ref actualSize);
+                GetSize(compilation, type, ref capacity, ref largestFieldSize, ref actualSize);
                 return capacity;
             });
         }
 
-        private static bool TryGetPrimitiveSize(ITypeSymbol type, out int size, ref int largestFieldSize)
+        private static bool TryGetPrimitiveSize(Compilation compilation, ITypeSymbol type, out int size, ref int largestFieldSize)
         {
             if (type == null)
             {
@@ -59,16 +70,37 @@ namespace ErrorProne.NET.Core
                 return false;
             }
 
-            if (type.IsReferenceType)
+            if (type.IsReferenceType
+                || type.TypeKind == TypeKind.Pointer
+                || type.SpecialType == SpecialType.System_IntPtr
+                || type.SpecialType == SpecialType.System_UIntPtr)
             {
-                size = IntPtr.Size;
+                switch (compilation.Options.Platform)
+                {
+                    case Platform.AnyCpu32BitPreferred:
+                    case Platform.X86:
+                    case Platform.Arm:
+                        size = 4;
+                        break;
+
+                    case Platform.AnyCpu:
+                    case Platform.X64:
+                    case Platform.Arm64:
+                    case Platform.Itanium:
+                        size = 8;
+                        break;
+
+                    default:
+                        size = 8;
+                        break;
+                }
             }
             else if (type.IsEnum())
             {
                 var enumType = type.GetEnumUnderlyingType();
                 if (enumType != null)
                 {
-                    return TryGetPrimitiveSize(enumType, out size, ref largestFieldSize);
+                    return TryGetPrimitiveSize(compilation, enumType, out size, ref largestFieldSize);
                 }
 
                 // Not sure what to do in this case!
@@ -100,7 +132,7 @@ namespace ErrorProne.NET.Core
             return size != 0;
         }
 
-        private static void GetSize(SemanticModel semanticModel, ITypeSymbol type, ref int capacity, ref int largestFieldSize, ref int actualSize)
+        private static void GetSize(Compilation compilation, ITypeSymbol type, ref int capacity, ref int largestFieldSize, ref int actualSize)
         {
             if (type == null)
             {
@@ -108,7 +140,7 @@ namespace ErrorProne.NET.Core
             }
 
             int newLargestFieldSize = largestFieldSize;
-            if (TryGetPrimitiveSize(type, out var currentItemSize, ref newLargestFieldSize))
+            if (TryGetPrimitiveSize(compilation, type, out var currentItemSize, ref newLargestFieldSize))
             {
                 if (currentItemSize > largestFieldSize)
                 {
@@ -144,14 +176,14 @@ namespace ErrorProne.NET.Core
                 bool empty = true;
                 foreach (var field in type.GetMembers().OfType<IFieldSymbol>().Where(f => !f.IsStatic))
                 {
-                    GetSize(semanticModel, field.Type, ref capacity, ref largestFieldSize, ref actualSize);
+                    GetSize(compilation, field.Type, ref capacity, ref largestFieldSize, ref actualSize);
                     empty = false;
                 }
 
                 if (empty)
                 {
                     // Empty struct is similar to byte struct. The size is 1.
-                    GetSize(semanticModel, semanticModel.GetClrType(typeof(byte)), ref capacity, ref largestFieldSize, ref actualSize);
+                    GetSize(compilation, compilation.GetSpecialType(SpecialType.System_Byte), ref capacity, ref largestFieldSize, ref actualSize);
                 }
 
                 // When composite type layed out, need to adjust actual size to current capacity,

@@ -46,7 +46,7 @@ namespace ErrorProne.NET.StructAnalyzers
             {
                 if (semanticModel.GetDeclaredSymbol(p) is IParameterSymbol parameterSymbol)
                 {
-                    WarnIfParameterIsReadOnly(context.SemanticModel, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
+                    WarnIfParameterIsReadOnly(context.Compilation, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
                 }
             }
         }
@@ -61,18 +61,15 @@ namespace ErrorProne.NET.StructAnalyzers
                 return;
             }
 
-            if (context.TryGetSemanticModel(out var semanticModel))
+            // Should analyze only subset of methods, not all of them.
+            // What about operators?
+            if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
+                method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
+                method.MethodKind == MethodKind.PropertyGet)
             {
-                // Should analyze only subset of methods, not all of them.
-                // What about operators?
-                if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
-                    method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
-                    method.MethodKind == MethodKind.PropertyGet)
+                foreach (var p in method.Parameters)
                 {
-                    foreach (var p in method.Parameters)
-                    {
-                        WarnIfParameterIsReadOnly(semanticModel, p, diagnostic => context.ReportDiagnostic(diagnostic));
-                    }
+                    WarnIfParameterIsReadOnly(context.Compilation, p, diagnostic => context.ReportDiagnostic(diagnostic));
                 }
             }
         }
@@ -83,9 +80,9 @@ namespace ErrorProne.NET.StructAnalyzers
                    method.IsInterfaceImplementation();   
         }
 
-        private static void WarnIfParameterIsReadOnly(SemanticModel model, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
+        private static void WarnIfParameterIsReadOnly(Compilation compilation, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
         {
-            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(model, Settings.LargeStructThreashold))
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, Settings.LargeStructThreashold))
             {
                 Location location = p.GetParameterLocation();
                 var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);

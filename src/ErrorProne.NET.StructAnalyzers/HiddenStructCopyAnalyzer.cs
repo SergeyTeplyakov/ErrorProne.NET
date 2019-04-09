@@ -88,7 +88,7 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
                 GetExtensionMethodThisRefKind(ms) == RefKind.None &&
-                ms.ReceiverType.IsLargeStruct(context.SemanticModel, Settings.LargeStructThreashold))
+                ms.ReceiverType.IsLargeStruct(context.Compilation, Settings.LargeStructThreashold))
             {
                 // The expression calls an extension method that takes a struct by value.
                 ReportDiagnostic(context, name ?? expression, ms.ReceiverType);
@@ -126,7 +126,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 resolvedType.TypeKind != TypeKind.Enum &&
                 !resolvedType.IsReadOnlyStruct() &&
                 // Warn only when the size of the struct is larger then threshold
-                resolvedType.IsLargeStruct(context.SemanticModel, Settings.LargeStructThreashold))
+                resolvedType.IsLargeStruct(context.Compilation, Settings.LargeStructThreashold))
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
