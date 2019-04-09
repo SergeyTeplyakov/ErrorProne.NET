@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,8 +11,7 @@ namespace ErrorProne.NET.StructAnalyzers
 {
     public static class TypeExtensions
     {
-        private static readonly object[] EmptyObjectsArray = new object[0];
-        private static readonly ConcurrentDictionary<Type, bool> ReadOnlyMap = new ConcurrentDictionary<Type, bool>();
+        private static readonly ConcurrentDictionary<Type, Func<ITypeSymbol, bool>> IsReadOnlyAccessors = new ConcurrentDictionary<Type, Func<ITypeSymbol, bool>>();
 
         /// <summary>
         /// Returns true if a given type is a struct and the struct is readonly.
@@ -29,24 +29,53 @@ namespace ErrorProne.NET.StructAnalyzers
                 return true;
             }
 
+            if (TryGetPropertyAccessor(IsReadOnlyAccessors, "IsReadOnly", type.GetType(), out var accessor))
+            {
+                return accessor(type);
+            }
+
             if (type is INamedTypeSymbol nt && nt.DeclaringSyntaxReferences.Length != 0)
             {
                 return nt.IsReadOnlyStruct();
             }
 
-            // Unfortunately, there is no way to get the information about the readonliness of the type.
-            // This is not a named type, so we'll try to get IsReadOnly property via reflection.
-            // Dirty, but can't see other options:(
-            return ReadOnlyMap.GetOrAdd(type.GetType(), t =>
-            {
-                var property = t.GetRuntimeProperties().FirstOrDefault(p => p.Name == "IsReadOnly");
-                if (property?.GetMethod == null)
-                {
-                    return false;
-                }
+            return false;
+        }
 
-                return (bool) property.GetMethod.Invoke(type, EmptyObjectsArray);
-            });
+        private static bool TryGetPropertyAccessor<T, TResult>(ConcurrentDictionary<Type, Func<T, TResult>> cache, string propertyName, Type type, out Func<T, TResult> accessor)
+        {
+            if (cache.TryGetValue(type, out accessor))
+            {
+                return accessor != null;
+            }
+
+            return TryGetPropertyAccessorSlow(cache, propertyName, type, out accessor);
+        }
+
+        private static bool TryGetPropertyAccessorSlow<T, TResult>(ConcurrentDictionary<Type, Func<T, TResult>> cache, string propertyName, Type type, out Func<T, TResult> accessor)
+        {
+            accessor = cache.GetOrAdd(
+                type,
+                _ =>
+                {
+                    var getMethod = type.GetRuntimeProperties().FirstOrDefault(property => property.Name == propertyName)?.GetMethod;
+                    if (getMethod is null)
+                    {
+                        return null;
+                    }
+
+                    var obj = Expression.Parameter(typeof(T), "obj");
+                    var instance = !getMethod.IsStatic ? Expression.Convert(obj, getMethod.DeclaringType) : null;
+                    var expr = Expression.Lambda<Func<T, TResult>>(
+                        Expression.Convert(
+                            Expression.Call(instance, getMethod),
+                            typeof(TResult)),
+                        obj);
+
+                    return expr.Compile();
+                });
+
+            return accessor != null;
         }
 
         /// <summary>
