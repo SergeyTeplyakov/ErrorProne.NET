@@ -218,6 +218,34 @@ struct SomeStruct {
 }
 ";
 
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
+        }
+
+        [Test]
+        [WorkItem(133, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/133")]
+        public async Task NonConstantDefaultLiteral()
+        {
+            string code = @"
+struct MyStruct {
+  MyStruct(string str) : this(default, str) { }
+  MyStruct(in MyStruct value, string str) { }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Test]
+        [WorkItem(133, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/133")]
+        public async Task NonConstantDefaultExpression()
+        {
+            string code = @"
+struct MyStruct {
+  MyStruct(string str) : this(default(MyStruct), str) { }
+  MyStruct(in MyStruct value, string str) { }
+}
+";
+
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
     }

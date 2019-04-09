@@ -73,6 +73,17 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
+                if (argument.Value is IConversionOperation conversion
+                    && conversion.Operand is IDefaultValueOperation)
+                {
+                    continue;
+                }
+
+                if (argument.Value is IDefaultValueOperation)
+                {
+                    continue;
+                }
+
                 context.ReportDiagnostic(Diagnostic.Create(Rule, argument.Syntax.GetLocation(), argument.Parameter.Name));
             }
         }
