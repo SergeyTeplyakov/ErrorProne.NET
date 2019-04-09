@@ -100,6 +100,124 @@ struct SomeStruct {
 }
 ";
 
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
+        }
+
+        [Test]
+        [WorkItem(132, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/132")]
+        public async Task NoReferenceToPropertyValue()
+        {
+            string code = @"
+struct SomeStruct {
+  SomeStruct Property => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method(Property); }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Test]
+        [WorkItem(132, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/132")]
+        public async Task ReferenceToRefPropertyValue()
+        {
+            string code = @"
+struct SomeStruct {
+  ref SomeStruct Property => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method([|Property|]); }
+}
+";
+            string expected = @"
+struct SomeStruct {
+  ref SomeStruct Property => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method(in Property); }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
+        }
+
+        [Test]
+        [WorkItem(132, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/132")]
+        public async Task ReferenceToRefReadonlyPropertyValue()
+        {
+            string code = @"
+struct SomeStruct {
+  ref readonly SomeStruct Property => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method([|Property|]); }
+}
+";
+            string expected = @"
+struct SomeStruct {
+  ref readonly SomeStruct Property => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method(in Property); }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
+        }
+
+        [Test]
+        [WorkItem(132, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/132")]
+        public async Task NoReferenceToMethodValue()
+        {
+            string code = @"
+struct SomeStruct {
+  SomeStruct GetProperty() => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method(GetProperty()); }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Test]
+        [WorkItem(132, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/132")]
+        public async Task ReferenceToRefMethodValue()
+        {
+            string code = @"
+struct SomeStruct {
+  ref SomeStruct GetProperty() => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method([|GetProperty()|]); }
+}
+";
+            string expected = @"
+struct SomeStruct {
+  ref SomeStruct GetProperty() => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method(in GetProperty()); }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
+        }
+
+        [Test]
+        [WorkItem(132, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/132")]
+        public async Task ReferenceToRefReadonlyMethodValue()
+        {
+            string code = @"
+struct SomeStruct {
+  ref readonly SomeStruct GetProperty() => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method([|GetProperty()|]); }
+}
+";
+            string expected = @"
+struct SomeStruct {
+  ref readonly SomeStruct GetProperty() => throw null;
+  void Method(in SomeStruct value) { }
+  void Caller() { Method(in GetProperty()); }
+}
+";
+
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
     }

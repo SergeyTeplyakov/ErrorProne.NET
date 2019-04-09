@@ -61,6 +61,18 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
+                if (argument.Value is IPropertyReferenceOperation propertyReference
+                    && propertyReference.Property.RefKind == RefKind.None)
+                {
+                    continue;
+                }
+
+                if (argument.Value is IInvocationOperation methodReference
+                    && methodReference.TargetMethod.RefKind == RefKind.None)
+                {
+                    continue;
+                }
+
                 context.ReportDiagnostic(Diagnostic.Create(Rule, argument.Syntax.GetLocation(), argument.Parameter.Name));
             }
         }
