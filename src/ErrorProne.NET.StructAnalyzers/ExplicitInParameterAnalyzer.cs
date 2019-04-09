@@ -43,6 +43,11 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
+                if (argument.IsImplicit)
+                {
+                    continue;
+                }
+
                 var argumentSyntax = argument.Syntax as ArgumentSyntax;
                 if (argumentSyntax.RefKindKeyword.IsKind(SyntaxKind.InKeyword))
                 {
@@ -50,6 +55,41 @@ namespace ErrorProne.NET.StructAnalyzers
                 }
 
                 if (argument.Value?.ConstantValue.HasValue ?? false)
+                {
+                    continue;
+                }
+
+                if (argument.Value is IObjectCreationOperation)
+                {
+                    continue;
+                }
+
+                if (argument.Value is IInstanceReferenceOperation instanceReference
+                    && instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance
+                    && argument.Value.Type.IsReferenceType)
+                {
+                    continue;
+                }
+
+                if (argument.Value is IPropertyReferenceOperation propertyReference
+                    && propertyReference.Property.RefKind == RefKind.None)
+                {
+                    continue;
+                }
+
+                if (argument.Value is IInvocationOperation methodReference
+                    && methodReference.TargetMethod.RefKind == RefKind.None)
+                {
+                    continue;
+                }
+
+                if (argument.Value is IConversionOperation conversion
+                    && conversion.Operand is IDefaultValueOperation)
+                {
+                    continue;
+                }
+
+                if (argument.Value is IDefaultValueOperation)
                 {
                     continue;
                 }
