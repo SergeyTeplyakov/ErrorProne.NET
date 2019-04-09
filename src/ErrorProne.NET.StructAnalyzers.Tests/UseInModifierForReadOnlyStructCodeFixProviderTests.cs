@@ -31,7 +31,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             string code = @"readonly struct FooBar
 {
     public static void Foo(
-[|        FooBar fb|])
+        [|FooBar fb|])
     {
     }
 

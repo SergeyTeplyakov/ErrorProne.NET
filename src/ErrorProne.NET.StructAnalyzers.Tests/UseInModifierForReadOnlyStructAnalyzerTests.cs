@@ -42,6 +42,27 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
+        [Test]
+        public async Task DiagnosticCanBeSuppressed()
+        {
+            string code = @"
+readonly struct S {readonly long l, l2;}
+
+class FooBar
+{
+    public void Foo(
+#pragma warning disable EPS05
+        S n)
+#pragma warning restore EPS05
+    {
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+
         [TestCaseSource(nameof(GetHasDiagnosticsTestCases))]
         public async Task HasDiagnosticsTestCases(string code)
         {
