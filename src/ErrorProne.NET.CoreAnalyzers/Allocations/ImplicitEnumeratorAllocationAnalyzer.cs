@@ -21,13 +21,13 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
     /// Analyzer that warns when the result of a method invocation is ignore (when it potentially, shouldn't).
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class ImiplicitEnumeratorBoxingAnalyzer : DiagnosticAnalyzer
+    public sealed class ImplicitEnumeratorAllocationAnalyzer : DiagnosticAnalyzer
     {
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.ImplicitBoxing;
 
         private static readonly string Title = "Boxing enumerator.";
-        private static readonly string Message = "Boxing allocation of type '{0}' because of invocation of member '{1}'.";
+        private static readonly string Message = "Allocating or boxing enumerator of type {0}";
 
         private static readonly string Description = "Return values of some methods should be observed.";
         private const string Category = "CodeSmell";
@@ -42,7 +42,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         /// <nodoc />
-        public ImiplicitEnumeratorBoxingAnalyzer() 
+        public ImplicitEnumeratorAllocationAnalyzer() 
             //: base(supportFading: false, diagnostics: Rule)
         {
         }
@@ -57,10 +57,21 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeForeachStatement(SyntaxNodeAnalysisContext context)
         {
-            var foreachStatment = (ForEachStatementSyntax) context.Node;
+            var foreachStatement = (ForEachStatementSyntax) context.Node;
 
-            if (context.SemanticModel.GetOperation(foreachStatment) is IForEachLoopOperation foreachOperation)
+            if (context.SemanticModel.GetOperation(foreachStatement) is IForEachLoopOperation foreachOperation)
             {
+                if (foreachOperation.Collection.Type.SpecialType == SpecialType.System_String)
+                {
+                    return;
+                }
+
+                if (foreachOperation.Collection is IConversionOperation co && co.Operand?.Type is IArrayTypeSymbol)
+                {
+                    // this is foreach over an array that is converted to for loop.
+                    return;
+                }
+
                 var infoProperty = foreachOperation.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Info");
 
                 Contract.Assert(infoProperty != null);
@@ -77,19 +88,12 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
                     if (getEnumeratorMethod?.ReturnType.IsValueType == false)
                     {
-                        context.ReportDiagnostic(Rule, "Call to enumerator");
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, foreachStatement.Expression.GetLocation(), getEnumeratorMethod.ReturnType.Name));
                     }
                 }
 
             }
 
-
-
         }
-
-        //private GetEnumeratorIsStruct(IForEachLoopOperation foreachOperation)
-        //{
-        //    foreachOperation.GetType().GetTypeInfo().GetDeclaredProperty();
-        //}
     }
 }
