@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <PackageId>ErrorProne.NET.CoreAnalyzers.RenameToAvoidConflict</PackageId>
   </PropertyGroup>
 

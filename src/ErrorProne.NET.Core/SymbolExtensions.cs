@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+#nullable enable
+
 namespace ErrorProne.NET.Core
 {
     /// <nodoc />
@@ -42,7 +44,42 @@ namespace ErrorProne.NET.Core
             }
         }
 
-        public static bool TryGetMethodSyntax(this IMethodSymbol method, out MethodDeclarationSyntax result)
+        public static ITypeSymbol? GetSymbolType(this ISymbol symbol)
+        {
+            if (symbol is ILocalSymbol localSymbol)
+            {
+                return localSymbol.Type;
+            }
+
+            if (symbol is IFieldSymbol fieldSymbol)
+            {
+                return fieldSymbol.Type;
+            }
+
+            if (symbol is IPropertySymbol propertySymbol)
+            {
+                return propertySymbol.Type;
+            }
+
+            if (symbol is IParameterSymbol parameterSymbol)
+            {
+                return parameterSymbol.Type;
+            }
+
+            if (symbol is IAliasSymbol aliasSymbol)
+            {
+                return aliasSymbol.Target as ITypeSymbol;
+            }
+
+            if (symbol is IMethodSymbol ms)
+            {
+                return ms.ReturnType;
+            }
+
+            return symbol as ITypeSymbol;
+        }
+
+        public static bool TryGetMethodSyntax(this IMethodSymbol method, out MethodDeclarationSyntax? result)
         {
             result = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as MethodDeclarationSyntax;
             return result != null;

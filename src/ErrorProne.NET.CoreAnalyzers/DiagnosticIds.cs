@@ -27,5 +27,9 @@
         public const string IncorrectExceptionPropagation = "ERP021";
         public const string AllExceptionSwalled = "ERP022";
         public const string OnlyExceptionMessageWasObserved = "ERP023";
+
+        // Allocations
+        public const string ImplicitBoxing = "ERP031";
+        public const string ImplicitEnumeratorBoxing = "ERP032";
     }
 }
