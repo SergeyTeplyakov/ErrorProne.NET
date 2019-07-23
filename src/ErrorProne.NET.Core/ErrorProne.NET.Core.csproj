@@ -14,5 +14,12 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.0" PrivateAssets="all" />
     <PackageReference Include="RuntimeContracts" Version="0.1.7.2" />
   </ItemGroup>
-  
+
+  <PropertyGroup>
+    <InternalsAssemblyNames>Microsoft.CodeAnalysis</InternalsAssemblyNames>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IgnoresAccessChecksToGenerator" Version="0.4.0" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

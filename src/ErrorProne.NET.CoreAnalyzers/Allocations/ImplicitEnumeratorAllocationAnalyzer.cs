@@ -72,28 +72,12 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
                     return;
                 }
 
-                var infoProperty = foreachOperation.GetType().GetTypeInfo().BaseType.GetTypeInfo().GetDeclaredProperty("Info");
-
-                Contract.Assert(infoProperty != null);
-
-                var infoObject = infoProperty.GetMethod.Invoke(foreachOperation, new object[0]);
-
-                if (infoObject != null)
+                var getEnumeratorMethod = foreachOperation.GetEnumeratorMethod();
+                if (getEnumeratorMethod?.ReturnType.IsValueType == false)
                 {
-                    var getEnumeratorMethodField = infoObject.GetType().GetTypeInfo().GetDeclaredField("GetEnumeratorMethod");
-
-                    Contract.Assert(getEnumeratorMethodField != null);
-
-                    var getEnumeratorMethod = (IMethodSymbol)getEnumeratorMethodField.GetValue(infoObject);
-
-                    if (getEnumeratorMethod?.ReturnType.IsValueType == false)
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, foreachStatement.Expression.GetLocation(), getEnumeratorMethod.ReturnType.Name));
-                    }
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, foreachStatement.Expression.GetLocation(), getEnumeratorMethod.ReturnType.Name));
                 }
-
             }
-
         }
     }
 }
