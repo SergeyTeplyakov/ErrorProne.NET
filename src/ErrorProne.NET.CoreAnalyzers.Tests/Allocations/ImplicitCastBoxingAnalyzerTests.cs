@@ -1,19 +1,21 @@
-﻿using NUnit.Framework;
-using RoslynNUnitTestRunner;
-using System.Threading.Tasks;
-using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
-    ErrorProne.NET.CoreAnalyzers.Allocations.ImplicitCastBoxingAllocationAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+﻿using System;
+using System.Collections.Generic;
+using NUnit.Framework;
+using ErrorProne.NET.CoreAnalyzers.Allocations;
+using JetBrains.dotMemoryUnit;
+using JetBrains.dotMemoryUnit.Kernel;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests
 {
     [TestFixture]
     public class ImplicitCastBoxingAnalyzerTests
     {
+        static void VerifyCode(string code) => AllocationTestHelper.VerifyCode<ImplicitCastBoxingAllocationAnalyzer>(code);
+
         [Test]
-        public async Task Implicit_Conversion_In_String_Construction_Causes_Boxing()
+        public void Implicit_Conversion_In_String_Construction_Causes_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,20 +29,32 @@ static class A {
 
         string s2 = $""{[|n|]}"";
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
+            if (!dotMemoryApi.IsEnabled) return;
+
+            Struct s = default;
+
+            var checkpoint = dotMemory.Check();
+
+            string str1 = string.Empty + s;
+
+            var checkpoint2 = dotMemory.Check(check =>
+                Assert.AreEqual(
+                    1,
+                    check.GetDifference(checkpoint).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
+
+            string str2 = $"{s}";
+
+            dotMemory.Check(check =>
+                Assert.AreEqual(
+                    1,
+                    check.GetDifference(checkpoint2).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
         }
 
         [Test]
-        public async Task Implicit_Conversion_Causes_Boxing()
+        public void Implicit_Conversion_Causes_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,20 +74,58 @@ static class A {
         // return statement conversion
         object bar(int n) => [|n|];
     }
-}";
-            await new VerifyCS.Test
+}");
+
+            if (!dotMemoryApi.IsEnabled) return;
+
+            var checkpoint = dotMemory.Check();
+
+            object o = default(Struct);
+
+            var checkpoint2 = dotMemory.Check(check =>
+                Assert.AreEqual(
+                    1,
+                    check.GetDifference(checkpoint).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
+
+            o = default(Struct);
+
+            var checkpoint3 = dotMemory.Check(check =>
+                Assert.AreEqual(
+                    1,
+                    check.GetDifference(checkpoint2).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
+
+            IComparable c = default(ComparableStruct);
+
+            var checkpoint4 = dotMemory.Check(check =>
+                Assert.AreEqual(
+                    1,
+                    check.GetDifference(checkpoint3).GetNewObjects(where => where.Type.Is<ComparableStruct>()).ObjectsCount));
+
+            // argument conversion
+            MemoryCheckPoint checkpoint5;
+            void MethodTakesObject(object arg)
             {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+                checkpoint5 = dotMemory.Check(check =>
+                    Assert.AreEqual(
+                        1,
+                        check.GetDifference(checkpoint4).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
+            }
+            MethodTakesObject(default(Struct));
+
+            // return statement conversion
+            object ReturnAsObject(Struct n) => n;
+            o = ReturnAsObject(default);
+
+            dotMemory.Check(check =>
+                Assert.AreEqual(
+                    1,
+                    check.GetDifference(checkpoint5).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
         }
 
         [Test]
-        public async Task Implicit_Conversion_In_Params_Causes_Boxing()
+        public void Implicit_Conversion_In_Params_Causes_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 static class A {
     static void Bar(params object[] p)
     {
@@ -82,20 +134,26 @@ static class A {
     {
         Bar([|42|]);
     }
-}";
-            await new VerifyCS.Test
+}");
+            if (!dotMemoryApi.IsEnabled) return;
+
+            var checkpoint = dotMemory.Check();
+
+            Bar(default(Struct));
+
+            void Bar(params object[] p)
             {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+                dotMemory.Check(check =>
+                    Assert.AreEqual(
+                        1,
+                        check.GetDifference(checkpoint).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
+            }
         }
 
         [Test]
-        public async Task Implicit_Boxing_For_Delegate_Construction_From_Struct()
+        public void Implicit_Boxing_For_Delegate_Construction_From_Struct()
         {
-            string code = @"
+            VerifyCode(@"
 using System;
 public class C {
  	public void M() {}   
@@ -124,20 +182,26 @@ public struct S {
         a = new Action(S.StaticM);
         a();
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
+            if (!dotMemoryApi.IsEnabled) return;
+
+            Struct s = default;
+
+            var checkpoint = dotMemory.Check();
+
+            var a = new Action(s.Method);
+            var a2 = new Action(Struct.StaticMethod);
+
+            dotMemory.Check(check =>
+                Assert.AreEqual(
+                    1,
+                    check.GetDifference(checkpoint).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
         }
 
         [Test]
-        public async Task Yield_Return_Int_Causes_Boxing()
+        public void Yield_Return_Int_Causes_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -147,21 +211,29 @@ static class A {
     {
         yield return [|42|];
     }
-}";
-            await new VerifyCS.Test
+}");
+            if (!dotMemoryApi.IsEnabled) return;
+
+            var checkpoint = dotMemory.Check();
+
+            foreach (object obj in GetEnumerable())
             {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+                dotMemory.Check(check =>
+                    Assert.AreEqual(
+                        1,
+                        check.GetDifference(checkpoint).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
+            }
+
+            IEnumerable<object> GetEnumerable()
+            {
+                yield return default(Struct);
+            }
         }
 
         [Test]
-        public async Task Test_Implicit_Boxing_When_Foreach_Upcasts_Int_To_Object()
+        public void Test_Implicit_Boxing_When_Foreach_Upcasts_Int_To_Object()
         {
-
-            string code = @"
+            VerifyCode(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -172,14 +244,19 @@ static class A {
         foreach(object obj in [|Enumerable.Range(1,10)|]) {}
         foreach(object obj in [|new int[0]|]) {}
     }
-}";
-            await new VerifyCS.Test
+}");
+
+            if (!dotMemoryApi.IsEnabled) return;
+
+            var checkpoint = dotMemory.Check();
+
+            foreach (object obj in new Struct[] {default})
             {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+                dotMemory.Check(check =>
+                    Assert.AreEqual(
+                        1,
+                        check.GetDifference(checkpoint).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
+            }
         }
     }
 }

@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.ContractsLight;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading.Tasks;
-using ErrorProne.NET.Core;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 
 #nullable enable
 
@@ -63,6 +54,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
             if (targetSymbol != null && invocation.Expression is MemberAccessExpressionSyntax ms)
             {
+                if (targetSymbol.Name == "GetType")
+                {
+                    return;
+                }
+
                 var sourceOperation = context.SemanticModel.GetOperation(ms.Expression);
 
                 if (sourceOperation != null)
