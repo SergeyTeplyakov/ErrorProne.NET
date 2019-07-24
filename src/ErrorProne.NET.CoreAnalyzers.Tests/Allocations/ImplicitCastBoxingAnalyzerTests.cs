@@ -5,7 +5,7 @@ using ErrorProne.NET.CoreAnalyzers.Allocations;
 using JetBrains.dotMemoryUnit;
 using JetBrains.dotMemoryUnit.Kernel;
 
-namespace ErrorProne.NET.CoreAnalyzers.Tests
+namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
 {
     [TestFixture]
     public class ImplicitCastBoxingAnalyzerTests

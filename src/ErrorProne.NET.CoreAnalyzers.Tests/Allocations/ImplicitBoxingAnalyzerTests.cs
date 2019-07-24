@@ -3,7 +3,7 @@ using JetBrains.dotMemoryUnit;
 using JetBrains.dotMemoryUnit.Kernel;
 using NUnit.Framework;
 
-namespace ErrorProne.NET.CoreAnalyzers.Tests
+namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
 {
     [TestFixture]
     public class ImplicitBoxingAnalyzerTests

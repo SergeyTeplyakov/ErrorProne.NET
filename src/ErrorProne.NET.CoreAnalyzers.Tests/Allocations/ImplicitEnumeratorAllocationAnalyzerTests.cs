@@ -6,7 +6,7 @@ using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.Allocations.ImplicitEnumeratorAllocationAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
-namespace ErrorProne.NET.CoreAnalyzers.Tests
+namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
 {
     [TestFixture]
     public class ImplicitEnumeratorAllocationAnalyzerTests

@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using RoslynNUnitTestRunner;
 
-namespace ErrorProne.NET.CoreAnalyzers.Tests
+namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
 {
     static class AllocationTestHelper
     {
