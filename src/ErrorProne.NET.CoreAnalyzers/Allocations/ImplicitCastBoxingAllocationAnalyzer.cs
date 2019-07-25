@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Reflection;
+using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -55,6 +56,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeMethodReference(OperationAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Operation) != NoHiddenAllocationsLevel.Default)
+            {
+                return;
+            }
+
             var methodReference = (IMethodReferenceOperation)context.Operation;
 
             if (methodReference.Instance?.Type?.IsValueType == true && !methodReference.Member.IsStatic)
@@ -65,6 +71,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Operation) != NoHiddenAllocationsLevel.Default)
+            {
+                return;
+            }
+
             var conversion = (IConversionOperation)context.Operation;
 
             var targetType = conversion.Type;
@@ -94,6 +105,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeForEachLoop(SyntaxNodeAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Node, context.SemanticModel) != NoHiddenAllocationsLevel.Default)
+            {
+                return;
+            }
+
             var foreachLoop = (IForEachLoopOperation)context.SemanticModel.GetOperation(context.Node);
 
             ITypeSymbol elementType = foreachLoop.GetElementType();
@@ -111,6 +127,10 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeInterpolation(OperationAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Operation) != NoHiddenAllocationsLevel.Default)
+            {
+                return;
+            }
             // Covering cases when string interpolation is causing boxing, like $"{42}";
 
             if (context.Operation is IInterpolationOperation interpolationOperation && interpolationOperation.Expression.Type?.IsValueType == true)

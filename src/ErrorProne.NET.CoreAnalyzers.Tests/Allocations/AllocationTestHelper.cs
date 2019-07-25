@@ -7,8 +7,20 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
 {
     static class AllocationTestHelper
     {
-        public static void VerifyCode<TAnalyzer>(string code) where TAnalyzer : DiagnosticAnalyzer, new() =>
-            new CSharpCodeFixVerifier<TAnalyzer, EmptyCodeFixProvider>.Test
+        public static void VerifyCode<TAnalyzer>(string code) where TAnalyzer : DiagnosticAnalyzer, new()
+        {
+            // enable all the allocation analyzers by adding an assembly level attribute
+            VerifyCodeImpl<TAnalyzer>(code, injectAssemblyLevelConfigurationAttribute: true);
+        }
+
+        public static void VerifyCodeWithoutAssemblyAttributeInjection<TAnalyzer>(string code) where TAnalyzer : DiagnosticAnalyzer, new()
+        {
+            VerifyCodeImpl<TAnalyzer>(code);
+        }
+
+        private static void VerifyCodeImpl<TAnalyzer>(string code, bool injectAssemblyLevelConfigurationAttribute = false) where TAnalyzer : DiagnosticAnalyzer, new()
+        {
+            var test = new CSharpCodeFixVerifier<TAnalyzer, EmptyCodeFixProvider>.Test
             {
                 TestState =
                 {
@@ -17,7 +29,15 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
                         code
                     },
                 },
-            }.WithoutGeneratedCodeVerification().RunAsync().GetAwaiter().GetResult();
+            }.WithoutGeneratedCodeVerification().WithHiddenAllocationsAttributeDeclaration();
+
+            if (injectAssemblyLevelConfigurationAttribute)
+            {
+                test = test.WithAssemblyLevelHiddenAllocationsAttribute();
+            }
+
+            test.RunAsync().GetAwaiter().GetResult();
+        }
     }
 
     struct Struct

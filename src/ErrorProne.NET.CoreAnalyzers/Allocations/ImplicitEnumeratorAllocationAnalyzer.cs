@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -57,6 +58,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeForeachStatement(SyntaxNodeAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Node, context.SemanticModel) != NoHiddenAllocationsLevel.Default)
+            {
+                return;
+            }
+
             var foreachStatement = (ForEachStatementSyntax) context.Node;
 
             if (context.SemanticModel.GetOperation(foreachStatement) is IForEachLoopOperation foreachOperation)

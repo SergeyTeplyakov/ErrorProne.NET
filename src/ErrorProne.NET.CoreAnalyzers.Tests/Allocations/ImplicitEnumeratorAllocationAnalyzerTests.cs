@@ -11,10 +11,12 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
     [TestFixture]
     public class ImplicitEnumeratorAllocationAnalyzerTests
     {
+        static void VerifyCode(string code) => AllocationTestHelper.VerifyCode<ImplicitEnumeratorAllocationAnalyzer>(code);
+
         [Test]
         public async Task Foreach_On_Iterator_BLock_Causes_Allocation()
         {
-            string code = @"
+            VerifyCode(@"
 using System.Collections.Generic;
 
 class A {
@@ -30,20 +32,13 @@ class A {
             System.Console.WriteLine(e);
         }
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
         }
         
         [Test]
         public async Task Foreach_On_Interface_Causes_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System.Collections.Generic;
 
 class A {
@@ -54,20 +49,13 @@ class A {
             System.Console.WriteLine(e);
         }
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
         }
         
         [Test]
         public async Task Foreach_On_IListExpression_Causes_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System.Collections.Generic;
 
 class A {
@@ -81,20 +69,13 @@ class A {
             System.Console.WriteLine(e);
         }
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
         }
         
         [Test]
         public async Task Foreach_On_Casted_Interface_Causes_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System.Collections.Generic;
 
 class A {
@@ -110,14 +91,7 @@ class A {
             System.Console.WriteLine(e);
         }
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
         }
         
 
@@ -163,7 +137,7 @@ class A {
         [Test]
         public async Task Foreach_On_CustomTypeWithClassEnumerator_Causes_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System.Collections.Generic;
 
 public class ClassEnumerator {
@@ -188,14 +162,7 @@ class A {
             System.Console.WriteLine(e);
         }
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
         }
         
         [Test]

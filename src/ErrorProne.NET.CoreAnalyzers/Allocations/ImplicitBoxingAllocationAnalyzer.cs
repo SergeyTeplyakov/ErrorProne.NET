@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using ErrorProne.NET.AsyncAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -48,6 +49,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Node, context.SemanticModel) != NoHiddenAllocationsLevel.Default)
+            {
+                return;
+            }
+
             var invocation = (InvocationExpressionSyntax)context.Node;
 
             var targetSymbol = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol;
