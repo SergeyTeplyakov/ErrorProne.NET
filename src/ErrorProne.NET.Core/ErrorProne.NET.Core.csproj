@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <InternalsAssemblyNames>Microsoft.CodeAnalysis</InternalsAssemblyNames>
+    <InternalsAssemblyNames>Microsoft.CodeAnalysis;Microsoft.CodeAnalysis.CSharp</InternalsAssemblyNames>
   </PropertyGroup>
 
   <ItemGroup>

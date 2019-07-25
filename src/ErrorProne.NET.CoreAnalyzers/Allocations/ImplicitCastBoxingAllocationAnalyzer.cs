@@ -70,9 +70,25 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
             var targetType = conversion.Type;
             var operandType = conversion.Operand.Type;
 
+            
+
             if (conversion.IsImplicit && operandType.IsValueType && targetType.IsReferenceType)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, conversion.Operand.Syntax.GetLocation(), operandType.ToDisplayString(), targetType.ToDisplayString()));
+            }
+            else if (conversion.IsImplicit && operandType.IsTupleType && targetType.IsTupleType)
+            {
+                var operandTypes = operandType.GetTupleTypes();
+                var targetTypes = targetType.GetTupleTypes();
+
+                for (var i = 0; i < operandTypes.Length; i++)
+                {
+                    if (operandTypes[i].IsValueType && targetTypes[i].IsReferenceType)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, conversion.Operand.Syntax.GetLocation(), operandType.ToDisplayString(), targetType.ToDisplayString()));
+                        break;
+                    }
+                }
             }
         }
 
