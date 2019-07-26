@@ -8,6 +8,7 @@ using System.Text;
 
 namespace ErrorProne.NET.Core
 {
+    // TODO: rename to unsafe?
     public static class ForEachAnalysisHelper
     {
         public static IMethodSymbol GetEnumeratorMethod(this IForEachLoopOperation foreachLoop)

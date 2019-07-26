@@ -25,7 +25,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
     public sealed class ImplicitEnumeratorAllocationAnalyzer : DiagnosticAnalyzer
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.ImplicitBoxing;
+        public const string DiagnosticId = DiagnosticIds.ImplicitEnumeratorBoxing;
 
         private static readonly string Title = "Boxing enumerator.";
         private static readonly string Message = "Allocating or boxing enumerator of type {0}";
