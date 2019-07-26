@@ -1,15 +1,16 @@
 ﻿using NUnit.Framework;
-using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
-using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
-    ErrorProne.NET.CoreAnalyzers.Allocations.DelegateAllocationAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using ErrorProne.NET.CoreAnalyzers.Allocations;
+using ErrorProne.NET.CoreAnalyzers.Tests.Allocations;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests
 {
     [TestFixture]
     public class DelegateAllocationAnalyzerTests
     {
+        static Task ValidateCodeAsync(string code) =>
+            AllocationTestHelper.VerifyCodeAsync<DelegateAllocationAnalyzer>(code);
+
         [Test]
         public async Task Delegate_Allocation_For_Simple_Lambda()
         {
@@ -53,17 +54,6 @@ class A {
     private static int staticValue = 42;
     private static int GetValue() => 42;
 }");
-        }
-
-        private Task ValidateCodeAsync(string code)
-        {
-            return new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().WithHiddenAllocationsAttributeDeclaration().WithAssemblyLevelHiddenAllocationsAttribute().RunAsync();
         }
     }
 }

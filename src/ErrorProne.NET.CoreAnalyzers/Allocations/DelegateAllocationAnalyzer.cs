@@ -51,7 +51,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void DelegateCreation(OperationAnalysisContext context)
         {
-            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
+            if (context.IsHiddenAllocationsAllowed())
             {
                 return;
             }
@@ -70,6 +70,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeAnonymousFunction(OperationAnalysisContext context)
         {
+            if (context.IsHiddenAllocationsAllowed())
+            {
+                return;
+            }
+
             // TODO: revisit this implementation! Maybe this can be done in DelegateCreation.
             var operation = context.Operation;
 

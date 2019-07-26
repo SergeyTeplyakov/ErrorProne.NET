@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.CoreAnalyzers.Allocations;
 using JetBrains.dotMemoryUnit;
@@ -20,7 +20,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
     {
         private static void VerifyCode(string code)
         {
-            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<ImplicitCastBoxingAllocationAnalyzer>(code);
+            AllocationTestHelper.VerifyCode<ImplicitCastBoxingAllocationAnalyzer>(code, injectAssemblyLevelConfigurationAttribute: false);
         }
 
         private static object[] NoHiddenAllocationAttributeCombinations =
@@ -63,9 +63,6 @@ class A {
 }".ReplaceAttribute(noHiddenAllocationAttribute));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
         public void Properties(string noHiddenAllocationAttribute)
         {

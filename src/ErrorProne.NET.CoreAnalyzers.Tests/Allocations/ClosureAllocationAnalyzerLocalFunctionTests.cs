@@ -1,15 +1,15 @@
 ﻿using NUnit.Framework;
-using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
-using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
-    ErrorProne.NET.CoreAnalyzers.Allocations.ClosureAllocationAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using ErrorProne.NET.CoreAnalyzers.Allocations;
+using ErrorProne.NET.CoreAnalyzers.Tests.Allocations;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests
 {
     [TestFixture]
     public class ClosureAllocationAnalyzerLocalFunctionTests
     {
+        static Task ValidateCodeAsync(string code) => AllocationTestHelper.VerifyCodeAsync<ClosureAllocationAnalyzer>(code);
+
         [Test]
         public async Task Closure_Is_Allocated_When_Local_Function_Is_Converted_To_Delegate()
         {
@@ -91,17 +91,6 @@ class A {
         int local() => arg;
     }
 }");
-        }
-
-        private Task ValidateCodeAsync(string code)
-        {
-            return new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().WithHiddenAllocationsAttributeDeclaration().WithAssemblyLevelHiddenAllocationsAttribute().RunAsync();
         }
     }
 }

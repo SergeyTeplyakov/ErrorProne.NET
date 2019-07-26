@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
+[assembly:NoHiddenAllocations] public sealed class NoHiddenAllocationsAttribute : System.Attribute
+{
+
+}
 namespace ErrorProne.NET.AsyncAnalyzers
 {
-    [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-    public sealed class NoHiddenAllocationsAttribute : Attribute
-    {
-    }
-
     public static class NoHiddenAllocationsConfiguration
     {
-        private enum NoHiddenAllocationsLevel
+        public enum NoHiddenAllocationsLevel
         {
             Default,
             Recursive,
@@ -39,7 +38,12 @@ namespace ErrorProne.NET.AsyncAnalyzers
             return TryGetConfiguration(operation.Syntax, operation.SemanticModel);
         }
 
-        private static NoHiddenAllocationsLevel? TryGetConfiguration(SyntaxNode node, SemanticModel semanticModel)
+        public static bool IsHiddenAllocationsAllowed(this OperationAnalysisContext context)
+        {
+            return TryGetConfiguration(context.Operation.Syntax, context.Operation.SemanticModel) == null;
+        }
+
+        public static NoHiddenAllocationsLevel? TryGetConfiguration(SyntaxNode node, SemanticModel semanticModel)
         {
             // The assembly can have the attribute, or any of the node's ancestors
             if (TryGetAllocationLevel(semanticModel.Compilation.Assembly.GetAttributes(), AttributeName, out var allocationLevel))

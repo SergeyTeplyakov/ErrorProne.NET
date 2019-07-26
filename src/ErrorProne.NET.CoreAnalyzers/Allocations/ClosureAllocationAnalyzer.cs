@@ -64,7 +64,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeLocalFunction(OperationAnalysisContext context)
         {
-            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
+            if (context.IsHiddenAllocationsAllowed())
             {
                 return;
             }
@@ -101,7 +101,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeAnonymousFunction(OperationAnalysisContext context)
         {
-            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
+            if (context.IsHiddenAllocationsAllowed())
             {
                 return;
             }

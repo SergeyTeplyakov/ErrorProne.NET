@@ -14,7 +14,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
         static void VerifyCode(string code) => AllocationTestHelper.VerifyCode<ImplicitEnumeratorAllocationAnalyzer>(code);
 
         [Test]
-        public async Task Foreach_On_Iterator_BLock_Causes_Allocation()
+        public void Foreach_On_Iterator_BLock_Causes_Allocation()
         {
             VerifyCode(@"
 using System.Collections.Generic;
@@ -36,7 +36,7 @@ class A {
         }
         
         [Test]
-        public async Task Foreach_On_Interface_Causes_Boxing()
+        public void Foreach_On_Interface_Causes_Boxing()
         {
             VerifyCode(@"
 using System.Collections.Generic;
@@ -53,7 +53,7 @@ class A {
         }
         
         [Test]
-        public async Task Foreach_On_IListExpression_Causes_Boxing()
+        public void Foreach_On_IListExpression_Causes_Boxing()
         {
             VerifyCode(@"
 using System.Collections.Generic;
@@ -73,7 +73,7 @@ class A {
         }
         
         [Test]
-        public async Task Foreach_On_Casted_Interface_Causes_Boxing()
+        public void Foreach_On_Casted_Interface_Causes_Boxing()
         {
             VerifyCode(@"
 using System.Collections.Generic;
@@ -97,9 +97,9 @@ class A {
 
 
         [Test]
-        public async Task Foreach_On_CustomTypeWithStructEnumerator_DoesNotCause_Boxing()
+        public void Foreach_On_CustomTypeWithStructEnumerator_DoesNotCause_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System.Collections.Generic;
 
 public struct StructEnumerator {
@@ -124,18 +124,11 @@ class A {
             System.Console.WriteLine(e);
         }
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
         }
         
         [Test]
-        public async Task Foreach_On_CustomTypeWithClassEnumerator_Causes_Boxing()
+        public void Foreach_On_CustomTypeWithClassEnumerator_Causes_Boxing()
         {
             VerifyCode(@"
 using System.Collections.Generic;
@@ -166,9 +159,9 @@ class A {
         }
         
         [Test]
-        public async Task Foreach_On_String_Causes_No_Boxing()
+        public void Foreach_On_String_Causes_No_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System.Collections.Generic;
 
 class A {
@@ -179,20 +172,13 @@ class A {
             System.Console.WriteLine(e);
         }
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
         }
         
         [Test]
-        public async Task Foreach_On_StringArray_Causes_No_Boxing()
+        public void Foreach_On_StringArray_Causes_No_Boxing()
         {
-            string code = @"
+            VerifyCode(@"
 using System.Collections.Generic;
 
 class A {
@@ -203,15 +189,7 @@ class A {
             System.Console.WriteLine(e);
         }
     }
-}";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+}");
         }
-
     }
 }

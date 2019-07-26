@@ -1,24 +1,27 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using RoslynNUnitTestRunner;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
 {
+
     static class AllocationTestHelper
     {
-        public static void VerifyCode<TAnalyzer>(string code) where TAnalyzer : DiagnosticAnalyzer, new()
+        public static void VerifyCode<TAnalyzer>(string code, bool injectAssemblyLevelConfigurationAttribute = true) where TAnalyzer : DiagnosticAnalyzer, new()
         {
             // enable all the allocation analyzers by adding an assembly level attribute
-            VerifyCodeImpl<TAnalyzer>(code, injectAssemblyLevelConfigurationAttribute: true);
+            VerifyCodeAsync<TAnalyzer>(code).GetAwaiter().GetResult();
         }
 
-        public static void VerifyCodeWithoutAssemblyAttributeInjection<TAnalyzer>(string code) where TAnalyzer : DiagnosticAnalyzer, new()
+        public static Task VerifyCodeAsync<TAnalyzer>(string code, bool injectAssemblyLevelConfigurationAttribute = true) where TAnalyzer : DiagnosticAnalyzer, new()
         {
-            VerifyCodeImpl<TAnalyzer>(code);
+            // enable all the allocation analyzers by adding an assembly level attribute
+            return VerifyCodeImpl<TAnalyzer>(code, injectAssemblyLevelConfigurationAttribute: true);
         }
 
-        private static void VerifyCodeImpl<TAnalyzer>(string code, bool injectAssemblyLevelConfigurationAttribute = false) where TAnalyzer : DiagnosticAnalyzer, new()
+        private static Task VerifyCodeImpl<TAnalyzer>(string code, bool injectAssemblyLevelConfigurationAttribute = false) where TAnalyzer : DiagnosticAnalyzer, new()
         {
             var test = new CSharpCodeFixVerifier<TAnalyzer, EmptyCodeFixProvider>.Test
             {
@@ -26,7 +29,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
                 {
                     Sources =
                     {
-                        code
+                        code,
                     },
                 },
             }.WithoutGeneratedCodeVerification().WithHiddenAllocationsAttributeDeclaration();
@@ -36,7 +39,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
                 test = test.WithAssemblyLevelHiddenAllocationsAttribute();
             }
 
-            test.RunAsync().GetAwaiter().GetResult();
+            return test.RunAsync();
         }
     }
 

@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
-using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
-    ErrorProne.NET.CoreAnalyzers.Allocations.ClosureAllocationAnalyzer,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using ErrorProne.NET.CoreAnalyzers.Allocations;
+using ErrorProne.NET.CoreAnalyzers.Tests.Allocations;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests
 {
     [TestFixture]
     public class ClosureAllocationAnalyzerTests
     {
+        static Task ValidateCodeAsync(string code) => AllocationTestHelper.VerifyCodeAsync<ClosureAllocationAnalyzer>(code);
+
         public void ClosureAllocations(int arg)
         {
             // Delegate allocation for 'n'
@@ -261,17 +261,6 @@ class A {
         }
     }
 }");
-        }
-
-        private Task ValidateCodeAsync(string code)
-        {
-            return new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().WithHiddenAllocationsAttributeDeclaration().WithAssemblyLevelHiddenAllocationsAttribute().RunAsync();
         }
     }
 }
