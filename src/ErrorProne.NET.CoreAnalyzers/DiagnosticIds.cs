@@ -32,6 +32,8 @@
         public const string ImplicitBoxing = "ERP031";
         public const string ImplicitEnumeratorBoxing = "ERP032";
         public const string ExplicitCastBoxing = "ERP033";
-        public const string LinqAllocation = "ERP034";
+        public const string ClosureAllocation = "ERP034";
+        public const string DelegateAllocation = "ERP035";
+        public const string LinqAllocation = "ERP036";
     }
 }

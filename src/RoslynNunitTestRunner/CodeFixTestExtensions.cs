@@ -48,7 +48,7 @@ internal sealed class DoNotUseConfigureAwaitAttribute : System.Attribute { }
     Inherited = true
 )]
 internal sealed class NoHiddenAllocations : System.Attribute {
-    public bool Indirect;
+    public bool Recursive;
 }
 ");
 

@@ -85,6 +85,8 @@ static class A {
 
         // return statement conversion
         object bar(int n) => [|n|];
+
+        object x = string.Empty + [|42|];
     }
 }");
 
