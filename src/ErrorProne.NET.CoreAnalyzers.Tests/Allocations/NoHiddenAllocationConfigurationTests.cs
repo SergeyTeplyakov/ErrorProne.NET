@@ -1,4 +1,5 @@
-﻿using ErrorProne.NET.AsyncAnalyzers;
+﻿using System.Collections.Generic;
+using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.CoreAnalyzers.Allocations;
 using JetBrains.dotMemoryUnit;
 using JetBrains.dotMemoryUnit.Kernel;
@@ -6,13 +7,32 @@ using NUnit.Framework;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
 {
+    public static class StringExtensions
+    {
+        public static string ReplaceAttribute(this string codeSnippet, string actualAttribute)
+        {
+            return codeSnippet.Replace("[NoHiddenAllocations]", actualAttribute);
+        }
+    }
+
     [TestFixture]
     public class NoHiddenAllocationConfigurationTests
     {
-        static void VerifyCode(string code) => AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<ImplicitCastBoxingAllocationAnalyzer>(code);
+        private static void VerifyCode(string code)
+        {
+            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<ImplicitCastBoxingAllocationAnalyzer>(code);
+        }
 
-        [Test]
-        public void Functions()
+        private static object[] NoHiddenAllocationAttributeCombinations =
+        {
+            new object[] {"[NoHiddenAllocations]"},
+            new object[] {"[NoHiddenAllocations(Recursive = true)]"},
+            new object[] {"[NoHiddenAllocations(Recursive = false)]"},
+            new object[] {"[NoHiddenAllocations(Recursive = false || true)]"}
+        };
+
+        [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
+        public void Functions(string noHiddenAllocationAttribute)
         {
             VerifyCode(@"
 [NoHiddenAllocations]
@@ -21,12 +41,11 @@ class A {
     static object G() {
         return [|1|];
     }
-}");
-
+}".ReplaceAttribute(noHiddenAllocationAttribute));
         }
-        
-        [Test]
-        public void Local_Function()
+
+        [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
+        public void Local_Function(string noHiddenAllocationAttribute)
         {
             VerifyCode(@"
 class A {
@@ -41,15 +60,14 @@ class A {
             return [|1|];
         }
     }
-}");
-
+}".ReplaceAttribute(noHiddenAllocationAttribute));
         }
 
         /// <summary>
         /// 
         /// </summary>
-        [Test]
-        public void Properties()
+        [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
+        public void Properties(string noHiddenAllocationAttribute)
         {
             VerifyCode(@"
 class A {
@@ -90,12 +108,11 @@ class A {
             object local() => [|1|];
         }
     }
-}");
-
+}".ReplaceAttribute(noHiddenAllocationAttribute));
         }
-        
-        [Test]
-        public void Partial_Class()
+
+        [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
+        public void Partial_Class(string noHiddenAllocationAttribute)
         {
             VerifyCode(@"
 [NoHiddenAllocations]
@@ -107,7 +124,7 @@ partial class A {
         
         return [|1|];
     }
-}");
+}".ReplaceAttribute(noHiddenAllocationAttribute));
         }
     }
 }
