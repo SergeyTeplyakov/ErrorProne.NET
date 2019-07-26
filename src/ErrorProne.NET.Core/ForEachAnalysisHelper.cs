@@ -13,21 +13,21 @@ namespace ErrorProne.NET.Core
     {
         public static IMethodSymbol GetEnumeratorMethod(this IForEachLoopOperation foreachLoop)
         {
-            var loop = (BaseForEachLoopStatement)foreachLoop;
+            var loop = (BaseForEachLoopOperation)foreachLoop;
 
             return loop.Info.GetEnumeratorMethod;
         }
 
         public static ITypeSymbol GetElementType(this IForEachLoopOperation foreachLoop)
         {
-            var loop = (BaseForEachLoopStatement)foreachLoop;
+            var loop = (BaseForEachLoopOperation)foreachLoop;
 
             return loop.Info.ElementType;
         }
 
         public static Conversion? GetConversionInfo(this IForEachLoopOperation foreachLoop)
         {
-            var loop = (BaseForEachLoopStatement)foreachLoop;
+            var loop = (BaseForEachLoopOperation)foreachLoop;
             return loop.Info.ElementConversion as Conversion?;
         }
     }

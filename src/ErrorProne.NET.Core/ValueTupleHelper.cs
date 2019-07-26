@@ -9,7 +9,8 @@ namespace ErrorProne.NET.Core
         public static ITypeSymbol[] GetTupleTypes(this ITypeSymbol tupleType)
         {
             var tuple = (TupleTypeSymbol)tupleType;
-            return tuple.TupleElementTypes.ToArray();
+
+            return tuple.TupleElementTypesWithAnnotations.Select(t => (ITypeSymbol)t.Type).ToArray();
         }
     }
 }
