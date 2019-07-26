@@ -49,7 +49,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
         {
-            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Node, context.SemanticModel) != NoHiddenAllocationsLevel.Default)
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Node, context.SemanticModel))
             {
                 return;
             }

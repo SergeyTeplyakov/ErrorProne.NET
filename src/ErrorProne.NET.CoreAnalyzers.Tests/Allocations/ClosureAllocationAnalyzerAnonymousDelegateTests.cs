@@ -87,7 +87,7 @@ class A {
                 {
                     Sources = { code },
                 },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            }.WithoutGeneratedCodeVerification().WithHiddenAllocationsAttributeDeclaration().WithAssemblyLevelHiddenAllocationsAttribute().RunAsync();
         }
     }
 }

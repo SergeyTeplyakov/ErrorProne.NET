@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
+using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -63,6 +64,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeLocalFunction(OperationAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
+            {
+                return;
+            }
+
             var operation = context.Operation;
             var dataflow = operation.SemanticModel.AnalyzeDataFlow(operation.Syntax);
             if (dataflow.Captured.Length != 0 && !dataflow.CapturesOnlyThis())
@@ -95,6 +101,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeAnonymousFunction(OperationAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
+            {
+                return;
+            }
+
             var operation = context.Operation;
 
             var dataflow = operation.SemanticModel.AnalyzeDataFlow(operation.Syntax);

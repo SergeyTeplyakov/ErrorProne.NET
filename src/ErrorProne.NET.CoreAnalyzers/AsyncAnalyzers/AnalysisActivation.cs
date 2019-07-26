@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,34 +9,42 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace ErrorProne.NET.AsyncAnalyzers
 {
-    public enum NoHiddenAllocationsLevel
-    {
-        Default,
-        Recursive,
-    }
-
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public sealed class NoHiddenAllocationsAttribute : Attribute
     {
-
     }
 
     public static class NoHiddenAllocationsConfiguration
     {
+        private enum NoHiddenAllocationsLevel
+        {
+            Default,
+            Recursive,
+        }
+
         private static string AttributeName = "NoHiddenAllocations";
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="semanticModel"></param>
-        /// <returns></returns>
-        public static NoHiddenAllocationsLevel? TryGetConfiguration(SyntaxNode node, SemanticModel semanticModel)
+        public static bool ShouldNotDetectAllocationsFor(SyntaxNode node, SemanticModel semanticModel)
+        {
+            return TryGetConfiguration(node, semanticModel) == null;
+        }
+
+        public static bool ShouldNotDetectAllocationsFor(IOperation operation)
+        {
+            return TryGetConfiguration(operation) == null;
+        }
+
+        private static NoHiddenAllocationsLevel? TryGetConfiguration(IOperation operation)
+        {
+            return TryGetConfiguration(operation.Syntax, operation.SemanticModel);
+        }
+
+        private static NoHiddenAllocationsLevel? TryGetConfiguration(SyntaxNode node, SemanticModel semanticModel)
         {
             // The assembly can have the attribute, or any of the node's ancestors
-            if (ContainsAttribute(semanticModel.Compilation.Assembly.GetAttributes(), AttributeName))
+            if (TryGetAllocationLevel(semanticModel.Compilation.Assembly.GetAttributes(), AttributeName, out var allocationLevel))
             {
-                return NoHiddenAllocationsLevel.Default;
+                return allocationLevel;
             }
 
             var operation = semanticModel.GetOperation(node);
@@ -55,36 +62,51 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
                     var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclarationSyntax);
 
-                    if (ContainsAttribute(propertySymbol?.GetAttributes(), AttributeName))
+                    if (TryGetAllocationLevel(propertySymbol?.GetAttributes(), AttributeName, out allocationLevel))
                     {
-                        return NoHiddenAllocationsLevel.Default;
+                        return allocationLevel;
                     }
                 }
 
                 var symbol = semanticModel.GetDeclaredSymbol(enclosingMethodBodyOperation.Syntax);
 
-                if (symbol != null && symbol.GetContainingSymbolsAndSelf().Any(s => ContainsAttribute(s.GetAttributes(), AttributeName)))
+                if (symbol != null && TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
                 {
-                    return NoHiddenAllocationsLevel.Default;
+                    return allocationLevel;
                 }
             }
-            
+
             // Property with arrow blocks (either automatic property with default or arrow based getter / setter) with attribute on property
             var enclosingArrowBlock =
-                operation?.AncestorAndSelf().FirstOrDefault(o =>(o is IBlockOperation && o.Syntax is ArrowExpressionClauseSyntax));
+                operation?.AncestorAndSelf().FirstOrDefault(o => o is IBlockOperation && o.Syntax is ArrowExpressionClauseSyntax);
 
             if (enclosingArrowBlock != null)
             {
                 // Need to get a property declaration in this case for Arrow-based property
                 var symbol = semanticModel.GetDeclaredSymbol(GetPropertyDeclarationSyntax((ArrowExpressionClauseSyntax) enclosingArrowBlock.Syntax));
 
-                if (symbol != null && symbol.GetContainingSymbolsAndSelf().Any(s => ContainsAttribute(s.GetAttributes(), AttributeName)))
+                if (symbol != null && TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
                 {
-                    return NoHiddenAllocationsLevel.Default;
+                    return allocationLevel;
                 }
             }
 
             return null;
+        }
+
+        private static bool TryGetAllocationLevelFromSymbolOrAncestors(ISymbol symbol, out NoHiddenAllocationsLevel? allocationLevel)
+        {
+            foreach (var containingSymbol in symbol.GetContainingSymbolsAndSelf())
+            {
+                if (TryGetAllocationLevel(containingSymbol.GetAttributes(), AttributeName, out var level))
+                {
+                    allocationLevel = level;
+                    return true;
+                }
+            }
+
+            allocationLevel = null;
+            return false;
         }
 
         private static SyntaxNode GetPropertyDeclarationSyntax(ArrowExpressionClauseSyntax node)
@@ -92,15 +114,26 @@ namespace ErrorProne.NET.AsyncAnalyzers
             return node.AncestorsAndSelf().FirstOrDefault(a => a is PropertyDeclarationSyntax);
         }
 
-        public static NoHiddenAllocationsLevel? TryGetConfiguration(IOperation operation)
+        private static bool TryGetAllocationLevel(
+            ImmutableArray<AttributeData>? attributes,
+            string attributeName,
+            out NoHiddenAllocationsLevel? allocationLevel)
         {
+            allocationLevel = null;
 
-            return TryGetConfiguration(operation.Syntax, operation.SemanticModel);
-        }
+            var attribute = (attributes?.Where(a => a.AttributeClass.Name.StartsWith(attributeName)) ?? Enumerable.Empty<AttributeData>()).FirstOrDefault();
 
-        private static bool ContainsAttribute(ImmutableArray<AttributeData>? attributes, string attributeName)
-        {
-            return attributes.HasValue && attributes.Value.Any(a => a.AttributeClass.Name.StartsWith(attributeName));
+            if (attribute == null)
+            {
+                allocationLevel = null;
+                return false;
+            }
+
+            allocationLevel = attribute.NamedArguments.Any(kvp => kvp.Key.Equals("Recursive") && kvp.Value.Value.Equals(true))
+                ? NoHiddenAllocationsLevel.Recursive
+                : NoHiddenAllocationsLevel.Default;
+
+            return true;
         }
 
         private static IEnumerable<IOperation> AncestorAndSelf(this IOperation operation)
@@ -119,9 +152,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 yield return symbol;
                 symbol = symbol.ContainingSymbol;
             }
-
         }
-
     }
 
     public static class ConfigureAwaitConfiguration

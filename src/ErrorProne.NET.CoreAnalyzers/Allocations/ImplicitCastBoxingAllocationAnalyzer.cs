@@ -56,7 +56,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeMethodReference(OperationAnalysisContext context)
         {
-            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Operation) != NoHiddenAllocationsLevel.Default)
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
             {
                 return;
             }
@@ -71,7 +71,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Operation) != NoHiddenAllocationsLevel.Default)
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
             {
                 return;
             }
@@ -105,7 +105,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeForEachLoop(SyntaxNodeAnalysisContext context)
         {
-            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Node, context.SemanticModel) != NoHiddenAllocationsLevel.Default)
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Node, context.SemanticModel))
             {
                 return;
             }
@@ -127,7 +127,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void AnalyzeInterpolation(OperationAnalysisContext context)
         {
-            if (NoHiddenAllocationsConfiguration.TryGetConfiguration(context.Operation) != NoHiddenAllocationsLevel.Default)
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
             {
                 return;
             }

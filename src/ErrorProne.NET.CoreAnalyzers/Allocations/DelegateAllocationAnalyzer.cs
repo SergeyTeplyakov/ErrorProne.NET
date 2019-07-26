@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
+using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -50,6 +51,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
         private void DelegateCreation(OperationAnalysisContext context)
         {
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(context.Operation))
+            {
+                return;
+            }
+
             // This method is called for anonymous methods as well,
             // but this method only handles method group conversion
             // and the next method deals with delegate allocations.
@@ -66,6 +72,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
         {
             // TODO: revisit this implementation! Maybe this can be done in DelegateCreation.
             var operation = context.Operation;
+
+            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(operation))
+            {
+                return;
+            }
 
             var dataflow = operation.SemanticModel.AnalyzeDataFlow(operation.Syntax);
             if (dataflow.Captured.Length != 0)
