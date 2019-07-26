@@ -13,7 +13,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
         static void VerifyCode(string code) => AllocationTestHelper.VerifyCode<ImplicitCastBoxingAllocationAnalyzer>(code);
 
         [Test]
-        public void ValueTuple_Conversion() => VerifyCode(@"
+        public void ValueTuple_Conversion_Causes_Boxing() => VerifyCode(@"
 using System;
 struct S {}
 static class A {
