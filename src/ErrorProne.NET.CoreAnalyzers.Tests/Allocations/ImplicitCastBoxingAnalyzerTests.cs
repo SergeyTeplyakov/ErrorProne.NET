@@ -10,7 +10,8 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
     [TestFixture]
     public class ImplicitCastBoxingAnalyzerTests
     {
-        static void VerifyCode(string code) => AllocationTestHelper.VerifyCode<ImplicitCastBoxingAllocationAnalyzer>(code);
+        static void VerifyCode(string code) =>
+            AllocationTestHelper.VerifyCode<ImplicitCastBoxingAllocationAnalyzer>(code);
 
         [Test]
         public void ValueTuple_Conversion_Causes_Boxing() => VerifyCode(@"
@@ -110,10 +111,12 @@ static class A {
             var checkpoint4 = dotMemory.Check(check =>
                 Assert.AreEqual(
                     1,
-                    check.GetDifference(checkpoint3).GetNewObjects(where => where.Type.Is<ComparableStruct>()).ObjectsCount));
+                    check.GetDifference(checkpoint3).GetNewObjects(where => where.Type.Is<ComparableStruct>())
+                        .ObjectsCount));
 
             // argument conversion
             MemoryCheckPoint checkpoint5;
+
             void MethodTakesObject(object arg)
             {
                 checkpoint5 = dotMemory.Check(check =>
@@ -121,6 +124,7 @@ static class A {
                         1,
                         check.GetDifference(checkpoint4).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
             }
+
             MethodTakesObject(default(Struct));
 
             // return statement conversion
@@ -269,5 +273,70 @@ static class A {
                         check.GetDifference(checkpoint).GetNewObjects(where => where.Type.Is<Struct>()).ObjectsCount));
             }
         }
+
+        [Test]
+        public void Cast_To_ValueType()
+        {
+            VerifyCode(@"
+struct S { }
+class A {
+    void M(){
+        System.ValueType vt = [|default(S)|];
+    }
+}");
+        }
+
+        [Test]
+        public void Cast_To_Enum()
+        {
+            VerifyCode(@"
+enum E { A }
+class A { 
+    void M() { 
+        System.Enum e = [|E.A|]; 
+    } 
+}");
+        }
+
+        [Test]
+        public void Extension_Method_Causes_Boxing()
+        {
+            VerifyCode(@"
+interface I {}
+struct S : I {}
+static class E {
+    public static void SomeExtension(this I i) {}
+}
+class A {
+    void M() {
+        S s = default;
+        [|s|].SomeExtension();
+    }
+}");
+        }
+
+        [Test]
+        public void Params_Arguments_Causes_Boxing() =>
+            VerifyCode(@"
+struct S {}
+class A {
+    static void N(params object[] parameters){}
+    void M() {
+        N([|1|], [|default(S)|], string.Empty);
+    }
+}");
+
+        [Test]
+        public void UserDefined_Implicit_Cast_Is_Ignored() =>
+            VerifyCode(@"
+struct S {
+    public static implicit operator string(S s) => null;
+}
+class A {
+    void M() {
+        string str = default(S);
+    }
+}
+");
     }
 }

@@ -25,7 +25,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
         private static readonly string Title = "Explicit cast boxing allocation.";
         private static readonly string Message = "Boxing allocation of type '{0}' because of implicit cast to type '{1}'.";
 
-        private static readonly string Description = "Boxing is happening because of an explicit cast from value type to non value type.";
+        private static readonly string Description = "Boxing is happening because of an implicit cast from value type to non value type.";
         private const string Category = "CodeSmell";
 
         // Using warning for visibility purposes
@@ -81,13 +81,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
             var targetType = conversion.Type;
             var operandType = conversion.Operand.Type;
 
-            
-
-            if (conversion.IsImplicit && operandType.IsValueType && targetType.IsReferenceType)
+            if (conversion.IsImplicit && !conversion.Conversion.IsUserDefined && operandType?.IsValueType == true && targetType?.IsReferenceType == true)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, conversion.Operand.Syntax.GetLocation(), operandType.ToDisplayString(), targetType.ToDisplayString()));
             }
-            else if (conversion.IsImplicit && operandType.IsTupleType && targetType.IsTupleType)
+            else if (conversion.IsImplicit && operandType?.IsTupleType == true && targetType?.IsTupleType == true)
             {
                 var operandTypes = operandType.GetTupleTypes();
                 var targetTypes = targetType.GetTupleTypes();
