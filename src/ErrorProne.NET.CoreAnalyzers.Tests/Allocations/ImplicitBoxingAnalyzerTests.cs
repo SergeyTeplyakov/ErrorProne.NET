@@ -52,6 +52,23 @@ class A {
         }
 
         [Test]
+        public void Extension_Method_On_Struct_Should_Cause_No_Warnings()
+        {
+            VerifyCode(@"
+interface I {}
+struct S : I {}
+static class E {
+    public static void Foo(this S i) {}
+}
+class A {
+    void M() {
+        S s = default;
+        s.Foo();
+    }
+}");
+        }
+
+        [Test]
         public void Calling_Non_Override_On_Struct_Causes_Boxing()
         {
             VerifyCode(@"

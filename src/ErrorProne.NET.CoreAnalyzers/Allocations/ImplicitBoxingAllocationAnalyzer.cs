@@ -69,7 +69,8 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
                 if (sourceOperation != null)
                 {
-                    if (sourceOperation.Type?.IsValueType == true && targetSymbol.ContainingType?.IsValueType == false)
+                    if (sourceOperation.Type?.IsValueType == true && targetSymbol.ContainingType?.IsValueType == false &&
+                        !(targetSymbol is IMethodSymbol method && method.IsExtensionMethod))
                     {
                         // The source expression is a struct, but the target method ends in System.Object, System.ValueType or System.Enum
                         var fullTargetMemberName = targetSymbol.ToDisplayString();

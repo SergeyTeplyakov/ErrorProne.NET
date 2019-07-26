@@ -307,12 +307,14 @@ class A {
 interface I {}
 struct S : I {}
 static class E {
-    public static void SomeExtension(this I i) {}
+    public static void Foo(this S i) {}
+    public static void Bar(this I i) {}
 }
 class A {
     void M() {
         S s = default;
-        [|s|].SomeExtension();
+        s.Foo();
+        [|s|].Bar();
     }
 }");
         }
