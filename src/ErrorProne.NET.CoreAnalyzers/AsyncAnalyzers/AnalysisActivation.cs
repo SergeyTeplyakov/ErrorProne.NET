@@ -33,6 +33,16 @@ namespace ErrorProne.NET.AsyncAnalyzers
             return TryGetConfiguration(operation) == null;
         }
 
+        public static bool ShouldNotDetectAllocationsFor(ISymbol symbol)
+        {
+            return TryGetAllocationLevelFromSymbolOrAncestors(symbol, out _) == false;
+        }
+
+        public static bool ShouldNotEnforceRecursiveApplication(IOperation operation)
+        {
+            return TryGetConfiguration(operation) != NoHiddenAllocationsLevel.Recursive;
+        }
+
         private static NoHiddenAllocationsLevel? TryGetConfiguration(IOperation operation)
         {
             return TryGetConfiguration(operation.Syntax, operation.SemanticModel);
@@ -74,7 +84,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
                 var symbol = semanticModel.GetDeclaredSymbol(enclosingMethodBodyOperation.Syntax);
 
-                if (symbol != null && TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
+                if (TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
                 {
                     return allocationLevel;
                 }
@@ -89,7 +99,18 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 // Need to get a property declaration in this case for Arrow-based property
                 var symbol = semanticModel.GetDeclaredSymbol(GetPropertyDeclarationSyntax((ArrowExpressionClauseSyntax) enclosingArrowBlock.Syntax));
 
-                if (symbol != null && TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
+                if (TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
+                {
+                    return allocationLevel;
+                }
+            }
+
+            // node could be a property declaration syntax, which does not have operations
+            if (operation == null && node is PropertyDeclarationSyntax propertySyntax)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(propertySyntax);
+
+                if (TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
                 {
                     return allocationLevel;
                 }
@@ -100,6 +121,13 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
         private static bool TryGetAllocationLevelFromSymbolOrAncestors(ISymbol symbol, out NoHiddenAllocationsLevel? allocationLevel)
         {
+            allocationLevel = null;
+
+            if (symbol == null)
+            {
+                return false;
+            }
+
             foreach (var containingSymbol in symbol.GetContainingSymbolsAndSelf())
             {
                 if (TryGetAllocationLevel(containingSymbol.GetAttributes(), AttributeName, out var level))
@@ -109,7 +137,6 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 }
             }
 
-            allocationLevel = null;
             return false;
         }
 

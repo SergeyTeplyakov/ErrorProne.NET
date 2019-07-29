@@ -18,7 +18,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
     [TestFixture]
     public class NoHiddenAllocationConfigurationTests
     {
-        private static void VerifyCode(string code)
+        private static void VerifyAllocatingCode(string code)
         {
             AllocationTestHelper.VerifyCode<ImplicitCastBoxingAllocationAnalyzer>(code, injectAssemblyLevelConfigurationAttribute: false);
         }
@@ -34,7 +34,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
         public void Functions(string noHiddenAllocationAttribute)
         {
-            VerifyCode(@"
+            VerifyAllocatingCode(@"
 [NoHiddenAllocations]
 class A {
     static object F() => [|1|];
@@ -47,7 +47,7 @@ class A {
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
         public void Local_Function(string noHiddenAllocationAttribute)
         {
-            VerifyCode(@"
+            VerifyAllocatingCode(@"
 class A {
     [NoHiddenAllocations]	
     static object F() {
@@ -66,7 +66,7 @@ class A {
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
         public void Properties(string noHiddenAllocationAttribute)
         {
-            VerifyCode(@"
+            VerifyAllocatingCode(@"
 class A {
     
     [NoHiddenAllocations]    
@@ -111,7 +111,7 @@ class A {
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
         public void Partial_Class(string noHiddenAllocationAttribute)
         {
-            VerifyCode(@"
+            VerifyAllocatingCode(@"
 [NoHiddenAllocations]
 partial class A { }
 
@@ -122,6 +122,256 @@ partial class A {
         return [|1|];
     }
 }".ReplaceAttribute(noHiddenAllocationAttribute));
+        }
+
+        [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
+        public void Recursive_Application_Is_Enforced(string noHiddenAllocationAttribute)
+        {
+            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+static class DirectCallsiteClass {
+
+    [NoHiddenAllocations(Recursive = true)]
+    static void DirectCallsiteMethod() {
+        IndirectTargetClass.IndirectTargetMethod();
+        
+        DirectTargetClass.DirectTargetMethod();
+        [|DirectTargetClass.NonMarkedMethod()|];
+
+        [|DirectTargetWithoutReceiver()|];
+    }
+    
+    static void DirectTargetWithoutReceiver(){
+    }
+}
+
+[NoHiddenAllocations(Recursive = true)]
+static class IndirectCallsiteClass {
+    static void IndirectCallsiteMethod() {
+        IndirectTargetClass.IndirectTargetMethod();
+        
+        DirectTargetClass.DirectTargetMethod();
+        [|DirectTargetClass.NonMarkedMethod()|];
+
+        IndirectTargetWithoutReceiver();
+    }
+
+    static void IndirectTargetWithoutReceiver(){
+    }
+}
+
+[NoHiddenAllocations]
+class IndirectTargetClass {
+    
+    public static void IndirectTargetMethod() {
+    }
+}
+
+class DirectTargetClass {
+    
+    [NoHiddenAllocations]
+    public static void DirectTargetMethod() {
+    }
+
+    public static void NonMarkedMethod() {
+    }
+}
+".ReplaceAttribute(noHiddenAllocationAttribute));
+        }
+
+        [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
+        public void Recursive_Application_Callchains(string noHiddenAllocationAttribute)
+        {
+            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+class A {
+    [NoHiddenAllocations(Recursive=true)]
+    static void B(){
+        var a = new A();
+        [|a.C().D()|].E();
+    }
+
+    [NoHiddenAllocations]
+    A C(){
+        return this;
+    }
+
+    A D(){
+        return this;
+    }
+    
+    [NoHiddenAllocations]
+    A E(){
+        return this;
+    }
+}
+".ReplaceAttribute(noHiddenAllocationAttribute));
+        }
+
+        [Test]
+        public void Recursive_Application_Properties()
+        {
+            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+class A {    
+    public object B => 1;
+
+    public object C {
+        get => 1;
+    }
+
+    public object D {
+        get { return 1;}
+    }
+
+    public object E {
+        get => 1;
+
+        set {
+            object o = 1;
+        }
+    }
+    
+    public object F {
+        get { return 1; }
+    }
+
+    public object G {
+        get { 
+            return local();
+
+            object local() => 1;
+        }
+    }
+    
+    [NoHiddenAllocations(Recursive=true)]
+    static void Method(){
+        var a = new A();
+        
+        object o = [|a.B|];
+        o = [|a.C|];
+        o = [|a.D|];
+        o = [|a.E|];
+
+        [|a.E|] = 2;
+
+        o = [|a.F|];
+        o = [|a.G|];
+    }
+}
+");
+        }
+        
+        [Test]
+        public void Recursive_Application_Is_Not_Sensitive_To_Property_Access_Type()
+        {
+            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+class A {    
+    public object B {
+        [NoHiddenAllocations]
+        get => 1;
+
+        set {
+            object o = 1;
+        }
+    }
+
+    public object C {
+        get => 1;
+        
+        [NoHiddenAllocations]
+        set {
+            object o = 1;
+        }
+    }
+    
+    [NoHiddenAllocations]
+    public object D {
+        get => 1;
+
+        set {
+            object o = 1;
+        }
+    }
+    
+    [NoHiddenAllocations(Recursive=true)]
+    static void Method(){
+        var a = new A();
+        
+        object o = [|a.B|];
+        
+        [|a.C|] = 1;
+
+        o = a.D;
+        a.D = 2;
+    }
+}
+");
+        }
+
+        [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
+        public void Recursive_Application_Is_Sensitive_To_Constructors(string noHiddenAllocationAttribute)
+        {
+            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+namespace Foo
+{
+    class A {
+        [NoHiddenAllocations(Recursive=true)]
+        static A(){
+            StaticC();
+            [|StaticD()|];
+        }
+
+        [NoHiddenAllocations]
+        static void StaticC(){
+        }
+
+        static void StaticD(){
+        }
+
+        [NoHiddenAllocations(Recursive=true)]
+        void E(){
+            object a = new B();
+            a = new C();
+            a = new D();
+            a = [|new E()|];
+            a = new E(1);
+            a = new F();
+            a = [|new G()|];
+        }
+    }
+
+    [NoHiddenAllocations]
+    class B{
+    }
+
+    [NoHiddenAllocations]
+    class C{
+        public C(){
+        }
+    }
+
+    class D{
+        [NoHiddenAllocations]
+        public D(){
+        }
+    }
+
+    class E{
+        public E(){
+        }
+        
+        [NoHiddenAllocations]
+        public E(int a){
+        }
+    }
+
+    class F{
+    }
+
+    class G{
+        public G(){
+        }
+    }
+}
+".ReplaceAttribute(noHiddenAllocationAttribute));
         }
     }
 }
