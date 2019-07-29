@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.CoreAnalyzers.Allocations;
 using JetBrains.dotMemoryUnit;
@@ -125,9 +126,9 @@ partial class A {
         }
 
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
-        public void Recursive_Application_Is_Enforced(string noHiddenAllocationAttribute)
+        public async Task Recursive_Application_Is_Enforced(string noHiddenAllocationAttribute)
         {
-            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            await AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 static class DirectCallsiteClass {
 
     [NoHiddenAllocations(Recursive = true)]
@@ -175,13 +176,13 @@ class DirectTargetClass {
     public static void NonMarkedMethod() {
     }
 }
-".ReplaceAttribute(noHiddenAllocationAttribute));
+".ReplaceAttribute(noHiddenAllocationAttribute), injectAssemblyLevelConfigurationAttribute: false);
         }
 
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
-        public void Recursive_Application_Callchains(string noHiddenAllocationAttribute)
+        public async Task Recursive_Application_Callchains(string noHiddenAllocationAttribute)
         {
-            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            await AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 class A {
     [NoHiddenAllocations(Recursive=true)]
     static void B(){
@@ -203,13 +204,13 @@ class A {
         return this;
     }
 }
-".ReplaceAttribute(noHiddenAllocationAttribute));
+".ReplaceAttribute(noHiddenAllocationAttribute), injectAssemblyLevelConfigurationAttribute: false);
         }
 
         [Test]
-        public void Recursive_Application_Properties()
+        public async Task Recursive_Application_Properties()
         {
-            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            await AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 class A {    
     public object B => 1;
 
@@ -256,13 +257,13 @@ class A {
         o = [|a.G|];
     }
 }
-");
+", injectAssemblyLevelConfigurationAttribute: false);
         }
         
         [Test]
-        public void Recursive_Application_Is_Not_Sensitive_To_Property_Access_Type()
+        public async Task Recursive_Application_Is_Not_Sensitive_To_Property_Access_Type()
         {
-            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            await AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 class A {    
     public object B {
         [NoHiddenAllocations]
@@ -303,13 +304,13 @@ class A {
         a.D = 2;
     }
 }
-");
+", injectAssemblyLevelConfigurationAttribute: false);
         }
 
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
-        public void Recursive_Application_Is_Sensitive_To_Constructors(string noHiddenAllocationAttribute)
+        public async Task Recursive_Application_Is_Sensitive_To_Constructors(string noHiddenAllocationAttribute)
         {
-            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            await AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 namespace Foo
 {
     class A {
@@ -371,7 +372,8 @@ namespace Foo
         }
     }
 }
-".ReplaceAttribute(noHiddenAllocationAttribute));
+".ReplaceAttribute(noHiddenAllocationAttribute), injectAssemblyLevelConfigurationAttribute: false);
+        }
         }
     }
 }

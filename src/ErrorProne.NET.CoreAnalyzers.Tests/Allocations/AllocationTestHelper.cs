@@ -12,13 +12,13 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
         public static void VerifyCode<TAnalyzer>(string code, bool injectAssemblyLevelConfigurationAttribute = true) where TAnalyzer : DiagnosticAnalyzer, new()
         {
             // enable all the allocation analyzers by adding an assembly level attribute
-            VerifyCodeAsync<TAnalyzer>(code).GetAwaiter().GetResult();
+            VerifyCodeAsync<TAnalyzer>(code, injectAssemblyLevelConfigurationAttribute).GetAwaiter().GetResult();
         }
 
         public static Task VerifyCodeAsync<TAnalyzer>(string code, bool injectAssemblyLevelConfigurationAttribute = true) where TAnalyzer : DiagnosticAnalyzer, new()
         {
             // enable all the allocation analyzers by adding an assembly level attribute
-            return VerifyCodeImpl<TAnalyzer>(code, injectAssemblyLevelConfigurationAttribute: true);
+            return VerifyCodeImpl<TAnalyzer>(code, injectAssemblyLevelConfigurationAttribute);
         }
 
         private static Task VerifyCodeImpl<TAnalyzer>(string code, bool injectAssemblyLevelConfigurationAttribute = false) where TAnalyzer : DiagnosticAnalyzer, new()
