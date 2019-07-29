@@ -127,7 +127,7 @@ partial class A {
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
         public void Recursive_Application_Is_Enforced(string noHiddenAllocationAttribute)
         {
-            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 static class DirectCallsiteClass {
 
     [NoHiddenAllocations(Recursive = true)]
@@ -181,7 +181,7 @@ class DirectTargetClass {
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
         public void Recursive_Application_Callchains(string noHiddenAllocationAttribute)
         {
-            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 class A {
     [NoHiddenAllocations(Recursive=true)]
     static void B(){
@@ -209,7 +209,7 @@ class A {
         [Test]
         public void Recursive_Application_Properties()
         {
-            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 class A {    
     public object B => 1;
 
@@ -262,7 +262,7 @@ class A {
         [Test]
         public void Recursive_Application_Is_Not_Sensitive_To_Property_Access_Type()
         {
-            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 class A {    
     public object B {
         [NoHiddenAllocations]
@@ -309,7 +309,7 @@ class A {
         [TestCaseSource(nameof(NoHiddenAllocationAttributeCombinations))]
         public void Recursive_Application_Is_Sensitive_To_Constructors(string noHiddenAllocationAttribute)
         {
-            AllocationTestHelper.VerifyCodeWithoutAssemblyAttributeInjection<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+            AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
 namespace Foo
 {
     class A {
