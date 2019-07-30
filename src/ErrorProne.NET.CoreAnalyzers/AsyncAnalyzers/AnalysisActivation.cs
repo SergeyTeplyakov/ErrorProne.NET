@@ -7,10 +7,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+#nullable enable
 
 [assembly:NoHiddenAllocations] public sealed class NoHiddenAllocationsAttribute : System.Attribute
+public sealed class NoHiddenAllocationsAttribute : System.Attribute
 {
-
+    public bool Recursive;
 }
 namespace ErrorProne.NET.AsyncAnalyzers
 {
