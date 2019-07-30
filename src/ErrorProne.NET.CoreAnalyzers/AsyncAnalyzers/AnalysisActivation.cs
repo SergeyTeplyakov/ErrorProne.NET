@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.ContractsLight;
 using System.Linq;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
@@ -25,21 +26,30 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
         public static bool ShouldNotDetectAllocationsFor(SyntaxNode node, SemanticModel semanticModel)
         {
+            Contract.Requires(node != null);
+            Contract.Requires(semanticModel != null);
+
             return TryGetConfiguration(node, semanticModel) == null;
         }
 
         public static bool ShouldNotDetectAllocationsFor(IOperation operation)
         {
+            Contract.Requires(operation != null);
+
             return TryGetConfiguration(operation) == null;
         }
 
         public static bool ShouldNotDetectAllocationsFor(ISymbol symbol)
         {
+            Contract.Requires(symbol != null);
+
             return TryGetAllocationLevelFromSymbolOrAncestors(symbol, out _) == false;
         }
 
         public static bool ShouldNotEnforceRecursiveApplication(IOperation operation)
         {
+            Contract.Requires(operation != null);
+
             return TryGetConfiguration(operation) != NoHiddenAllocationsLevel.Recursive;
         }
 

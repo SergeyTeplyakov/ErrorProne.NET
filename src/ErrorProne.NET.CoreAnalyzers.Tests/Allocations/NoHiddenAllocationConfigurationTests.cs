@@ -374,6 +374,26 @@ namespace Foo
 }
 ".ReplaceAttribute(noHiddenAllocationAttribute), injectAssemblyLevelConfigurationAttribute: false);
         }
+        
+        [Test]
+        public async Task Recursive_Application_Is_Insensitive_To_Library_Code()
+        {
+            await AllocationTestHelper.VerifyCodeAsync<RecursiveNoHiddenAllocationAttributeAnalyzer>(@"
+using System.Collections.Generic;
+
+namespace Foo
+{
+    class A {
+        [NoHiddenAllocations(Recursive=true)]
+        void M(){
+            var list = new List<string>();
+            list.Add(""test"");
+
+            var count = list.Count;
+        }
+    }
+}
+", injectAssemblyLevelConfigurationAttribute: false);
         }
     }
 }

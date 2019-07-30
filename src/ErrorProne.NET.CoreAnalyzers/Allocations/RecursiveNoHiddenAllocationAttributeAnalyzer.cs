@@ -67,6 +67,12 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
                 return;
             }
 
+            // do not trigger for library code
+            if (operation.Constructor.ContainingType.DeclaringSyntaxReferences.Length == 0)
+            {
+                return;
+            }
+
             if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(operation.Constructor))
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, operation.Syntax.GetLocation(), "Constructor for", operation.Type.Name));
@@ -104,7 +110,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
             var operation = ((IInvocationOperation) context.Operation);
             var targetSyntax = operation.TargetMethod.TryGetDeclarationSyntax();
 
-            if (NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(targetSyntax, context.Operation.SemanticModel))
+            if (targetSyntax != null && NoHiddenAllocationsConfiguration.ShouldNotDetectAllocationsFor(targetSyntax, context.Operation.SemanticModel))
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, operation.Syntax.GetLocation(), "Method", operation.TargetMethod.Name));
             }
