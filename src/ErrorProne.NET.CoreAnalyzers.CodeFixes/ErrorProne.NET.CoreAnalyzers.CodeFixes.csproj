@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
     <AssemblyName>ErrorProne.Net.CoreAnalyzers.CodeFixes</AssemblyName>
     <RootNamespace>ErrorProne.NET</RootNamespace>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -11,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -53,6 +52,8 @@
   <ItemGroup>
     <!-- Analyzer packages should not have any dependencies. -->
     <PackageReference Update="@(PackageReference)" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.CodeAnalysis" Version="3.1.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Analyzers" Version="2.9.3" />
     <ProjectReference Update="@(ProjectReference)" PrivateAssets="all" />
   </ItemGroup>
 

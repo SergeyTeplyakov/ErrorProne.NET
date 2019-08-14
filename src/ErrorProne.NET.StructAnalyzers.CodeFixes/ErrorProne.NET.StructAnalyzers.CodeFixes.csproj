@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>ErrorProne.Net.StructAnalyzers.CodeFixes</AssemblyName>
     <RootNamespace>ErrorProne.Net.StructAnalyzers</RootNamespace>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -49,6 +49,8 @@
   <ItemGroup>
     <!-- Analyzer packages should not have any dependencies. -->
     <PackageReference Update="@(PackageReference)" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Analyzers" Version="2.9.3" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.1.0" />
     <ProjectReference Update="@(ProjectReference)" PrivateAssets="all" />
   </ItemGroup>
 
