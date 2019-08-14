@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Reflection;
-using ErrorProne.NET.AsyncAnalyzers;
+﻿using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -13,41 +9,10 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace ErrorProne.NET.CoreAnalyzers.Allocations
 {
-    /// <summary>
-    /// Analyzer that warns when the result of a method invocation is ignore (when it potentially, shouldn't).
-    /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class ImplicitCastBoxingAllocationAnalyzer : DiagnosticAnalyzer
+    partial class ImplicitBoxingAllocationAnalyzer
     {
-        /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.ExplicitCastBoxing;
-
-        private static readonly string Title = "Explicit cast boxing allocation.";
-        private static readonly string Message = "Boxing allocation of type '{0}' because of implicit cast to type '{1}'.";
-
-        private static readonly string Description = "Boxing is happening because of an implicit cast from value type to non value type.";
-        private const string Category = "CodeSmell";
-
-        // Using warning for visibility purposes
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
-
-        /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Message, Category, Severity, isEnabledByDefault: true, description: Description);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
-
-        /// <nodoc />
-        public ImplicitCastBoxingAllocationAnalyzer() 
-            //: base(supportFading: false, diagnostics: Rule)
+        private void RegisterImplicitBoxingOperations(AnalysisContext context)
         {
-        }
-
-        /// <inheritdoc />
-        public override void Initialize(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-
             context.RegisterOperationAction(AnalyzeOperation, OperationKind.Conversion);
             context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
             context.RegisterSyntaxNodeAction(AnalyzeForEachLoop, SyntaxKind.ForEachStatement);
@@ -63,6 +28,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
 
             var methodReference = (IMethodReferenceOperation)context.Operation;
 
+            // This is a method group conversion from a struct's instance method.
             if (methodReference.Instance?.Type?.IsValueType == true && !methodReference.Member.IsStatic)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, methodReference.Instance.Syntax.GetLocation(), methodReference.Instance.Type.ToDisplayString(), "object"));
@@ -81,11 +47,16 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
             var targetType = conversion.Type;
             var operandType = conversion.Operand.Type;
 
-            if (conversion.IsImplicit && !conversion.Conversion.IsUserDefined && operandType?.IsValueType == true && targetType?.IsReferenceType == true)
+            if (conversion.IsImplicit &&
+                operandType?.IsValueType == true && 
+                targetType?.IsReferenceType == true
+                // User-defined conversions are fine: if they cause allocations then the conversion itself should be marked with NoHiddenAllocations.    
+                && !conversion.Conversion.IsUserDefined)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, conversion.Operand.Syntax.GetLocation(), operandType.ToDisplayString(), targetType.ToDisplayString()));
             }
-            else if (conversion.IsImplicit && operandType?.IsTupleType == true && targetType?.IsTupleType == true)
+
+            if (conversion.IsImplicit && operandType?.IsTupleType == true && targetType?.IsTupleType == true)
             {
                 var operandTypes = operandType.GetTupleTypes();
                 var targetTypes = targetType.GetTupleTypes();
@@ -94,6 +65,8 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
                 {
                     if (operandTypes[i].IsValueType && targetTypes[i].IsReferenceType)
                     {
+                        // This is the following case:
+                        // (object, object) foo() => (1, 2);
                         context.ReportDiagnostic(Diagnostic.Create(Rule, conversion.Operand.Syntax.GetLocation(), operandType.ToDisplayString(), targetType.ToDisplayString()));
                         break;
                     }
@@ -107,6 +80,10 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
             {
                 return;
             }
+
+            // foreach loop can cause boxing allocation in the following case:
+            // foreach(object o in Enumerable.Range(1, 10))
+            // In this case, all the elements are boxed to a target type.
 
             var foreachLoop = (IForEachLoopOperation)context.SemanticModel.GetOperation(context.Node);
 
@@ -129,8 +106,8 @@ namespace ErrorProne.NET.CoreAnalyzers.Allocations
             {
                 return;
             }
-            // Covering cases when string interpolation is causing boxing, like $"{42}";
 
+            // Covering cases when string interpolation is causing boxing, like $"{42}";
             if (context.Operation is IInterpolationOperation interpolationOperation && interpolationOperation.Expression.Type?.IsValueType == true)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, interpolationOperation.Expression.Syntax.GetLocation(), interpolationOperation.Expression.Type.ToDisplayString(), "object"));

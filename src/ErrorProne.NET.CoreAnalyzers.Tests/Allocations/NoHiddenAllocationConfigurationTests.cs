@@ -20,7 +20,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
     {
         private static void VerifyCode(string code)
         {
-            AllocationTestHelper.VerifyCode<ImplicitCastBoxingAllocationAnalyzer>(code, injectAssemblyLevelConfigurationAttribute: false);
+            AllocationTestHelper.VerifyCode<ImplicitBoxingAllocationAnalyzer>(code, injectAssemblyLevelConfigurationAttribute: false);
         }
 
         private static object[] NoHiddenAllocationAttributeCombinations =

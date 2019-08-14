@@ -33,6 +33,11 @@ namespace ErrorProne.NET.AsyncAnalyzers
             return TryGetConfiguration(operation) == null;
         }
 
+        public static bool ShouldNotDetectAllocationsFor(this SyntaxNodeAnalysisContext context)
+        {
+            return ShouldNotDetectAllocationsFor(context.Node, context.SemanticModel);
+        }
+
         private static NoHiddenAllocationsLevel? TryGetConfiguration(IOperation operation)
         {
             return TryGetConfiguration(operation.Syntax, operation.SemanticModel);
@@ -63,12 +68,14 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 if (enclosingMethodBodyOperation.Syntax is AccessorDeclarationSyntax accessorDeclaration)
                 {
                     var propertyDeclarationSyntax = accessorDeclaration.Ancestors().FirstOrDefault(a => a is PropertyDeclarationSyntax);
-
-                    var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclarationSyntax);
-
-                    if (TryGetAllocationLevel(propertySymbol?.GetAttributes(), AttributeName, out allocationLevel))
+                    if (propertyDeclarationSyntax != null)
                     {
-                        return allocationLevel;
+                        var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclarationSyntax);
+
+                        if (TryGetAllocationLevel(propertySymbol?.GetAttributes(), AttributeName, out allocationLevel))
+                        {
+                            return allocationLevel;
+                        }
                     }
                 }
 

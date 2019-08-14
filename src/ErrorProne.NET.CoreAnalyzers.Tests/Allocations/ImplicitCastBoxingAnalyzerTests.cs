@@ -11,7 +11,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Allocations
     public class ImplicitCastBoxingAnalyzerTests
     {
         static void VerifyCode(string code) =>
-            AllocationTestHelper.VerifyCode<ImplicitCastBoxingAllocationAnalyzer>(code);
+            AllocationTestHelper.VerifyCode<ImplicitBoxingAllocationAnalyzer>(code);
 
         [Test]
         public void ValueTuple_Conversion_Causes_Boxing() => VerifyCode(@"
@@ -21,7 +21,16 @@ static class A {
     static (S, S) _tuple = (default, default);
     static (object, object) M() => [|_tuple|];
     static (object, object) N() => ([|default(S)|], [|default(S)|]);
+}");
 
+        [Test]
+        public void ValueTuple_Conversion_Causes_No_Boxing_For_User_Defined_Conversion() => VerifyCode(@"
+public class C {}
+public struct MyStruct
+{
+    public static implicit operator C(MyStruct ms) => null;
+    public static (C, C) Test() => (new MyStruct(), new MyStruct());
+    public static (object, object) Test2() => (new MyStruct(), new MyStruct());
 }");
 
         [Test]
@@ -277,6 +286,22 @@ static class A {
         }
 
         [Test]
+        public void Interface_Method_Call_Causes_Boxing()
+        {
+            VerifyCode(@"
+interface IFoo {void Foo();}
+struct S : IFoo {public void Foo() {}}
+static class A {
+	static void CallFoo(IFoo foo) => foo.Foo();
+    static void Main()
+    {
+        S s = default;
+        CallFoo([|s|]);
+    }
+}");
+        }
+
+        [Test]
         public void Cast_To_ValueType()
         {
             VerifyCode(@"
@@ -301,7 +326,7 @@ class A {
         }
 
         [Test]
-        public void Extension_Method_Causes_Boxing()
+        public void Extension_Method_On_Interface_Causes_Boxing()
         {
             VerifyCode(@"
 interface I {}

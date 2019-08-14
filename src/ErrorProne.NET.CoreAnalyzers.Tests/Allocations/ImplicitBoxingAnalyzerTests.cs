@@ -69,22 +69,60 @@ class A {
         }
 
         [Test]
+        public void Calling_GetHashCode_On_Generic_Should_Not_Cause_Warning()
+        {
+            VerifyCode(@"
+class A {
+    // This should not cause any warnings.
+    static int GenericGetHashCode<T>(T t) where T: struct => t.GetHashCode();
+
+    static string GenericToString<T>(T t) where T: struct => t.ToString();
+}
+
+class GA<T> where T : struct
+{
+    static int GenericGetHashCode()
+    {
+        T t = default;
+        return t.GetHashCode();
+    }
+}
+
+");
+        }
+
+        [Test]
+        public void Interface_Method_Call_Causes_No_Boxing_When_Called_Via_Generics_With_Constraints()
+        {
+            VerifyCode(@"
+interface IFoo {void Foo();}
+static class A {
+	static void CallFoo<T>(T foo) where T : struct, IFoo => foo.Foo();
+}");
+        }
+
+        [Test]
         public void Calling_Non_Override_On_Struct_Causes_Boxing()
         {
             VerifyCode(@"
+namespace FooBar {
 struct S { }
 class A {
     static S GetS() => default;
     static S MyS => default;
 
+    // This should not cause any warnings.
+    static int GetHashCodeGeneric<T>(T t) where T: struct => t.GetHashCode();
+
 	static void Main() {
 		S s = default;
 
         string str2 = GetS().[|ToString|]();
-        var hc3 = s.[|GetHashCode|]();
+        var hc3 = [|s.GetHashCode|]();
         var e3 = MyS.[|Equals|](default);
         var type2 = GetS().GetType(); // Should not warn
-	}
+
+}}
 }");
 
             if (!dotMemoryApi.IsEnabled) return;
