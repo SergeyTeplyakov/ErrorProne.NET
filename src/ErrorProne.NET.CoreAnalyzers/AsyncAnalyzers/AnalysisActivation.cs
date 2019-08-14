@@ -1,15 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.ContractsLight;
 using System.Linq;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+#nullable enable
 
 [assembly:NoHiddenAllocations] public sealed class NoHiddenAllocationsAttribute : System.Attribute
+public sealed class NoHiddenAllocationsAttribute : System.Attribute
 {
-
+    public bool Recursive;
 }
 namespace ErrorProne.NET.AsyncAnalyzers
 {
@@ -25,17 +28,36 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
         public static bool ShouldNotDetectAllocationsFor(SyntaxNode node, SemanticModel semanticModel)
         {
+            Contract.Requires(node != null);
+            Contract.Requires(semanticModel != null);
+
             return TryGetConfiguration(node, semanticModel) == null;
         }
 
         public static bool ShouldNotDetectAllocationsFor(IOperation operation)
         {
+            Contract.Requires(operation != null);
+
             return TryGetConfiguration(operation) == null;
         }
 
         public static bool ShouldNotDetectAllocationsFor(this SyntaxNodeAnalysisContext context)
         {
             return ShouldNotDetectAllocationsFor(context.Node, context.SemanticModel);
+        }
+
+        public static bool ShouldNotDetectAllocationsFor(ISymbol symbol)
+        {
+            Contract.Requires(symbol != null);
+
+            return TryGetAllocationLevelFromSymbolOrAncestors(symbol, out _) == false;
+        }
+
+        public static bool ShouldNotEnforceRecursiveApplication(IOperation operation)
+        {
+            Contract.Requires(operation != null);
+
+            return TryGetConfiguration(operation) != NoHiddenAllocationsLevel.Recursive;
         }
 
         private static NoHiddenAllocationsLevel? TryGetConfiguration(IOperation operation)
@@ -81,7 +103,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
                 var symbol = semanticModel.GetDeclaredSymbol(enclosingMethodBodyOperation.Syntax);
 
-                if (symbol != null && TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
+                if (TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
                 {
                     return allocationLevel;
                 }
@@ -96,7 +118,18 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 // Need to get a property declaration in this case for Arrow-based property
                 var symbol = semanticModel.GetDeclaredSymbol(GetPropertyDeclarationSyntax((ArrowExpressionClauseSyntax) enclosingArrowBlock.Syntax));
 
-                if (symbol != null && TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
+                if (TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
+                {
+                    return allocationLevel;
+                }
+            }
+
+            // node could be a property declaration syntax, which does not have operations
+            if (operation == null && node is PropertyDeclarationSyntax propertySyntax)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(propertySyntax);
+
+                if (TryGetAllocationLevelFromSymbolOrAncestors(symbol, out allocationLevel))
                 {
                     return allocationLevel;
                 }
@@ -107,6 +140,13 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
         private static bool TryGetAllocationLevelFromSymbolOrAncestors(ISymbol symbol, out NoHiddenAllocationsLevel? allocationLevel)
         {
+            allocationLevel = null;
+
+            if (symbol == null)
+            {
+                return false;
+            }
+
             foreach (var containingSymbol in symbol.GetContainingSymbolsAndSelf())
             {
                 if (TryGetAllocationLevel(containingSymbol.GetAttributes(), AttributeName, out var level))
@@ -116,7 +156,6 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 }
             }
 
-            allocationLevel = null;
             return false;
         }
 
