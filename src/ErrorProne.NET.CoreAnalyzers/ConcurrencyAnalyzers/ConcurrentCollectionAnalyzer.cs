@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
@@ -45,43 +46,81 @@ namespace ErrorProne.NET.AsyncAnalyzers
             context.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
         }
 
+        private static readonly HashSet<string> ConcurrentDictionaryUnsafeLinqOperations = new HashSet<string>()
+        {
+            nameof(Enumerable.OrderBy),
+            nameof(Enumerable.OrderByDescending),
+            nameof(Enumerable.ToList),
+            nameof(Enumerable.ToArray),
+            nameof(Enumerable.Reverse), // Reverse uses Buffer under the hood and is not thread safe
+        };
+
         private void AnalyzeInvocationOperation(OperationAnalysisContext context)
         {
             // Detecting the calls to concurrentDictionaryInstance.OrderBy because
             // it may fail with ArgumentException if the collection is being mutated concurrently at the same time.
             var invocationOperation = (IInvocationOperation)context.Operation;
 
-            var firstArg = invocationOperation.Arguments[0];
-            var semanticModel = context.Compilation.GetSemanticModel(firstArg.Syntax.SyntaxTree);
 
-            // For concurrentDictionaryInstance.OrderBy(x => x.Key) case the first argument's syntax is an identifier.
-            var argumentIdentifier = firstArg.Syntax as IdentifierNameSyntax;
-            if (argumentIdentifier is null)
-            {
-                // But in Enumerable.OrderBy(concurrentDictionaryInstance, x => x.Key) case the argument
-                // is of type ArgumentSyntax and we have to get the first child in order to get the indentifier.
-                argumentIdentifier = firstArg.Syntax.ChildNodes().FirstOrDefault() as IdentifierNameSyntax;
-            }
+            var receiverType = GetReceiverType(context.Compilation, invocationOperation);
 
-            if (argumentIdentifier == null)
+            var targetMethodName = invocationOperation.TargetMethod.Name;
+            if (receiverType != null &&
+                invocationOperation.TargetMethod.ContainingType.ToDisplayString() == "System.Linq.Enumerable" &&
+                ConcurrentDictionaryUnsafeLinqOperations.Contains(targetMethodName))
             {
-                // TODO: is it actually possible?
-                return;
-            }
-
-            var typeInfo = semanticModel.GetTypeInfo(argumentIdentifier);
-            
-            if (typeInfo.Type != null &&
-                invocationOperation.TargetMethod.Name == "OrderBy" &&
-                invocationOperation.TargetMethod.ContainingType.ToDisplayString() == "System.Linq.Enumerable")
-            {
-                if (typeInfo.Type?.ToDisplayString().StartsWith("System.Collections.Concurrent.ConcurrentDictionary<") == true)
+                if (receiverType.ToDisplayString().StartsWith("System.Collections.Concurrent.ConcurrentDictionary<") == true)
                 {
-                    string extra = " Calling OrderBy on ConcurrentDictionary is not thread-safe and may fail with ArgumentException.";
+                    string extra = $" Calling {invocationOperation.TargetMethod.Name} on ConcurrentDictionary is not thread-safe and may fail with ArgumentException.";
+                    
+                    // Extra hint in case ToList or Enumerable.ToArray(cd) is used: the only thread-safe alternative is to use an instance ToArray method.
+                    if (targetMethodName == "ToList" || targetMethodName == "ToArray")
+                    {
+                        extra += " Use instance ToArray() method instead.";
+                    }
+
                     var diagnostic = Diagnostic.Create(Rule, invocationOperation.Syntax.GetLocation(), extra);
                     context.ReportDiagnostic(diagnostic);
                 }
             }
+        }
+
+        private ITypeSymbol GetReceiverType(Compilation compilation, IInvocationOperation invocationOperation)
+        {
+            // We have (at least) two cases here:
+            // instance.ToList() and
+            // Enumerable.ToList(instance).
+            if (invocationOperation.Arguments.Length == 0)
+            {
+                return null;
+            }
+
+            var firstArg = invocationOperation.Arguments[0];
+            var semanticModel = compilation.GetSemanticModel(firstArg.Syntax.SyntaxTree);
+            var argumentOperation = semanticModel.GetOperation(firstArg.Syntax);
+
+            if (argumentOperation is IArgumentOperation ao)
+            {
+                // This is the same argument operation that we obtained before.
+                // It means that this is a real argument like Enumerable.ToList(arg)
+                // and not something like arg.ToList();
+
+                var argumentIdentifier = firstArg.Syntax.ChildNodes().FirstOrDefault() as IdentifierNameSyntax;
+                if (argumentIdentifier == null)
+                {
+                    // TODO: is it actually possible?
+                    return null;
+                }
+
+                return semanticModel.GetTypeInfo(argumentIdentifier).Type;
+            }
+
+            if (argumentOperation is ILocalReferenceOperation lro)
+            {
+                return lro.Type;
+            }
+
+            return null;
         }
     }
 }
