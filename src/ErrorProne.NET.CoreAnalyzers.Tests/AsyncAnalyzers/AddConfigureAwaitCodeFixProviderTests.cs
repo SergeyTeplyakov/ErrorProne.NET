@@ -1,8 +1,8 @@
 ﻿using ErrorProne.NET.AsyncAnalyzers;
+using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
-using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
-using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.AsyncAnalyzers.AddConfigureAwaitAnalyzer,
     ErrorProne.NET.AsyncAnalyzers.AddConfigureAwaitCodeFixProvider>;
 

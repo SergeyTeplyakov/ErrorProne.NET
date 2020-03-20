@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using System.Threading.Tasks;
 
-namespace RoslynNUnitTestRunner
+namespace ErrorProne.NET.TestHelpers
 {
     public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         where TAnalyzer : DiagnosticAnalyzer, new()

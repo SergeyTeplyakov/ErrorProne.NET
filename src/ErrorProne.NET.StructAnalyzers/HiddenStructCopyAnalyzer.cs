@@ -83,7 +83,7 @@ namespace ErrorProne.NET.StructAnalyzers
         private void AnalyzeExpressionAndTargetSymbol(
             SyntaxNodeAnalysisContext context,
             ExpressionSyntax expression,
-            SimpleNameSyntax name,
+            SimpleNameSyntax? name,
             ISymbol targetSymbol)
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
@@ -134,7 +134,8 @@ namespace ErrorProne.NET.StructAnalyzers
             }
         }
 
-        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType, string modifier = null)
+        private static void ReportDiagnostic(
+            SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType, string? modifier = null)
         {
             var diagnostic = Diagnostic.Create(
                 Rule,

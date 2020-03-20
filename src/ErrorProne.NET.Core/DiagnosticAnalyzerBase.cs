@@ -19,10 +19,10 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <summary>
         /// Diagnostic descriptor for fading code.
         /// </summary>
-        protected readonly DiagnosticDescriptor UnnecessaryWithSuggestionDescriptor;
+        protected readonly DiagnosticDescriptor? UnnecessaryWithSuggestionDescriptor;
 
         /// <nodoc />
-        protected readonly DiagnosticDescriptor UnnecessaryWithoutSuggestionDescriptor;
+        protected readonly DiagnosticDescriptor? UnnecessaryWithoutSuggestionDescriptor;
 
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }

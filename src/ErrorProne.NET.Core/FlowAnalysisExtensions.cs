@@ -13,7 +13,7 @@ namespace ErrorProne.NET.Core
 {
     public static class FlowAnalysisExtensions
     {
-        public static IEnumerable<DataFlowAnalysis> AnalyzeDataflow(this SyntaxNode node, SemanticModel model)
+        public static IEnumerable<DataFlowAnalysis?> AnalyzeDataflow(this SyntaxNode node, SemanticModel model)
         {
             if (node is PropertyDeclarationSyntax property && property.AccessorList?.Accessors.Count > 0)
             {
@@ -35,7 +35,7 @@ namespace ErrorProne.NET.Core
             }
         }
 
-        public static DataFlowAnalysis AnalyzeMethod(this MethodDeclarationSyntax method, SemanticModel model)
+        public static DataFlowAnalysis? AnalyzeMethod(this MethodDeclarationSyntax method, SemanticModel model)
         {
             if (method.Body != null)
             {
@@ -56,15 +56,6 @@ namespace ErrorProne.NET.Core
             {
                 yield return model.AnalyzeDataFlow(property.ExpressionBody);
             }
-
-            //if (property.AccessorList)
-
-            //if (property.ExpressionBody != null)
-            //{
-            //    return model.AnalyzeDataFlow(property.ExpressionBody.Expression);
-            //}
-
-            //return null;
         }
     }
 }

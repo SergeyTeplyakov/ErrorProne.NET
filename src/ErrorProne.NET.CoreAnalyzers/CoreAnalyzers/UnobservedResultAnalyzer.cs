@@ -88,7 +88,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             var awaitExpression = (AwaitExpressionSyntax)context.Node;
 
             // await can be used on a task value, so the awaited expression may be anything.
-            if (awaitExpression.Parent is ExpressionStatementSyntax ex)
+            if (awaitExpression.Parent is ExpressionStatementSyntax)
             {
                 var operation = context.SemanticModel.GetOperation(awaitExpression);
                 if (operation is IAwaitOperation awaitOperation && operation.Type != null && TypeMustBeObserved(operation.Type, null, context.Compilation))
@@ -149,7 +149,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             context.ReportDiagnostic(diagnostic);
         }
 
-        private bool TypeMustBeObserved(ITypeSymbol type, /*CanBeNull*/IMethodSymbol method, Compilation compilation)
+        private bool TypeMustBeObserved(ITypeSymbol type, IMethodSymbol? method, Compilation compilation)
         {
             if (method?.IsContinueWith(compilation) == true)
             {
@@ -157,14 +157,14 @@ namespace ErrorProne.NET.CoreAnalyzers
                 return false;
             }
 
-            return EnumerateBaseTypesAndSelf(type).Any(t => IsObserableType(t, method, compilation));
+            return EnumerateBaseTypesAndSelf(type).Any(t => IsObservableType(t, method, compilation));
         }
 
-        private static bool IsObserableType(ITypeSymbol type, /*CanBeNull*/IMethodSymbol method, Compilation compilation)
+        private static bool IsObservableType(ITypeSymbol type, IMethodSymbol? method, Compilation compilation)
         {
             if (type.IsClrType(compilation, typeof(Exception)))
             {
-                // 'ThrowExcpetion' method that throws but still returns an exception is quite common.
+                // 'ThrowException' method that throws but still returns an exception is quite common.
                 var methodName = method?.Name;
                 if (methodName == null)
                 {

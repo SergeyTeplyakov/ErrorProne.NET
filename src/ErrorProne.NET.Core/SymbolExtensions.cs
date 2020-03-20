@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -35,14 +36,16 @@ namespace ErrorProne.NET.Core
                         if (symbol != null)
                         {
                             if (noDuplicates.Add(symbol))
+                            {
                                 yield return symbol;
+                            }
                         }
                         break;
                 }
             }
         }
 
-        public static bool TryGetMethodSyntax(this IMethodSymbol method, out MethodDeclarationSyntax result)
+        public static bool TryGetMethodSyntax(this IMethodSymbol method, [NotNullWhen(true)]out MethodDeclarationSyntax? result)
         {
             result = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as MethodDeclarationSyntax;
             return result != null;
@@ -118,7 +121,7 @@ namespace ErrorProne.NET.Core
         /// <summary>
         /// Returns true if a given <paramref name="method"/> is an implementation of an interface member.
         /// </summary>
-        public static bool IsInterfaceImplementation(this IMethodSymbol method, out ISymbol implementedMethod)
+        public static bool IsInterfaceImplementation(this IMethodSymbol method, [NotNullWhen(true)]out ISymbol? implementedMethod)
         {
             if (method.MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
@@ -151,7 +154,7 @@ namespace ErrorProne.NET.Core
             return false;
         }
 
-        public static VariableDeclarationSyntax TryGetDeclarationSyntax(this IFieldSymbol symbol)
+        public static VariableDeclarationSyntax? TryGetDeclarationSyntax(this IFieldSymbol symbol)
         {
             if (symbol.DeclaringSyntaxReferences.Length == 0)
             {
@@ -162,7 +165,7 @@ namespace ErrorProne.NET.Core
             return syntaxReference.GetSyntax().FirstAncestorOrSelf<VariableDeclarationSyntax>();
         }
 
-        public static PropertyDeclarationSyntax TryGetDeclarationSyntax(this IPropertySymbol symbol)
+        public static PropertyDeclarationSyntax? TryGetDeclarationSyntax(this IPropertySymbol symbol)
         {
             if (symbol.DeclaringSyntaxReferences.Length == 0)
             {
@@ -173,7 +176,7 @@ namespace ErrorProne.NET.Core
             return syntaxReference.GetSyntax().FirstAncestorOrSelf<PropertyDeclarationSyntax>();
         }
 
-        public static MethodDeclarationSyntax TryGetDeclarationSyntax(this IMethodSymbol symbol)
+        public static MethodDeclarationSyntax? TryGetDeclarationSyntax(this IMethodSymbol symbol)
         {
             if (symbol.DeclaringSyntaxReferences.Length == 0)
             {

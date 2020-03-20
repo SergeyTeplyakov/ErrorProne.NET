@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,7 +12,7 @@ namespace ErrorProne.NET.StructAnalyzers
 {
     public static class TypeExtensions
     {
-        private static readonly ConcurrentDictionary<Type, Func<ITypeSymbol, bool>> IsReadOnlyAccessors = new ConcurrentDictionary<Type, Func<ITypeSymbol, bool>>();
+        private static readonly ConcurrentDictionary<Type, Func<ITypeSymbol, bool>?> IsReadOnlyAccessors = new ConcurrentDictionary<Type, Func<ITypeSymbol, bool>?>();
 
         /// <summary>
         /// Returns true if a given type is a struct and the struct is readonly.
@@ -42,7 +43,8 @@ namespace ErrorProne.NET.StructAnalyzers
             return false;
         }
 
-        private static bool TryGetPropertyAccessor<T, TResult>(ConcurrentDictionary<Type, Func<T, TResult>> cache, string propertyName, Type type, out Func<T, TResult> accessor)
+        private static bool TryGetPropertyAccessor<T, TResult>(
+            ConcurrentDictionary<Type, Func<T, TResult>?> cache, string propertyName, Type type, [NotNullWhen(true)]out Func<T, TResult>? accessor)
         {
             if (cache.TryGetValue(type, out accessor))
             {
@@ -52,7 +54,8 @@ namespace ErrorProne.NET.StructAnalyzers
             return TryGetPropertyAccessorSlow(cache, propertyName, type, out accessor);
         }
 
-        private static bool TryGetPropertyAccessorSlow<T, TResult>(ConcurrentDictionary<Type, Func<T, TResult>> cache, string propertyName, Type type, out Func<T, TResult> accessor)
+        private static bool TryGetPropertyAccessorSlow<T, TResult>(
+            ConcurrentDictionary<Type, Func<T, TResult>?> cache, string propertyName, Type type, [NotNullWhen(true)]out Func<T, TResult>? accessor)
         {
             accessor = cache.GetOrAdd(
                 type,

@@ -6,12 +6,13 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ErrorProne.NET.Core
 {
     public static class SymbolAnalysisContextExtensions
     {
-        public static bool TryGetSemanticModel(this SymbolAnalysisContext context, out SemanticModel semanticModel)
+        public static bool TryGetSemanticModel(this SymbolAnalysisContext context, [NotNullWhen(true)]out SemanticModel? semanticModel)
         {
             if (context.Symbol.DeclaringSyntaxReferences.Length == 0)
             {

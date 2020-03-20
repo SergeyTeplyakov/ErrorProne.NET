@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.ContractsLight;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -97,8 +98,12 @@ namespace ErrorProne.NET.CoreAnalyzers
                 foreach (var messageUsage in messageUsages)
                 {
                     // "Fading" .Message property usage.
+                    var parent = messageUsage.Parent;
+                    Contract.Assert(parent != null);
+                    Contract.Assert(messageUsage.Parent != null);
+
                     var fadingSpan = Location.Create(context.Node.SyntaxTree,
-                        TextSpan.FromBounds(messageUsage.Parent.Name.Span.Start, messageUsage.Parent.Name.Span.End));
+                        TextSpan.FromBounds(parent.Name.Span.Start, messageUsage.Parent.Name.Span.End));
 
                     var location = messageUsage.Id.GetLocation();
 

@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
-using RoslynNUnitTestRunner;
+using ErrorProne.NET.TestHelpers;
 using System.Threading.Tasks;
-using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.ExplicitInParameterAnalyzer,
     ErrorProne.NET.StructAnalyzers.ExplicitInParameterCodeFixProvider>;
 

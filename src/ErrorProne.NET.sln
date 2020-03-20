@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29911.84
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.StructAnalyzers", "ErrorProne.NET.StructAnalyzers\ErrorProne.NET.StructAnalyzers.csproj", "{BC1FDC25-3C4B-4F3D-B4C2-DA417CC30E17}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynNUnitTestRunner", "RoslynNUnitTestRunner\RoslynNUnitTestRunner.csproj", "{1B3267CD-E7F1-4F74-90E2-68646FC7C788}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.TestHelpers", "RoslynNUnitTestRunner\ErrorProne.NET.TestHelpers.csproj", "{1B3267CD-E7F1-4F74-90E2-68646FC7C788}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.Cli", "ErrorProne.NET.Cli\ErrorProne.NET.Cli.csproj", "{E3483DC2-BC86-4716-A997-25215DB609AC}"
 EndProject
@@ -22,6 +22,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers.CodeFixes", "ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj", "{1E47DB73-DAF6-4EB6-B3F2-966FDF8E7179}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.StructAnalyzers.CodeFixes", "ErrorProne.NET.StructAnalyzers.CodeFixes\ErrorProne.NET.StructAnalyzers.CodeFixes.csproj", "{512492B2-61F5-4CEC-901A-908688D3B49F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{81814DDF-F4D8-4390-972F-8ACCF5B85E88}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

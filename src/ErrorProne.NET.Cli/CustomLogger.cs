@@ -15,7 +15,7 @@ namespace ErrorProne.NET.Cli
     internal static class CustomLogger
     {
         private static volatile bool _fileLoggerEnabled;
-        private static volatile string _logFileName;
+        private static volatile string? _logFileName;
 
         public static void Configure(string logFileName, bool fileLoggerEnabled)
         {

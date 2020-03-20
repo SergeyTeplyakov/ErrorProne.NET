@@ -17,7 +17,7 @@ namespace ErrorProne.NET.Core
             return type.TypeKind == TypeKind.Enum;
         }
 
-        public static ITypeSymbol GetEnumUnderlyingType(this ITypeSymbol enumType)
+        public static ITypeSymbol? GetEnumUnderlyingType(this ITypeSymbol enumType)
         {
             Contract.Requires(enumType != null);
 
@@ -51,7 +51,7 @@ namespace ErrorProne.NET.Core
 
         public static bool TryGetPrimitiveSize(this ITypeSymbol type, out int size)
         {
-            Debug.Assert(type != null);
+            Contract.Requires(type != null);
             switch (type.SpecialType)
             {
                 case SpecialType.System_Boolean:

@@ -14,7 +14,7 @@ namespace ErrorProne.NET.Cli
     /// </summary>
     internal static class Program
     {
-        private static Options ParseCommandLineArgs(string[] args)
+        private static Options? ParseCommandLineArgs(string[] args)
         {
             var app = new CommandLineApplication(throwOnUnexpectedArg: false);
 
@@ -86,7 +86,7 @@ namespace ErrorProne.NET.Cli
             return options;
         }
 
-        private static Configuration ValidateOptions(Options options)
+        private static Configuration? ValidateOptions(Options options)
         {
             if (Path.GetExtension(options.Solution) != ".sln")
             {
