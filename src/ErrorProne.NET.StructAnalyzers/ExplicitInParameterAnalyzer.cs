@@ -48,8 +48,7 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
-                var argumentSyntax = argument.Syntax as ArgumentSyntax;
-                if (argumentSyntax.RefKindKeyword.IsKind(SyntaxKind.InKeyword))
+                if (argument.Syntax is ArgumentSyntax argumentSyntax && argumentSyntax.RefKindKeyword.IsKind(SyntaxKind.InKeyword))
                 {
                     continue;
                 }

@@ -2,11 +2,13 @@
 <Project>
 
   <PropertyGroup>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.138" PrivateAssets="all" />
+    <PackageReference Include="RuntimeContracts" Version="0.1.10" />
   </ItemGroup>
 
 </Project>

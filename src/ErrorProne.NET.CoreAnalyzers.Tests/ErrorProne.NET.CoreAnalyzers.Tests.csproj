@@ -9,14 +9,13 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" PrivateAssets="all" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" PrivateAssets="all" />
-    <PackageReference Include="RuntimeContracts" Version="0.1.7.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
-    <ProjectReference Include="..\RoslynNUnitTestRunner\RoslynNUnitTestRunner.csproj" />
+    <ProjectReference Include="..\RoslynNUnitTestRunner\ErrorProne.NET.TestHelpers.csproj" />
   </ItemGroup>
 
 </Project>

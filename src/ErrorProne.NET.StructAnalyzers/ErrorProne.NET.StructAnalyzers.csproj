@@ -5,10 +5,9 @@
     <AssemblyName>ErrorProne.Net.StructAnalyzers</AssemblyName>
     <RootNamespace>ErrorProne.Net.StructAnalyzers</RootNamespace>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.0" PrivateAssets="all" />
-    <PackageReference Include="RuntimeContracts" Version="0.1.7.2" />
   </ItemGroup>
 
   <ItemGroup>

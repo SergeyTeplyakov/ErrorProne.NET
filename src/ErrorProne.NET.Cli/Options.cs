@@ -5,14 +5,14 @@
     /// </summary>
     public sealed class Options
     {
-        public string Solution { get; set; }
+        public string? Solution { get; set; }
 
-        public string LogFile { get; set; }
+        public string? LogFile { get; set; }
 
         public bool RunInfoLevelDiagnostics { get; set; }
         
-        public string[] DisabledDiagnostics { get; set; }
+        public string[]? DisabledDiagnostics { get; set; }
 
-        public string Analyzer { get; set; }
+        public string? Analyzer { get; set; }
     }
 }

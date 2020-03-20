@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ErrorProne.NET.TestHelpers;
+using Microsoft.CodeAnalysis;
 using NUnit.Framework;
-using RoslynNUnitTestRunner;
 using System.Threading.Tasks;
-using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.SuspiciousExceptionHandlingAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 

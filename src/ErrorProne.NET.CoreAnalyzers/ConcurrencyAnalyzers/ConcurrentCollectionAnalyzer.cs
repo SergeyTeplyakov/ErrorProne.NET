@@ -96,7 +96,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             }
         }
 
-        private ITypeSymbol GetReceiverType(Compilation compilation, IInvocationOperation invocationOperation)
+        private ITypeSymbol? GetReceiverType(Compilation compilation, IInvocationOperation invocationOperation)
         {
             // We have (at least) two cases here:
             // instance.ToList() and
@@ -116,8 +116,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 // It means that this is a real argument like Enumerable.ToList(arg)
                 // and not something like arg.ToList();
 
-                var argumentIdentifier = firstArg.Syntax.ChildNodes().FirstOrDefault() as IdentifierNameSyntax;
-                if (argumentIdentifier == null)
+                if (!(firstArg.Syntax.ChildNodes().FirstOrDefault() is IdentifierNameSyntax argumentIdentifier))
                 {
                     // TODO: is it actually possible?
                     return null;

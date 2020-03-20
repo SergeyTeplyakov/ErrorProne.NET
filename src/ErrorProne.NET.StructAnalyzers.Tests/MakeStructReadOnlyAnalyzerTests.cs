@@ -1,8 +1,8 @@
-﻿using NUnit.Framework;
-using RoslynNUnitTestRunner;
+﻿using ErrorProne.NET.TestHelpers;
+using NUnit.Framework;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using VerifyCS = RoslynNUnitTestRunner.CSharpCodeFixVerifier<
+using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.MakeStructReadOnlyAnalyzer,
     ErrorProne.NET.StructAnalyzers.MakeStructReadOnlyCodeFixProvider>;
 
@@ -65,16 +65,16 @@ this = other;
 
             await VerifyCS.VerifyAnalyzerAsync(code);
 
-            string code2 = @"struct SelfAssign2
-        {
-            public int X
-            {
-                set
-                {
-                    this = new SelfAssign2();
-                }
-            }
-        }";
+        //    string code2 = @"struct SelfAssign2
+        //{
+        //    public int X
+        //    {
+        //        set
+        //        {
+        //            this = new SelfAssign2();
+        //        }
+        //    }
+        //}";
 
             await VerifyCS.VerifyAnalyzerAsync(code);
         }

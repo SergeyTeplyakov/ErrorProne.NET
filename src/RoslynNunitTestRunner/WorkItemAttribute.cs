@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RoslynNUnitTestRunner
+namespace ErrorProne.NET.TestHelpers
 {
     /// <summary>
     /// Used to tag test methods or types which are created for a given WorkItem

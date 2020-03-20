@@ -9,7 +9,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.NUnit" Version="1.0.0-beta1.19204.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.NUnit" Version="1.0.0-beta1.19204.1" />
     <PackageReference Include="NUnit" Version="3.11.0" />
-    <PackageReference Include="RuntimeContracts" Version="0.1.7.2" />
   </ItemGroup>
 
 </Project>

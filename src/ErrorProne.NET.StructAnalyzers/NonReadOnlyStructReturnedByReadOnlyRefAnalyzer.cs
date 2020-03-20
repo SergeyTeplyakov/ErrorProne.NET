@@ -61,7 +61,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 var syntaxNode = method.DeclaringSyntaxReferences[0].GetSyntax();
                 var syntaxTree = method.DeclaringSyntaxReferences[0].SyntaxTree;
 
-                Location location = null;
+                Location? location = null;
 
                 switch (syntaxNode)
                 {
