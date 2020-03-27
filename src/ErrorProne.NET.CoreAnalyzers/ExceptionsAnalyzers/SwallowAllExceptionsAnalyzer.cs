@@ -16,7 +16,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
     public sealed class SwallowAllExceptionsAnalyzer : DiagnosticAnalyzer
     {
         // Catch is not empty, `catch` or `catch(Exception)` and some return statement exists. 
-        public const string DiagnosticId = DiagnosticIds.AllExceptionSwalled;
+        public const string DiagnosticId = DiagnosticIds.AllExceptionSwallowed;
         internal const string Title = "Unobserved exception in generic exception handler";
         internal const string MessageFormat = "Exit point '{0}' swallows an unobserved exception.";
         private const string Description = "Generic catch block swallows an exception that was not observed.";

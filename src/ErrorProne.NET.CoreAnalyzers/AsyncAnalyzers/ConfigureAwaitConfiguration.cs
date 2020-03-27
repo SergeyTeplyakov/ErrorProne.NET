@@ -19,7 +19,6 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 return ConfigureAwait.UseConfigureAwaitFalse;
             }
 
-
             return null;
         }
     }
@@ -29,7 +28,6 @@ namespace ErrorProne.NET.AsyncAnalyzers
         UseConfigureAwaitFalse,
         DoNotUseConfigureAwait,
     }
-
 
     internal static class TempExtensions
     {

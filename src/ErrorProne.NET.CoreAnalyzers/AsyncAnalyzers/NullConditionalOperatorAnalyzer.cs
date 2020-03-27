@@ -30,10 +30,8 @@ namespace ErrorProne.NET.AsyncAnalyzers
         }
 
         /// <inheritdoc />
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeCore(AnalysisContext context)
         {
-            context.EnableConcurrentExecution();
-
             context.RegisterSyntaxNodeAction(AnalyzeAwaitExpression, SyntaxKind.AwaitExpression);
         }
 
@@ -41,7 +39,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
         {
             var invocation = (AwaitExpressionSyntax)context.Node;
 
-            if (invocation.Expression is ConditionalAccessExpressionSyntax cae)
+            if (invocation.Expression is ConditionalAccessExpressionSyntax)
             {
                 var location = invocation.GetLocation();
                 var diagnostic = Diagnostic.Create(Rule, location);

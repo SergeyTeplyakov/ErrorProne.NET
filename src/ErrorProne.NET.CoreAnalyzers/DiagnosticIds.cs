@@ -25,10 +25,13 @@
 
         // Exception handling
         public const string IncorrectExceptionPropagation = "ERP021";
-        public const string AllExceptionSwalled = "ERP022";
+        public const string AllExceptionSwallowed = "ERP022";
         public const string OnlyExceptionMessageWasObserved = "ERP023";
 
         // Concurrency
         public const string UsageIsNotThreadSafe = "ERP031";
+
+        // Other analyzers
+        public const string DoNotUseDefaultConstructionForStruct = "ERP041";
     }
 }
