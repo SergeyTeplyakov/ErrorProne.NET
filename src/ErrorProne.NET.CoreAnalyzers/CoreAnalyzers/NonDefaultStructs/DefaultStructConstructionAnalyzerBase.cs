@@ -51,9 +51,13 @@ namespace ErrorProne.NET.CoreAnalyzers.NonDefaultStructs
             }
         }
 
-        protected static bool HasDoNotUseDefaultConstructionOrSpecial(Compilation compilation, ITypeSymbol type, out string? message)
+        protected static bool HasDoNotUseDefaultConstructionOrSpecial(Compilation compilation, ITypeSymbol? type, out string? message)
         {
             message = null;
+            if (type == null)
+            {
+                return false;
+            }
             
             var attributes = type.GetAttributes();
             var doNotUseDefaultAttribute = attributes.FirstOrDefault(a =>

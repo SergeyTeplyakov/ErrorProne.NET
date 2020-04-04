@@ -86,15 +86,15 @@ public class Foo
         {
         }
 
-        public struct S2
-        {
-            private MyS _s;
-        }
+        // public struct S2
+        // {
+        //     private MyS _s;
+        // }
         // generics.
-        public static T Create<T>() where T : new()
-        {
-            return default;
-        }
+        // public static T Create<T>() where T : new()
+        // {
+        //     return default;
+        // }
         
         [Test]
         public async Task Warn_If_Embedded_As_Field()
