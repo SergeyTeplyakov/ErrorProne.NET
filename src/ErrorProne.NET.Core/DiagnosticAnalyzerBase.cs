@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -29,8 +30,8 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         /// <nodoc />
         protected DiagnosticAnalyzerBase(
-            params DiagnosticDescriptor[] diagnostics)
-        : this(supportFading: false, diagnostics)
+            DiagnosticDescriptor descriptor, params DiagnosticDescriptor[] diagnostics)
+        : this(supportFading: false, new []{descriptor}.Concat(diagnostics).ToArray())
         {
         }
         
@@ -39,7 +40,6 @@ namespace ErrorProne.NET.CoreAnalyzers
             bool supportFading,
             params DiagnosticDescriptor[] diagnostics)
         {
-            Contract.Requires(diagnostics != null);
             Contract.Requires(diagnostics.Length != 0);
 
             Descriptor = diagnostics[0];
@@ -83,5 +83,15 @@ namespace ErrorProne.NET.CoreAnalyzers
                 //descriptorId, _localizableTitle, _localizableMessageFormat,
                 WellKnownDiagnosticTags.Unnecessary);
 
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.EnableConcurrentExecution();
+
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
+            InitializeCore(context);
+        }
+
+        protected abstract void InitializeCore(AnalysisContext context);
     }
 }

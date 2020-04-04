@@ -41,10 +41,8 @@ namespace ErrorProne.NET.AsyncAnalyzers
         }
 
         /// <inheritdoc />
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeCore(AnalysisContext context)
         {
-            context.EnableConcurrentExecution();
-
             context.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
         }
 

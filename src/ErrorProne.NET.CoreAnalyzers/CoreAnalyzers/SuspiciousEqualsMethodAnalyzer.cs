@@ -46,10 +46,8 @@ namespace ErrorProne.NET.CoreAnalyzers
         }
 
         /// <inheritdoc />
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeCore(AnalysisContext context)
         {
-            context.EnableConcurrentExecution();
-
             // I didn't figure out the way to find all the symbols used in a method.
             // The only solution to find if a method references instance members or not is to use
             // a long chain of 'RegisterSomAction' methods.
