@@ -1,6 +1,6 @@
 # Error Prone .NET
 
-[![Build Status](https://seteplia.visualstudio.com/ErrorProne.NET/_apis/build/status/SergeyTeplyakov.ErrorProne.NET)](https://seteplia.visualstudio.com/ErrorProne.NET/_build/latest?definitionId=1)
+[![Build Status](https://seteplia.visualstudio.com/ErrorProne.NET/_apis/build/status/SergeyTeplyakov.ErrorProne.NET?label=build)](https://seteplia.visualstudio.com/ErrorProne.NET/_build/latest?definitionId=1)
 
 ErrorProne.NET is a set of Roslyn-based analyzers that will help you to write correct code. The idea is similar to Google's [error-prone](https://github.com/google/error-prone) but focusing on correctness (and, maybe, performance) of C# programs.
 
