@@ -88,7 +88,9 @@ public class Foo
 
         public struct S2
         {
+#pragma warning disable CS0169 // The field 'field_name' is never used
             private MyS _s;
+#pragma warning restore CS0169 // The field 'field_name' is never used
         }
         // generics.
         public static T Create<T>() where T : new()
