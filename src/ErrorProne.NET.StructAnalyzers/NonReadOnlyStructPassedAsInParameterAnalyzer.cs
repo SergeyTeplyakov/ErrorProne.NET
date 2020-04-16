@@ -33,6 +33,7 @@ namespace ErrorProne.NET.StructAnalyzers
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
             // The following call registers only analysis for top level methods.
             // Need a special logic to cover local functions.
