@@ -93,7 +93,9 @@ public class Foo
         // generics.
         public static T Create<T>() where T : new()
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return default;
+#pragma warning restore CS8603 // Possible null reference return.
         }
         
         [Test]

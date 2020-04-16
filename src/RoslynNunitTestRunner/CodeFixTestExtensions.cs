@@ -41,7 +41,7 @@ internal sealed class DoNotUseConfigureAwaitAttribute : System.Attribute { }
         [System.AttributeUsage(System.AttributeTargets.Struct)]
         internal sealed class DoNotUseDefaultConstructionAttribute : System.Attribute
         {
-            public DoNotUseDefaultConstructionAttribute(string message = null) {}
+            public DoNotUseDefaultConstructionAttribute(string? message = null) {}
         }
 
         [DoNotUseDefaultConstruction()]
