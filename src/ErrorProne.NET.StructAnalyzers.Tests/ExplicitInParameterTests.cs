@@ -278,6 +278,19 @@ struct SomeStruct {
         }
 
         [Test]
+        public async Task TupleExpression()
+        {
+            string code = @"
+struct SomeStruct {
+  void Method(in (int, int) value) { }
+  void Caller() { Method((0, 0)); }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Test]
         [WorkItem(142, "https://github.com/SergeyTeplyakov/ErrorProne.NET/issues/142")]
         public async Task CodeFixForTernary()
         {
