@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Text;
 
 namespace ErrorProne.NET.StructAnalyzers
 {
@@ -24,16 +23,15 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <inheritdoc />
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.First();
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
-
-            // Register a code action that will invoke the fix.
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title: Title,
-                    createChangedDocument: c => AddInModifier(context.Document, diagnosticSpan, c),
-                    equivalenceKey: Title),
-                diagnostic);
+            foreach (var diagnostic in context.Diagnostics)
+            {
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: Title,
+                        createChangedDocument: c => AddInModifier(context.Document, diagnostic.Location, c),
+                        equivalenceKey: Title),
+                    diagnostic);
+            }
 
             return Task.CompletedTask;
         }
@@ -108,12 +106,12 @@ namespace ErrorProne.NET.StructAnalyzers
             return false;
         }
 
-        private async Task<Document> AddInModifier(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+        private async Task<Document> AddInModifier(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Find the type declaration identified by the diagnostic.
-            var paramSyntax = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<ParameterSyntax>().FirstOrDefault();
+            var paramSyntax = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<ParameterSyntax>().FirstOrDefault();
             if (paramSyntax is null || await ParameterIsUsedInNonInFriendlyManner(paramSyntax, document, cancellationToken).ConfigureAwait(false))
             {
                 // It is possible for some weird cases to not have 'ParameterSyntax'. See 'WarnIfParameterIsReadOnly' in UseInModifierAnalyzer.

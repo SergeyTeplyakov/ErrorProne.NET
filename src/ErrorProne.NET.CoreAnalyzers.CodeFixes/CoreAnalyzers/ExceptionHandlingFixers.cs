@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace ErrorProne.NET.CoreAnalyzers
 {
@@ -25,23 +24,15 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <inheritdoc />
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.FirstOrDefault();
-
-            if (diagnostic == null)
+            foreach (var diagnostic in context.Diagnostics)
             {
-                // Not sure why, but it seems this is possible in the batch mode.
-                return Task.CompletedTask;
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: Title,
+                        createChangedDocument: c => UseException(context.Document, diagnostic.Location, c),
+                        equivalenceKey: Title),
+                    diagnostic);
             }
-
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
-
-            // Register a code action that will invoke the fix.
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title: Title,
-                    createChangedDocument: c => UseException(context.Document, diagnosticSpan, c),
-                    equivalenceKey: Title),
-                diagnostic);
 
             return Task.CompletedTask;
         }
@@ -49,12 +40,12 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> UseException(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+        private async Task<Document> UseException(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Find the type declaration identified by the diagnostic.
-            var identifier = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<IdentifierNameSyntax>().FirstOrDefault();
+            var identifier = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<IdentifierNameSyntax>().FirstOrDefault();
             if (identifier is { Parent: MemberAccessExpressionSyntax mae })
             {
                 var newRoot = root.ReplaceNode(mae, mae.Expression);
