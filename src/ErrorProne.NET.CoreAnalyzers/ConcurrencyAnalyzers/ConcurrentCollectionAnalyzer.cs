@@ -63,7 +63,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 // it may fail with ArgumentException if the collection is being mutated concurrently at the same time.
                 var invocationOperation = (IInvocationOperation)context.Operation;
 
-                var receiverType = GetReceiverType(context.Compilation, invocationOperation);
+                var receiverType = GetReceiverType(invocationOperation);
 
                 var targetMethodName = invocationOperation.TargetMethod.Name;
                 if (receiverType != null &&
@@ -94,7 +94,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             }
         }
 
-        private ITypeSymbol? GetReceiverType(Compilation compilation, IInvocationOperation invocationOperation)
+        private ITypeSymbol? GetReceiverType(IInvocationOperation invocationOperation)
         {
             // We have (at least) two cases here:
             // instance.ToList() and
@@ -105,7 +105,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             }
 
             var firstArg = invocationOperation.Arguments[0];
-            var semanticModel = compilation.GetSemanticModel(firstArg.Syntax.SyntaxTree);
+            var semanticModel = invocationOperation.SemanticModel;
             var argumentOperation = semanticModel.GetOperation(firstArg.Syntax);
 
             if (argumentOperation is IArgumentOperation)

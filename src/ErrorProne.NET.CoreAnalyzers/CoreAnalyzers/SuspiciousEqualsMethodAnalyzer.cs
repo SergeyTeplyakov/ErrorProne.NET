@@ -89,7 +89,7 @@ namespace ErrorProne.NET.CoreAnalyzers
 
                                 var bodyOrExpression = (SyntaxNode)methodSyntax.Body ?? methodSyntax.ExpressionBody;
                                 var symbols = SymbolExtensions.GetAllUsedSymbols(blockStartContext.Compilation, bodyOrExpression).ToList();
-                                if (!symbols.Any(s => s is IParameterSymbol p && p.ContainingSymbol == ms && !p.IsThis))
+                                if (!symbols.Any(s => s is IParameterSymbol p && Equals(p.ContainingSymbol, ms) && !p.IsThis))
                                 {
                                     var location = ms.Parameters[0].Locations[0];
 
