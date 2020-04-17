@@ -51,16 +51,5 @@ struct AnotherStruct : System.IEquatable<AnotherStruct>
 }
 ";
         }
-        
-        [TestCaseSource(nameof(GetNoDiagnosticCases))]
-        public async Task NoDiagnosticCases(string code)
-        {
-            await VerifyCS.VerifyAnalyzerAsync(code);
-        }
-
-        public static IEnumerable<string> GetNoDiagnosticCases()
-        {
-            yield break;
-        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.NonReadOnlyStructRefReadOnlyLocalAnalyzer,
@@ -19,28 +18,6 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             {
                 TestState = { Sources = { code } },
             }.WithoutGeneratedCodeVerification().RunAsync();
-        }
-
-        [TestCaseSource(nameof(GetHasDiagnosticsTestCases))]
-        public async Task HasDiagnosticsTestCases(string code)
-        {
-            await VerifyCS.VerifyAnalyzerAsync(code);
-        }
-
-        public static IEnumerable<string> GetHasDiagnosticsTestCases()
-        {
-            yield break;
-        }
-
-        [TestCaseSource(nameof(GetNoDiagnosticsTestCases))]
-        public async Task NoDiagnosticsTestCases(string code)
-        {
-            await VerifyCS.VerifyAnalyzerAsync(code);
-        }
-
-        public static IEnumerable<string> GetNoDiagnosticsTestCases()
-        {
-            yield break;
         }
     }
 }
