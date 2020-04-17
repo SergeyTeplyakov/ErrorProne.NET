@@ -24,40 +24,33 @@ namespace ErrorProne.NET.AsyncAnalyzers
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RemoveConfigureAwaitAnalyzer.DiagnosticId);
 
         /// <inheritdoc />
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-            var diagnostic = context.Diagnostics.FirstOrDefault();
-
-            if (diagnostic == null)
+            foreach (var diagnostic in context.Diagnostics)
             {
-                // Not sure why, but it seems this is possible in the batch mode.
-                return;
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        title: RemoveConfigureAwaitTitle,
+                        createChangedDocument: c => RemoveMethodCall(context.Document, diagnostic.Location, context.CancellationToken),
+                        equivalenceKey: RemoveConfigureAwaitTitle),
+                    diagnostic);
             }
 
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
-
-            var identifier = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf()
-                .OfType<IdentifierNameSyntax>().First();
-
-            Debug.Assert(identifier.GetText().ToString() == "ConfigureAwait");
-
-            // Register a code action that will invoke the fix.
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title: RemoveConfigureAwaitTitle,
-                    createChangedDocument: c => RemoveMethodCall(context.Document, identifier, context.CancellationToken),
-                    equivalenceKey: RemoveConfigureAwaitTitle),
-                diagnostic);
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> RemoveMethodCall(Document document, IdentifierNameSyntax identifier, CancellationToken cancellationToken)
+        private async Task<Document> RemoveMethodCall(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken);
+
+            var identifier = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf()
+                .OfType<IdentifierNameSyntax>().First();
+
+            Debug.Assert(identifier.GetText().ToString() == "ConfigureAwait");
+
             var awaitExpression = identifier.AncestorsAndSelf().OfType<AwaitExpressionSyntax>().First();
             var newExpression =
                 awaitExpression

@@ -20,31 +20,19 @@ namespace ErrorProne.NET.StructAnalyzers
         public const string Title = "Make struct readonly";
 
         /// <inheritdoc />
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-            var diagnostic = context.Diagnostics.FirstOrDefault();
-
-            if (diagnostic == null)
+            foreach (var diagnostic in context.Diagnostics)
             {
-                // Not sure why, but it seems this is possible in the batch mode.
-                return;
-            }
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
-
-            // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<StructDeclarationSyntax>().FirstOrDefault();
-            if (declaration != null)
-            {
-                // Register a code action that will invoke the fix.
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: Title,
-                        createChangedDocument: c => MakeReadOnlyAsync(context.Document, declaration, c),
+                        createChangedDocument: c => MakeReadOnlyAsync(context.Document, diagnostic.Location, c),
                         equivalenceKey: Title),
                     diagnostic);
             }
+
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />
@@ -53,8 +41,17 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> MakeReadOnlyAsync(Document document, StructDeclarationSyntax typeDecl, CancellationToken cancellationToken)
+        private async Task<Document> MakeReadOnlyAsync(Document document, Location location, CancellationToken cancellationToken)
         {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Find the type declaration identified by the diagnostic.
+            var typeDecl = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<StructDeclarationSyntax>().FirstOrDefault();
+            if (typeDecl is null)
+            {
+                return document;
+            }
+
             var readonlyToken = SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword);
             SyntaxTokenList modifiers;
             int partialIndex = typeDecl.Modifiers.IndexOf(SyntaxKind.PartialKeyword);
@@ -68,7 +65,6 @@ namespace ErrorProne.NET.StructAnalyzers
             }
 
             var newType = typeDecl.WithModifiers(modifiers);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(root.ReplaceNode(typeDecl, newType));
         }
