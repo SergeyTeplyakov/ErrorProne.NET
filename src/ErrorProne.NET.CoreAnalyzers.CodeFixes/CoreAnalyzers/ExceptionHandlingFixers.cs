@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace ErrorProne.NET.CoreAnalyzers
 {
@@ -22,42 +23,40 @@ namespace ErrorProne.NET.CoreAnalyzers
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SuspiciousExceptionHandlingAnalyzer.DiagnosticId);
 
         /// <inheritdoc />
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
             var diagnostic = context.Diagnostics.FirstOrDefault();
 
             if (diagnostic == null)
             {
                 // Not sure why, but it seems this is possible in the batch mode.
-                return;
+                return Task.CompletedTask;
             }
 
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-            // Find the type declaration identified by the diagnostic.
-            var identifier = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<IdentifierNameSyntax>().FirstOrDefault();
-            if (identifier != null)
-            {
-                // Register a code action that will invoke the fix.
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        title: Title,
-                        createChangedDocument: c => UseException(context.Document, identifier, c),
-                        equivalenceKey: Title),
-                    diagnostic);
-            }
+            // Register a code action that will invoke the fix.
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    title: Title,
+                    createChangedDocument: c => UseException(context.Document, diagnosticSpan, c),
+                    equivalenceKey: Title),
+                diagnostic);
+
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> UseException(Document document, IdentifierNameSyntax identifier, CancellationToken cancellationToken)
+        private async Task<Document> UseException(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
         {
-            if (identifier.Parent is MemberAccessExpressionSyntax mae)
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Find the type declaration identified by the diagnostic.
+            var identifier = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<IdentifierNameSyntax>().FirstOrDefault();
+            if (identifier is { Parent: MemberAccessExpressionSyntax mae })
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken);
                 var newRoot = root.ReplaceNode(mae, mae.Expression);
                 return document.WithSyntaxRoot(newRoot);
             }

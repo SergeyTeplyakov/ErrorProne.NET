@@ -74,6 +74,7 @@ public readonly struct RS
             {
                 TestState = { Sources = { code } },
                 FixedState = { Sources = { code } },
+                NumberOfIncrementalIterations = 1,
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
@@ -96,6 +97,7 @@ public readonly struct RS
             {
                 TestState = { Sources = { code } },
                 FixedState = { Sources = { code } },
+                NumberOfIncrementalIterations = 1,
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
@@ -106,6 +108,7 @@ public readonly struct RS
             {
                 TestState = { Sources = { code } },
                 FixedState = { Sources = { code } },
+                NumberOfIncrementalIterations = 1,
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
