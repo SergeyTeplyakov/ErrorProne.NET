@@ -8,7 +8,7 @@ namespace ErrorProne.NET.TestHelpers
         public static TTest WithoutGeneratedCodeVerification<TTest>(this TTest test)
             where TTest : CodeFixTest<NUnitVerifier>
         {
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
+            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
             return test;
         }
 

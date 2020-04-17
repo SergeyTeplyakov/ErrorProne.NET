@@ -14,6 +14,8 @@ namespace ErrorProne.NET.TestHelpers
         {
             public Test()
             {
+                ReferenceAssemblies = AdditionalMetadataReferences.ReferenceAssemblies;
+
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     var project = solution.GetProject(projectId);
@@ -22,11 +24,6 @@ namespace ErrorProne.NET.TestHelpers
 
                     return solution;
                 });
-
-                TestState.AdditionalReferences.Add(AdditionalMetadataReferences.SystemCollections);
-                TestState.AdditionalReferences.Add(AdditionalMetadataReferences.SystemCollectionsConcurrent);
-                TestState.AdditionalReferences.Add(AdditionalMetadataReferences.SystemConsole);
-                TestState.AdditionalReferences.Add(AdditionalMetadataReferences.SystemRuntime);
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic15_5;
