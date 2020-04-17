@@ -50,6 +50,10 @@ namespace ErrorProne.NET.CoreAnalyzers.NonDefaultStructs
             var type = context.SemanticModel.GetTypeInfo(propertyDeclaration.Type);
             
             var containingType = GetContainingType(propertyDeclaration, context.SemanticModel);
+            if (containingType is null)
+            {
+                return;
+            }
             
             // It is ok to embed one struct marked with special attribute into another struct
             // marked with the same special attribute.
@@ -88,6 +92,10 @@ namespace ErrorProne.NET.CoreAnalyzers.NonDefaultStructs
             var type = context.SemanticModel.GetTypeInfo(fieldDeclaration.Declaration.Type);
 
             var containingType = GetContainingType(fieldDeclaration, context.SemanticModel);
+            if (containingType is null)
+            {
+                return;
+            }
             
             // It is ok to embed one struct marked with special attribute into another struct
             // marked with the same special attribute.
