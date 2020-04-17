@@ -93,6 +93,11 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
+                if (argument.Value is ITupleOperation)
+                {
+                    continue;
+                }
+
                 context.ReportDiagnostic(Diagnostic.Create(Rule, argument.Syntax.GetLocation(), argument.Parameter.Name));
             }
         }
