@@ -34,5 +34,6 @@
         // Other analyzers
         public const string DoNotUseDefaultConstructionForStruct = "ERP041";
         public const string DoNotEmbedStructsMarkedWithDoUseDefaultConstructionForStruct = "ERP042";
+        public const string SuspiciousStringBuilderAppendFormatUsage = "EPR043";
     }
 }
