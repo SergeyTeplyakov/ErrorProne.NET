@@ -21,6 +21,9 @@
         /// <nodoc />
         public const string NullCoalescingOperatorForAsyncMethods = "EPC16";
 
+        /// <nodoc />
+        public const string AsyncVoidDelegate = "EPC17";
+
         // Exception handling
         /// <nodoc />
         public const string SuspiciousExceptionHandling = "EPC12";

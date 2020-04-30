@@ -10,6 +10,7 @@ EPC13 | CodeSmell | Warning | UnobservedResultAnalyzer
 EPC14 | CodeSmell | Warning | RemoveConfigureAwaitAnalyzer
 EPC15 | CodeSmell | Warning | AddConfigureAwaitAnalyzer
 EPC16 | CodeSmell | Warning | NullConditionalOperatorAnalyzer
+EPC17 | CodeSmell | Warning | AsyncVoidLambdaAnalyzer
 ERP021 | CodeSmell | Warning | ThrowExAnalyzer
 ERP022 | CodeSmell | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
