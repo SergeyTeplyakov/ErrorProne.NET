@@ -36,6 +36,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.9.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,6 +50,10 @@
   <ItemGroup>
     <!-- Analyzer packages should not have any dependencies. -->
     <PackageReference Update="@(PackageReference)" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <ProjectReference Update="@(ProjectReference)" PrivateAssets="all" />
   </ItemGroup>
 

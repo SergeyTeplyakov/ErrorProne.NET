@@ -22,10 +22,10 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.UnobservedResult;
 
-        private static readonly string Title = "Suspiciously unobserved result.";
-        private static readonly string Message = "The result of type '{0}' should be observed.";
+        private const string Title = "Suspiciously unobserved result.";
+        private const string Message = "The result of type '{0}' should be observed.";
 
-        private static readonly string Description = "Return values of some methods should always be observed.";
+        private const string Description = "Return values of some methods should always be observed.";
         private const string Category = "CodeSmell";
 
         // Using warning for visibility purposes
@@ -110,7 +110,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             }
         }
 
-        private bool ResultObservedByExtensionMethod(IInvocationOperation operation, SemanticModel semanticModel)
+        private static bool ResultObservedByExtensionMethod(IInvocationOperation operation, SemanticModel semanticModel)
         {
             // In some cases, the following pattern is used:
             // Foo().Handle();
@@ -137,7 +137,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             return false;
         }
 
-        private Location GetLocationForDiagnostic(AwaitExpressionSyntax awaitExpression)
+        private static Location GetLocationForDiagnostic(AwaitExpressionSyntax awaitExpression)
         {
             return awaitExpression.GetLocation();
         }
@@ -150,7 +150,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             context.ReportDiagnostic(diagnostic);
         }
 
-        private bool TypeMustBeObserved(ITypeSymbol type, IMethodSymbol? method, Compilation compilation)
+        private static bool TypeMustBeObserved(ITypeSymbol type, IMethodSymbol? method, Compilation compilation)
         {
             if (method?.IsContinueWith(compilation) == true)
             {

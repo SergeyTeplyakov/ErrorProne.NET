@@ -19,7 +19,7 @@ namespace ErrorProne.NET.Extensions
 
     public static class SyntaxFactoryExtensions
     {
-        private static readonly SyntaxKind[] m_visibilityModifierKinds = new[]
+        private static readonly SyntaxKind[] VisibilityModifierKinds = new[]
         {
             SyntaxKind.InternalKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PrivateKeyword
         };
@@ -48,7 +48,7 @@ namespace ErrorProne.NET.Extensions
             Contract.Requires(methodDeclaration != null);
             Contract.Ensures(Contract.Result<MethodDeclarationSyntax>() != null);
 
-            var oldModifiers = methodDeclaration.Modifiers.Where(m => !m_visibilityModifierKinds.Contains(m.Kind()));
+            var oldModifiers = methodDeclaration.Modifiers.Where(m => !VisibilityModifierKinds.Contains(m.Kind()));
 
             var modifiers =
                 new SyntaxTokenList()
@@ -94,7 +94,7 @@ namespace ErrorProne.NET.Extensions
             Contract.Requires(constructorDeclaration != null);
             Contract.Ensures(Contract.Result<ConstructorDeclarationSyntax>() != null);
 
-            var oldModifiers = constructorDeclaration.Modifiers.Where(m => !m_visibilityModifierKinds.Contains(m.Kind()));
+            var oldModifiers = constructorDeclaration.Modifiers.Where(m => !VisibilityModifierKinds.Contains(m.Kind()));
             var modifiers =
                 new SyntaxTokenList()
                     .AddRange(GetModifiersFor(modifier))
@@ -103,7 +103,7 @@ namespace ErrorProne.NET.Extensions
             return constructorDeclaration.WithModifiers(modifiers);
         }
 
-        public static TSyntax WithEndLineTrivia<TSyntax>(this TSyntax node, params SyntaxTrivia[] trivia)
+        public static TSyntax WithEndLineTrivia<TSyntax>(this TSyntax node)
             where TSyntax : SyntaxNode
         {
             return node.WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);

@@ -17,9 +17,9 @@ namespace ErrorProne.NET.StructAnalyzers
     {
         public const string DiagnosticId = DiagnosticIds.MakeStructReadonlyDiagnosticId;
 
-        private static readonly string Title = "A struct can be made readonly";
-        private static readonly string MessageFormat = "Struct '{0}' can be made readonly";
-        private static readonly string Description = "Readonly structs have a better performance when passed or return by readonly reference.";
+        private const string Title = "A struct can be made readonly";
+        private const string MessageFormat = "Struct '{0}' can be made readonly";
+        private const string Description = "Readonly structs have a better performance when passed or return by readonly reference.";
         private const string Category = "Performance";
         
         // Using warning for visibility purposes
@@ -81,7 +81,7 @@ namespace ErrorProne.NET.StructAnalyzers
         //        this = s;
         //    }
         //}
-        private bool HasAssignmentToThis(ISymbol symbol, SemanticModel model)
+        private static bool HasAssignmentToThis(ISymbol symbol, SemanticModel model)
         {
             if (symbol.IsConstructor())
             {
@@ -150,20 +150,15 @@ namespace ErrorProne.NET.StructAnalyzers
             return false;
         }
 
-        private bool IsReadonly(ISymbol member)
+        private static bool IsReadonly(ISymbol member)
         {
-            switch (member)
+            return member switch
             {
-                case IFieldSymbol fs:
-                    return fs.IsReadOnly;
-                case IPropertySymbol ps:
-                    // Property is readonly, like 'public int X {get;}' or has an explicit setter.
-                    return ps.IsReadOnly || ps.SetMethod != null;
-                case IMethodSymbol ms:
-                    return true;
-                default:
-                    throw new InvalidOperationException($"Unknown member type '{member.GetType()}'.");
-            }
+                IFieldSymbol fs => fs.IsReadOnly,
+                IPropertySymbol ps => ps.IsReadOnly || ps.SetMethod != null,// Property is readonly, like 'public int X {get;}' or has an explicit setter.
+                IMethodSymbol _ => true,
+                _ => throw new InvalidOperationException($"Unknown member type '{member.GetType()}'."),
+            };
         }
     }
 }

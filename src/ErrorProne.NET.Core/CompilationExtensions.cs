@@ -16,7 +16,7 @@ namespace ErrorProne.NET.Core
         public static INamedTypeSymbol ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
 
-        public static bool IsSystemObject(this INamedTypeSymbol type, Compilation compilation)
+        public static bool IsSystemObject(this INamedTypeSymbol type)
             => type.SpecialType == SpecialType.System_Object;
 
         public static bool IsClrType(this ISymbol type, Compilation compilation, Type clrType)

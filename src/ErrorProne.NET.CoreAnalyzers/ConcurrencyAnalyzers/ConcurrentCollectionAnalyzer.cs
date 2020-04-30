@@ -20,9 +20,9 @@ namespace ErrorProne.NET.AsyncAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.UsageIsNotThreadSafe;
 
-        private static readonly string Title = "The API is not thread-safe.{0}";
+        private const string Title = "The API is not thread-safe.{0}";
 
-        private static readonly string Description = "The API is not thread safe and can cause runtime failures.";
+        private const string Description = "The API is not thread safe and can cause runtime failures.";
         private const string Category = "Concurrency";
 
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
@@ -93,7 +93,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             }
         }
 
-        private ITypeSymbol? GetReceiverType(IInvocationOperation invocationOperation)
+        private static ITypeSymbol? GetReceiverType(IInvocationOperation invocationOperation)
         {
             // We have (at least) two cases here:
             // instance.ToList() and

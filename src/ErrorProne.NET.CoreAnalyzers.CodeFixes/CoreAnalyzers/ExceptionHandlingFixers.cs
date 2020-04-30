@@ -29,7 +29,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: Title,
-                        createChangedDocument: c => UseException(context.Document, diagnostic.Location, c),
+                        createChangedDocument: c => UseExceptionAsync(context.Document, diagnostic.Location, c),
                         equivalenceKey: Title),
                     diagnostic);
             }
@@ -40,7 +40,7 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> UseException(Document document, Location location, CancellationToken cancellationToken)
+        private async Task<Document> UseExceptionAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

@@ -28,7 +28,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: Title,
-                        createChangedDocument: c => AddInModifier(context.Document, diagnostic.Location, c),
+                        createChangedDocument: c => AddInModifierAsync(context.Document, diagnostic.Location, c),
                         equivalenceKey: Title),
                     diagnostic);
             }
@@ -42,7 +42,7 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<bool> ParameterIsUsedInNonInFriendlyManner(ParameterSyntax parameter, Document document, CancellationToken token)
+        private static async Task<bool> ParameterIsUsedInNonInFriendlyMannerAsync(ParameterSyntax parameter, Document document, CancellationToken token)
         {
             if (!document.SupportsSemanticModel)
             {
@@ -50,7 +50,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 return true;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(token);
+            var semanticModel = await document.GetSemanticModelAsync(token).ConfigureAwait(false);
             var paramSymbol = semanticModel.GetDeclaredSymbol(parameter);
             var references = await SymbolFinder.FindReferencesAsync(paramSymbol, document.Project.Solution, token).ConfigureAwait(false);
 
@@ -106,13 +106,13 @@ namespace ErrorProne.NET.StructAnalyzers
             return false;
         }
 
-        private async Task<Document> AddInModifier(Document document, Location location, CancellationToken cancellationToken)
+        private async Task<Document> AddInModifierAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Find the type declaration identified by the diagnostic.
             var paramSyntax = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<ParameterSyntax>().FirstOrDefault();
-            if (paramSyntax is null || await ParameterIsUsedInNonInFriendlyManner(paramSyntax, document, cancellationToken).ConfigureAwait(false))
+            if (paramSyntax is null || await ParameterIsUsedInNonInFriendlyMannerAsync(paramSyntax, document, cancellationToken).ConfigureAwait(false))
             {
                 // It is possible for some weird cases to not have 'ParameterSyntax'. See 'WarnIfParameterIsReadOnly' in UseInModifierAnalyzer.
                 return document;

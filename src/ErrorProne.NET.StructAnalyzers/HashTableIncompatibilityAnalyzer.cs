@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
-    /// An analyzer that warns when a struct with default implementation of <see cref="Object.Equals(object)"/> or <see cref="Object.GetHashCode()"/> are used as a key in a hash table.
+    /// An analyzer that warns when a struct with default implementation of <see cref="object.Equals(object)"/> or <see cref="object.GetHashCode()"/> are used as a key in a hash table.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class HashTableIncompatibilityAnalyzer : DiagnosticAnalyzer
@@ -32,17 +32,17 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.HashTableIncompatibilityDiagnosticId;
 
-        private static readonly string Title = "A hash table \"unfriendly\" type is used as the key in a hash table";
-        private static readonly string MessageFormat = "A struct '{0}' with a default {1} implementation is used as a key in a hash table.";
-        private static readonly string Description = "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.";
+        private const string Title = "A hash table \"unfriendly\" type is used as the key in a hash table";
+        private const string MessageFormat = "A struct '{0}' with a default {1} implementation is used as a key in a hash table.";
+        private const string Description = "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.";
         private const string Category = "Performance";
         
         // Using warning for visibility purposes
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
-        private static readonly Dictionary<string, int> _wellKnownHashTableTypes = new Dictionary<string, int>(WellKnownHashTables().ToDictionary(t => t.name.Remove(t.name.LastIndexOf("`")), t => t.arity));
+        private static readonly Dictionary<string, int> WellKnownHashTableTypes = new Dictionary<string, int>(WellKnownHashTables().ToDictionary(t => t.name.Remove(t.name.LastIndexOf("`")), t => t.arity));
         
-        private static readonly SymbolDisplayFormat _symbolDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat SymbolDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         /// <nodoc />
@@ -212,8 +212,8 @@ namespace ErrorProne.NET.StructAnalyzers
         private static bool IsWellKnownHashTableType(INamedTypeSymbol type)
         {
             if (type.ConstructedFrom != null &&
-                type.ConstructedFrom.ToDisplayString(_symbolDisplayFormat) is var name &&
-                _wellKnownHashTableTypes.ContainsKey(name))
+                type.ConstructedFrom.ToDisplayString(SymbolDisplayFormat) is var name &&
+                WellKnownHashTableTypes.ContainsKey(name))
             {
                 return true;
             }

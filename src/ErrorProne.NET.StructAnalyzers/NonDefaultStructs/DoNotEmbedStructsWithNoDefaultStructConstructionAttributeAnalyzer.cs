@@ -106,13 +106,13 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             }
         }
 
-        private ITypeSymbol? GetContainingType(PropertyDeclarationSyntax property, SemanticModel model)
+        private static ITypeSymbol? GetContainingType(PropertyDeclarationSyntax property, SemanticModel model)
         {
             var propertySymbol = model.GetDeclaredSymbol(property);
             return propertySymbol?.ContainingType;
         }
         
-        private ITypeSymbol? GetContainingType(FieldDeclarationSyntax field, SemanticModel model)
+        private static ITypeSymbol? GetContainingType(FieldDeclarationSyntax field, SemanticModel model)
         {
             var fieldSymbol = field.Declaration.Variables.Select(v => model.GetDeclaredSymbol(v)).FirstOrDefault();
             return fieldSymbol?.ContainingType;
