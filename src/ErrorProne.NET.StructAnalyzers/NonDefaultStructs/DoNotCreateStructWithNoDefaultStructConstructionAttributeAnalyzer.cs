@@ -9,10 +9,6 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     /// An analyzer warns when a struct with non-default invariants is constructed via default construction.
     /// For instance <code>ImmutableArray&lt;int&gt; a = default; int x = a.Count; will fail with NRE.</code>
     /// </summary>
-    /// <remarks>
-    /// Technically this analyzer belongs to StructAnalyzers project, but because its more important
-    /// and a bit more common, I decided to put it into the set of core analyzers.
-    /// </remarks>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer : DefaultStructConstructionAnalyzerBase
     {
