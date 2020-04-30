@@ -14,9 +14,9 @@ namespace ErrorProne.NET.AsyncAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.RedundantConfigureAwait;
 
-        private static readonly string Title = "ConfigureAwait(false) call is redundant.";
+        private const string Title = "ConfigureAwait(false) call is redundant.";
 
-        private static readonly string Description = "The assembly is configured not to use .ConfigureAwait(false)";
+        private const string Description = "The assembly is configured not to use .ConfigureAwait(false)";
         private const string Category = "CodeSmell";
 
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;

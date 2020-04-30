@@ -1,4 +1,217 @@
-﻿[*.cs]
+﻿# top-most EditorConfig file
+root = true
 
-# IDE0008: Use explicit type
-csharp_style_var_elsewhere = true:suggestion
+[*]
+end_of_line = crlf
+insert_final_newline = false
+indent_style = space
+indent_size = 4
+
+[*.cs]
+
+#######################################################################################
+#                             C# code style settings                                  #
+#######################################################################################
+
+# Sort using and Import directives with System.* appearing first
+# Note, to apply using-related settings you have to run "Remove and Sort using" command from the context menu in VS. Formatting a document will not trigger change the usings block.
+dotnet_sort_system_directives_first                                 = true
+dotnet_separate_import_directive_groups                             = false
+
+dotnet_style_readonly_field                                         = true: warning
+
+# Avoid "this." and "Me." if not necessary
+dotnet_style_qualification_for_field                                = false : warning
+dotnet_style_qualification_for_property                             = false : warning
+dotnet_style_qualification_for_method                               = false : warning
+dotnet_style_qualification_for_event                                = false : warning
+
+# Use language keywords instead of framework type names for type references: i.e. prefer 'int' over 'Int32'
+dotnet_style_predefined_type_for_locals_parameters_members          = true : warning
+# Prefer `int.MaxValue` over `Int32.MaxValue`
+dotnet_style_predefined_type_for_member_access                      = true : warning
+
+# Prefer `private const string foo` over `const string foo`
+dotnet_style_require_accessibility_modifiers                        = for_non_interface_members : warning
+# Prefer modifier order
+csharp_preferred_modifier_order                                     = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+
+# Suggest more modern language features when available
+
+# Prefer object initializers (e.g. `new Foo() { Bar = 42 };`) over property assignment (e.g. `var f = new Foo(); f.Bar = 42;`)
+dotnet_style_object_initializer                                     = true : suggestion
+# Prefer collection initializers (e.g. new List<int>{1,2,3})
+dotnet_style_collection_initializer                                 = true : suggestion
+# Prefer null coalescing (e.g. `x ?? y`) over ternary null checking (e.g. `x != null ? x:y`)
+dotnet_style_coalesce_expression                                    = true : suggestion
+# Prefer null propagation (e.g. `x?.Foo`) over ternary null checking (e.g. `x != null ? x.Foo:null`)
+dotnet_style_null_propagation                                       = true : suggestion
+# Prefer tuple names over ItemN properties
+dotnet_style_explicit_tuple_names                                   = true : suggestion
+
+# Prefer inferred anonymous type member names (e.g. `var anon = new { age, name };`)
+dotnet_style_prefer_inferred_anonymous_type_member_names            = true : suggestion
+
+# Prefer `var` type in declarations for built-in system types like `int`
+csharp_style_var_for_built_in_types                                 = true : suggestion
+# Prefer `var` type in declarations when the type is explicitly mentioned on the RHS (e.g. `var customer = new Customer();`)
+csharp_style_var_when_type_is_apparent                              = true : suggestion
+# Prefer `var` type in declarations in all other cases
+csharp_style_var_elsewhere                                          = true : suggestion
+
+# Prefer method-like constructs to have a block body
+csharp_style_expression_bodied_methods                              = false : none
+csharp_style_expression_bodied_constructors                         = false : none
+csharp_style_expression_bodied_operators                            = false : none
+
+# Prefer expression-bodied members for properties when they will be a single line (e.g. `public int GetAge() => this.Age;`)
+csharp_style_expression_bodied_properties                           = true : suggestion
+# Prefer expression-bodied members for indexers when they will be a single line (e.g. `public int GetAge() => this.Age;`)
+csharp_style_expression_bodied_indexers                             = true : suggestion
+# Prefer expression-bodied members for accessors when they will be a single line (e.g. `public int GetAge() => this.Age;`)
+csharp_style_expression_bodied_accessors                            = true : suggestion
+
+# Prefer pattern matching instead of `is` expressions with type casts
+csharp_style_pattern_matching_over_is_with_cast_check               = true : suggestion
+# Prefer pattern matching instead of `as` expressions with null checks to determine if something is of a particular type
+csharp_style_pattern_matching_over_as_with_null_check               = true : suggestion
+# Prefer `out` variables to be declared inline in the argument list of a method call when possible
+csharp_style_inlined_variable_declaration                           = true : suggestion
+
+# Prefer `default` over `default(T)`
+csharp_prefer_simple_default_expression                             = true : suggestion
+
+# Prefer deconstructed variable declaration
+csharp_style_deconstructed_variable_declaration                     = true : suggestion
+
+# Prefer local functions over anonymous functions
+csharp_style_pattern_local_over_anonymous_function                  = true : suggestion
+
+# TODO: Change to suggestion after switching to C# 7.2
+# Prefer to use `throw` expressions instead of `throw` statements
+csharp_style_throw_expression                                       = false : suggestion
+
+# Prefer MyEvent?.Invoke(); over `var d = MyEvnet; if (d != null) {d();}`
+csharp_style_conditional_delegate_call                              = true : warning
+
+# Prefer curly braces even for one line of code
+csharp_prefer_braces                                                = true : warning
+
+# Prefer foo[42] = 1; over foo[ 42 ] = 1;
+csharp_space_between_square_brackets                                = false : warning
+
+# Do not prefer if (x) DoSomething()
+csharp_preserve_single_line_statements                              = false : warning
+# Prefer { DoSomething(); }
+csharp_preserve_single_line_blocks                                  = true : suggestion
+
+# Prefer var foo = new[] {1, 2, 3} over new[] {1,2,3};
+csharp_space_after_comma                                            = true : suggestion
+
+#######################################################################################
+#                                   Formatting                                        #
+#######################################################################################
+csharp_new_line_before_open_brace                                   = all
+csharp_new_line_before_else                                         = true
+csharp_new_line_before_catch                                        = true
+csharp_new_line_before_finally                                      = true
+csharp_new_line_before_members_in_object_initializers               = true
+csharp_new_line_before_members_in_anonymous_types                   = true
+csharp_new_line_between_query_expression_clauses                    = true
+csharp_indent_case_contents                                         = true
+csharp_indent_switch_labels                                         = true
+csharp_indent_labels                                                = one_less_than_current
+csharp_space_after_cast                                             = false
+csharp_space_after_keywords_in_control_flow_statements              = true
+csharp_space_between_method_declaration_parameter_list_parentheses  = false
+csharp_space_between_method_call_parameter_list_parentheses         = false
+
+csharp_indent_block_contents                                        = true
+csharp_indent_braces                                                = false
+csharp_indent_case_contents_when_block                              = false
+
+#######################################################################################
+#                               Naming Conventions                                    #
+#######################################################################################
+
+# Static fields are PascalCase with no prefix
+dotnet_naming_rule.static_fields_should_be_camel_case.severity                  = warning
+dotnet_naming_rule.static_fields_should_be_camel_case.symbols                   = static_fields
+dotnet_naming_rule.static_fields_should_be_camel_case.style                     = static_field_style2
+
+dotnet_naming_symbols.static_fields.applicable_kinds                            = field
+dotnet_naming_symbols.static_fields.required_modifiers                          = static
+
+dotnet_naming_style.static_field_style2.capitalization                           = pascal_case
+
+# Instance fields are camelCase and start with m_
+dotnet_naming_rule.instance_fields_should_be_camel_case.severity                = warning
+dotnet_naming_rule.instance_fields_should_be_camel_case.symbols                 = instance_fields
+dotnet_naming_rule.instance_fields_should_be_camel_case.style                   = instance_field_style
+
+dotnet_naming_symbols.instance_fields.applicable_kinds                          = field
+# The rule should be enforced only for private fields
+dotnet_naming_symbols.instance_fields.applicable_accessibilities                = private
+
+dotnet_naming_style.instance_field_style.capitalization                         = camel_case
+dotnet_naming_style.instance_field_style.required_prefix                        = _
+
+# Async methods should have 'Async' suffix
+dotnet_naming_rule.async_methods_should_have_async_suffix.severity              = warning
+dotnet_naming_rule.async_methods_should_have_async_suffix.symbols               = async_methods
+dotnet_naming_rule.async_methods_should_have_async_suffix.style                 = async_methods_style
+
+dotnet_naming_symbols.async_methods.applicable_kinds                            = method
+dotnet_naming_symbols.async_methods.required_modifiers                          = async
+
+dotnet_naming_style.async_methods_style.capitalization                          = pascal_case
+dotnet_naming_style.async_methods_style.required_suffix                         = Async
+
+# Instance fields are camelCase and start with m_
+dotnet_naming_rule.instance_fields_should_be_camel_case.severity                = warning
+dotnet_naming_rule.instance_fields_should_be_camel_case.symbols                 = instance_fields
+dotnet_naming_rule.instance_fields_should_be_camel_case.style                   = instance_field_style
+
+dotnet_naming_symbols.instance_fields.applicable_kinds                          = field
+# The rule should be enforced only for private fields
+dotnet_naming_symbols.instance_fields.applicable_accessibilities                = private
+
+dotnet_naming_style.instance_field_style.capitalization                         = camel_case
+dotnet_naming_style.instance_field_style.required_prefix                        = _
+
+# Locals, parameters and local functions are camelCase
+dotnet_naming_rule.locals_should_be_camel_case.severity                         = warning
+dotnet_naming_rule.locals_should_be_camel_case.symbols                          = locals_and_parameters
+dotnet_naming_rule.locals_should_be_camel_case.style                            = camel_case_style
+
+dotnet_naming_symbols.locals_and_parameters.applicable_kinds                    = parameter, local, local_function
+
+dotnet_naming_style.camel_case_style.capitalization                             = camel_case
+
+# By default, name items with PascalCase
+dotnet_naming_rule.members_should_be_pascal_case.severity                       = warning
+dotnet_naming_rule.members_should_be_pascal_case.symbols                        = all_members
+dotnet_naming_rule.members_should_be_pascal_case.style                          = pascal_case_style
+
+dotnet_naming_symbols.all_members.applicable_kinds                              = *
+
+dotnet_naming_style.pascal_case_style.capitalization                            = pascal_case
+
+# FXCop Roslyn-Based analyzers
+# CA1063: Implement IDisposable Correctly
+dotnet_diagnostic.CA1063.severity = none
+
+# CA2237: Mark ISerializable types with serializable
+dotnet_diagnostic.CA2237.severity = none
+                                        
+# CA2217: Do not mark enums with FlagsAttribute
+dotnet_diagnostic.CA2217.severity = none
+
+# CA1062: argument validation in public methods
+dotnet_diagnostic.CA1062.severity = none
+
+#CA1307: The behavior of 'string.Equals(string)' could vary based on the current user's locale settings
+dotnet_diagnostic.CA1307.severity = none
+
+# CA1051: Do not declare visible instance fields
+dotnet_diagnostic.CA1051.severity = none

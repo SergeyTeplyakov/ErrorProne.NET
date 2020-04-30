@@ -15,9 +15,9 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.NonReadOnlyStructRefReadOnlyLocalDiagnosticId;
 
-        private static readonly string Title = "A non-readonly struct is used as a 'ref readonly' local variable";
-        private static readonly string MessageFormat = "A non-readonly struct '{0}' is used as 'ref readonly' local '{1}'";
-        private static readonly string Description = "A non-readonly structs can caused severe performance issues when used as 'ref readonly' locals";
+        private const string Title = "A non-readonly struct is used as a 'ref readonly' local variable";
+        private const string MessageFormat = "A non-readonly struct '{0}' is used as 'ref readonly' local '{1}'";
+        private const string Description = "A non-readonly structs can caused severe performance issues when used as 'ref readonly' locals";
         private const string Category = "Performance";
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 

@@ -52,12 +52,16 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
             foreach (var throwStatement in catchClause.DescendantNodes().OfType<ThrowStatementSyntax>())
             {
                 if (!(throwStatement.Expression is IdentifierNameSyntax identifier))
+                {
                     continue;
+                }
 
                 {
                     var symbol = context.SemanticModel.GetSymbolInfo(identifier);
                     if (symbol.Symbol == null)
+                    {
                         continue;
+                    }
 
                     if (symbol.Symbol.ExceptionFromCatchBlock())
                     {

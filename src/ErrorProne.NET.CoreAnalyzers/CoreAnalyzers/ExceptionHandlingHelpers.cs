@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ErrorProne.NET.CoreAnalyzers
 {
-    public readonly struct ExceptionReference
+    public readonly struct ExceptionReference : IEquatable<ExceptionReference>
     {
         public ExceptionReference(ISymbol symbol, IdentifierNameSyntax identifier)
         {
@@ -22,6 +22,39 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         public ISymbol Symbol { get; }
         public IdentifierNameSyntax Identifier { get; }
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj)
+        {
+            return obj is ExceptionReference other &&
+                   EqualityComparer<ISymbol>.Default.Equals(Symbol, other.Symbol) &&
+                   EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier);
+        }
+
+        /// <inheritdoc/>
+        public bool Equals(ExceptionReference other)
+        {
+            return EqualityComparer<ISymbol>.Default.Equals(Symbol, other.Symbol) &&
+                   EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return (Symbol, Identifier).GetHashCode();
+        }
+
+        /// <nodoc />
+        public static bool operator ==(ExceptionReference left, ExceptionReference right)
+        {
+            return left.Equals(right);
+        }
+
+        /// <nodoc />
+        public static bool operator !=(ExceptionReference left, ExceptionReference right)
+        {
+            return !(left == right);
+        }
     }
 
     public static class ExceptionHandlingHelpers

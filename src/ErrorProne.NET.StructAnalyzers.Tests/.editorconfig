@@ -1,0 +1,14 @@
+# top-most EditorConfig file
+root = false
+
+[*]
+# Async methods should NOT have 'Async' suffix in tests
+dotnet_naming_rule.async_methods_should_have_async_suffix.severity              = warning
+dotnet_naming_rule.async_methods_should_have_async_suffix.symbols               = async_methods
+dotnet_naming_rule.async_methods_should_have_async_suffix.style                 = async_methods_style
+
+dotnet_naming_symbols.async_methods.applicable_kinds                            = method
+dotnet_naming_symbols.async_methods.required_modifiers                          = async
+
+dotnet_naming_style.async_methods_style.capitalization                          = pascal_case
+dotnet_naming_style.async_methods_style.required_suffix                         = 

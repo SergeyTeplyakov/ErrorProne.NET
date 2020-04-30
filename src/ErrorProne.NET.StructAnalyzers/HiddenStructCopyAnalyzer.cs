@@ -17,9 +17,9 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.HiddenStructCopyDiagnosticId;
 
-        private static readonly string Title = "Hidden struct copy operation";
-        private static readonly string MessageFormat = "An expression '{0}' causes a hidden copy of a {2}struct '{1}'";
-        private static readonly string Description = "The compiler emits a defensive copy to make sure a struct instance remains unchanged";
+        private const string Title = "Hidden struct copy operation";
+        private const string MessageFormat = "An expression '{0}' causes a hidden copy of a {2}struct '{1}'";
+        private const string Description = "The compiler emits a defensive copy to make sure a struct instance remains unchanged";
         private const string Category = "Performance";
         
         // Using warning for visibility purposes
@@ -80,7 +80,7 @@ namespace ErrorProne.NET.StructAnalyzers
             return method.Parameters[0].RefKind;
         }
 
-        private void AnalyzeExpressionAndTargetSymbol(
+        private static void AnalyzeExpressionAndTargetSymbol(
             SyntaxNodeAnalysisContext context,
             ExpressionSyntax expression,
             SimpleNameSyntax? name,

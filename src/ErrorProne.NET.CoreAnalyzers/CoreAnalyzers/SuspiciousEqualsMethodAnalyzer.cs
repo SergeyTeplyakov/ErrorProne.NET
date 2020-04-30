@@ -20,12 +20,12 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.SuspiciousEqualsMethodImplementation;
 
-        private static readonly string RhsTitle = "Suspicious equality implementation: Equals method does not use rhs-parameter.";
-        private static readonly string RhsMessageFormat = "Suspicious equality implementation: parameter '{0}' is never used.";
-        private static readonly string RhsDescription = "Equals method implementation that does not uses another instance is suspicious.";
+        private const string RhsTitle = "Suspicious equality implementation: Equals method does not use rhs-parameter.";
+        private const string RhsMessageFormat = "Suspicious equality implementation: parameter '{0}' is never used.";
+        private const string RhsDescription = "Equals method implementation that does not uses another instance is suspicious.";
 
-        private static readonly string Title = "Suspicious equality implementation: no instance members are used.";
-        private static readonly string Description = "Equals method implementation that does not uses any instance members is suspicious.";
+        private const string Title = "Suspicious equality implementation: no instance members are used.";
+        private const string Description = "Equals method implementation that does not uses any instance members is suspicious.";
         private const string Category = "CodeSmell";
 
         // Using warning for visibility purposes
@@ -119,7 +119,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             => method.IsOverride &&
                method.OverriddenMethod != null &&
                method.OverriddenMethod.Name == "Equals" &&
-               (method.OverriddenMethod.ContainingType.IsSystemObject(compilation) ||
+               (method.OverriddenMethod.ContainingType.IsSystemObject() ||
                 method.OverriddenMethod.ContainingType.IsSystemValueType(compilation));
 
         private static bool ImplementsEquals(IMethodSymbol method, Compilation compilation)
@@ -159,7 +159,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                 .Any(m => m is IFieldSymbol || m is IPropertySymbol);
         }
 
-        private bool IsInstanceMember(INamedTypeSymbol methodContainingType, ISymbol symbol, Compilation compilation)
+        private bool IsInstanceMember(INamedTypeSymbol methodContainingType, ISymbol symbol)
         {
             if (symbol.IsStatic)
             {

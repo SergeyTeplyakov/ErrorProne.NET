@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
-    /// An analyzer that warns when a struct with the default implementation of <see cref="Object.Equals(object)"/> or <see cref="Object.GetHashCode()"/> is used
-    /// in another structs <see cref="object.Equals(object)"/> or <see cref="Object.GetHashCode"/> methods.
+    /// An analyzer that warns when a struct with the default implementation of <see cref="object.Equals(object)"/> or <see cref="object.GetHashCode()"/> is used
+    /// in another structs <see cref="object.Equals(object)"/> or <see cref="object.GetHashCode"/> methods.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class DefaultEqualsOrHashCodeIsUsedInStructAnalyzer : DiagnosticAnalyzer
@@ -19,9 +19,9 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.DefaultEqualsOrHashCodeIsUsedInStructDiagnosticId;
 
-        private static readonly string Title = "Default 'ValueType.Equals' or 'HashCode' is used for struct equality";
-        private static readonly string MessageFormat = "The default 'ValueType.{0}' is used in {1}.";
-        private static readonly string Description = "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.";
+        private const string Title = "Default 'ValueType.Equals' or 'HashCode' is used for struct equality";
+        private const string MessageFormat = "The default 'ValueType.{0}' is used in {1}.";
+        private const string Description = "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.";
         private const string Category = "Performance";
         
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;

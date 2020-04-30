@@ -12,9 +12,9 @@ namespace ErrorProne.NET.StructAnalyzers
     {
         public const string DiagnosticId = DiagnosticIds.ExplicitInParameterDiagnosticId;
 
-        private static readonly string Title = "Pass an argument for an 'in' parameter explicitly";
-        private static readonly string MessageFormat = "An argument for a parameter '{0}' may be passed explicitly";
-        private static readonly string Description = "Pass an argument for an 'in' parameters explicitly";
+        private const string Title = "Pass an argument for an 'in' parameter explicitly";
+        private const string MessageFormat = "An argument for a parameter '{0}' may be passed explicitly";
+        private const string Description = "Pass an argument for an 'in' parameters explicitly";
         private const string Category = "Usage";
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Info;
 

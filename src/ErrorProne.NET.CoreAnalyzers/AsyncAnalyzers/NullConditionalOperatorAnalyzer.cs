@@ -12,9 +12,9 @@ namespace ErrorProne.NET.AsyncAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.NullCoalescingOperatorForAsyncMethods;
 
-        private static readonly string Title = "Awaiting the result of a null-conditional expression will cause NullReferenceException.";
+        private const string Title = "Awaiting the result of a null-conditional expression will cause NullReferenceException.";
 
-        private static readonly string Description = "Null-conditional operator returns null when 'lhs' is null, causing NRE when a task is awaited.";
+        private const string Description = "Null-conditional operator returns null when 'lhs' is null, causing NRE when a task is awaited.";
         private const string Category = "CodeSmell";
 
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;

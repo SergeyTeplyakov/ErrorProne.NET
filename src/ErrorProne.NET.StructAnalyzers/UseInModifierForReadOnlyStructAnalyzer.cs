@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
 using ErrorProne.NET.Core;
-using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,9 +14,9 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.UseInModifierForReadOnlyStructDiagnosticId;
 
-        private static readonly string Title = "Use in-modifier for a readonly struct";
-        private static readonly string MessageFormat = "Use in-modifier for passing a readonly struct '{0}'";
-        private static readonly string Description = "Readonly structs have better performance when passed readonly reference";
+        private const string Title = "Use in-modifier for a readonly struct";
+        private const string MessageFormat = "Use in-modifier for passing a readonly struct '{0}'";
+        private const string Description = "Readonly structs have better performance when passed readonly reference";
         private const string Category = "Performance";
         // Using warning for visibility purposes
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;

@@ -47,10 +47,16 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
                 // if statement has only one statement in the if block
                 // and this statement is a throw of type ArgumentException
                 var ifThrowStatement = statement as IfStatementSyntax;
-                if (ifThrowStatement == null) break;
+                if (ifThrowStatement == null)
+                {
+                    break;
+                }
 
                 var block = ifThrowStatement.Statement as BlockSyntax;
-                if (block != null && block.Statements.Count != 1) break;
+                if (block != null && block.Statements.Count != 1)
+                {
+                    break;
+                }
 
                 var throwStatementCandidate = block != null ? block.Statements[0] : ifThrowStatement.Statement;
 
@@ -74,7 +80,10 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
             var throwStatement = statement as ThrowStatementSyntax;
 
             var objectCreation = throwStatement?.Expression as ObjectCreationExpressionSyntax;
-            if (objectCreation == null) return false;
+            if (objectCreation == null)
+            {
+                return false;
+            }
 
             var symbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
             return symbol.IsArgumentExceptionType(semanticModel);

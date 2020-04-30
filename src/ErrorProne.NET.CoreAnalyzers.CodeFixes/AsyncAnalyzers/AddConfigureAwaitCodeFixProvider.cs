@@ -30,7 +30,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: RemoveConfigureAwaitTitle,
-                        createChangedDocument: c => AddConfigureAwait(context.Document, diagnostic.Location, context.CancellationToken),
+                        createChangedDocument: c => AddConfigureAwaitAsync(context.Document, diagnostic.Location, context.CancellationToken),
                         equivalenceKey: RemoveConfigureAwaitTitle),
                     diagnostic);
             }
@@ -41,9 +41,9 @@ namespace ErrorProne.NET.AsyncAnalyzers
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> AddConfigureAwait(Document document, Location location, CancellationToken cancellationToken)
+        private async Task<Document> AddConfigureAwaitAsync(Document document, Location location, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var awaitExpression = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf()
                 .OfType<AwaitExpressionSyntax>().First();

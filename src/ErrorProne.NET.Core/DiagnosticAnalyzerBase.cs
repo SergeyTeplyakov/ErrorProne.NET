@@ -56,7 +56,7 @@ namespace ErrorProne.NET.CoreAnalyzers
         }
 
         /// <nodoc />
-        protected DiagnosticDescriptor CreateDescriptorWithId(
+        protected static DiagnosticDescriptor CreateDescriptorWithId(
             string id,
             LocalizableString title,
             LocalizableString messageFormat,
@@ -77,7 +77,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             => CreateUnnecessaryDescriptor(DescriptorId);
 
         /// <nodoc />
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
+        protected static DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
                 descriptorId, "foo", "bar",
                 //descriptorId, _localizableTitle, _localizableMessageFormat,
