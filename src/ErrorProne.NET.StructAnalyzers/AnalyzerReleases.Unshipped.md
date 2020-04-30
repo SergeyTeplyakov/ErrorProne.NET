@@ -12,4 +12,6 @@ EPS05 | Performance | Warning | UseInModifierForReadOnlyStructAnalyzer
 EPS06 | Performance | Warning | HiddenStructCopyAnalyzer
 EPS07 | Performance | Warning | HashTableIncompatibilityAnalyzer
 EPS08 | Performance | Warning | DefaultEqualsOrHashCodeIsUsedInStructAnalyzer
-EPS09 | Usage | Warning | ExplicitInParameterAnalyzer
+EPS09 | Usage | Info | ExplicitInParameterAnalyzer
+EPS10 | CodeSmell | Warning | DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer
+EPS11 | CodeSmell | Warning | DoNotEmbedStructsWithNoDefaultStructConstructionAttributeAnalyzer

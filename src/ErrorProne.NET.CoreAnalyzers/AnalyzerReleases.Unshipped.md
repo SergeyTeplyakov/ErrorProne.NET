@@ -13,5 +13,3 @@ EPC16 | CodeSmell | Warning | NullConditionalOperatorAnalyzer
 ERP021 | CodeSmell | Warning | ThrowExAnalyzer
 ERP022 | CodeSmell | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
-ERP041 | CodeSmell | Warning | DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer
-ERP042 | CodeSmell | Warning | DoNotEmbedStructsWithNoDefaultStructConstructionAttributeAnalyzer
