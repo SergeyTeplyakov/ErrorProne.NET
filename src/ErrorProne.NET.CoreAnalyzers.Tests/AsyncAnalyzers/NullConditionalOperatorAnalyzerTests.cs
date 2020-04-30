@@ -22,6 +22,7 @@ public class MyClass
     }
 }
 ";
+
             await new VerifyCS.Test
             {
                 TestState = { Sources = { code } }

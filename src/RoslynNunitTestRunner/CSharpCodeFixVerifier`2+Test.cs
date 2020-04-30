@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CodeFixes;
+﻿using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -10,6 +11,14 @@ namespace ErrorProne.NET.TestHelpers
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
+        public static Task VerifyAsync(string code)
+        {
+            return new Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+
         public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, NUnitVerifier>
         {
             public Test()
