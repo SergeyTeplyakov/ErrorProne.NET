@@ -2,7 +2,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
-using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,8 +10,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
-    /// An analyzer that warns when a struct with default implementation of <see cref="Object.Equals(object)"/> or <see cref="Object.GetHashCode()"/> are used
-    /// in another struct's <see cref="object.Equals(object)"/> or <see cref="Object.GetHashCode"/> methods.
+    /// An analyzer that warns when a struct with the default implementation of <see cref="Object.Equals(object)"/> or <see cref="Object.GetHashCode()"/> is used
+    /// in another structs <see cref="object.Equals(object)"/> or <see cref="Object.GetHashCode"/> methods.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class DefaultEqualsOrHashCodeIsUsedInStructAnalyzer : DiagnosticAnalyzer
@@ -20,9 +19,9 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.DefaultEqualsOrHashCodeIsUsedInStructDiagnosticId;
 
-        private static readonly string Title = "Default ValueType.Equals or HashCode is used for struct's equality";
-        private static readonly string MessageFormat = "Default ValueType.{0} is used in {1}.";
-        private static readonly string Description = "Default implementation of Equals/GetHashCode for struct is inneficient and could cause severe performance issues.";
+        private static readonly string Title = "Default 'ValueType.Equals' or 'HashCode' is used for struct equality";
+        private static readonly string MessageFormat = "The default 'ValueType.{0}' is used in {1}.";
+        private static readonly string Description = "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.";
         private const string Category = "Performance";
         
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
@@ -56,7 +55,7 @@ namespace ErrorProne.NET.StructAnalyzers
         }
 
         private void TryAnalyzeEqualsOrGetHashCode(IMethodSymbol methodSymbol, MethodDeclarationSyntax syntax,
-            SemanticModel semanticModel, Action<Diagnostic> diagnosticRepoter)
+            SemanticModel semanticModel, Action<Diagnostic> diagnosticReporter)
         {
             if (
                 // Overrides Equals or GetHashCode
@@ -86,7 +85,7 @@ namespace ErrorProne.NET.StructAnalyzers
                         {
                             string equalsOrHashCodeAsString = referencedMethod.Name;
                             var diagnostic = Diagnostic.Create(Rule, ms.Name.GetLocation(), equalsOrHashCodeAsString, $"{methodSymbol.ContainingType.ToDisplayString()}.{referencedMethod.Name}");
-                            diagnosticRepoter(diagnostic);
+                            diagnosticReporter(diagnostic);
                         }
                     }
                 }

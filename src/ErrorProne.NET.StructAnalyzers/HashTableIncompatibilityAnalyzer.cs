@@ -32,15 +32,18 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.HashTableIncompatibilityDiagnosticId;
 
-        private static readonly string Title = "Hash table unfriendly type is used in a hash table";
-        private static readonly string MessageFormat = "Struct '{0}' with default {1} implementation is used as a key in a hash table.";
-        private static readonly string Description = "Default implementation of Equals/GetHashCode for struct is inneficient and could cause severe performance issues.";
+        private static readonly string Title = "A hash table \"unfriendly\" type is used as the key in a hash table";
+        private static readonly string MessageFormat = "A struct '{0}' with a default {1} implementation is used as a key in a hash table.";
+        private static readonly string Description = "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.";
         private const string Category = "Performance";
         
         // Using warning for visibility purposes
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 
         private static readonly Dictionary<string, int> _wellKnownHashTableTypes = new Dictionary<string, int>(WellKnownHashTables().ToDictionary(t => t.name.Remove(t.name.LastIndexOf("`")), t => t.arity));
+        
+        private static readonly SymbolDisplayFormat _symbolDisplayFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor Rule = 
@@ -205,9 +208,6 @@ namespace ErrorProne.NET.StructAnalyzers
                     throw new InvalidOperationException($"Invalid value '{equalsOrHashCode}'");
             }
         }
-
-        private static readonly SymbolDisplayFormat _symbolDisplayFormat = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         private static bool IsWellKnownHashTableType(INamedTypeSymbol type)
         {

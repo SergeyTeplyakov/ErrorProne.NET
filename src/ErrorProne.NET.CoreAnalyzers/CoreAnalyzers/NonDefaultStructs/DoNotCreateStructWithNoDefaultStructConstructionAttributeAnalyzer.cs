@@ -18,10 +18,10 @@ namespace ErrorProne.NET.CoreAnalyzers.NonDefaultStructs
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.DoNotUseDefaultConstructionForStruct;
 
-        private static readonly string Title = $"Do not use default construction for struct marked with `{DoNotUseDefaultConstructionAttributeName}`.";
+        private static readonly string Title = $"Do not use default construction for a struct marked with `{DoNotUseDefaultConstructionAttributeName}`.";
 
         private static readonly string Message =
-            $"Do not use default construction for struct '{{0}}' marked with `{DoNotUseDefaultConstructionAttributeName}`.{{1}}";
+            $"Do not use default construction for a struct '{{0}}' marked with `{DoNotUseDefaultConstructionAttributeName}`.{{1}}";
         private static readonly string Description = $"Structs marked with `{DoNotUseDefaultConstructionAttributeName}` should be " +
                                                      "constructed using a non-default constructor.";
         

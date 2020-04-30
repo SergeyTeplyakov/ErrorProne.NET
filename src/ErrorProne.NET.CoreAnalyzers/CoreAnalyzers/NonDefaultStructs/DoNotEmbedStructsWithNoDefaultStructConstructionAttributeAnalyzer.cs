@@ -18,7 +18,7 @@ namespace ErrorProne.NET.CoreAnalyzers.NonDefaultStructs
         private static readonly string Title = $"Do not embed structs marked with `{DoNotUseDefaultConstructionAttributeName}` attribute into another structs.";
 
         private static readonly string Message =
-            $"Do not embed struct '{{0}}' marked with `{DoNotUseDefaultConstructionAttributeName}` into another structs.";
+            $"Do not embed a struct '{{0}}' marked with `{DoNotUseDefaultConstructionAttributeName}` into another struct.";
         private static readonly string Description = $"Structs marked with `{DoNotUseDefaultConstructionAttributeName}` should be " +
                                                      "constructed using a non-default constructor and can not be embedded " +
                                                      "in other structs not marked with the same attribute.";

@@ -8,8 +8,6 @@
         /// <nodoc />
         public const string SuspiciousEqualsMethodImplementation = "EPC11";
 
-        /// <nodoc />
-        public const string SuspiciousExceptionHandling = "EPC12";
         
         /// <nodoc />
         public const string UnobservedResult = "EPC13";
@@ -24,6 +22,9 @@
         public const string NullCoalescingOperatorForAsyncMethods = "EPC16";
 
         // Exception handling
+        /// <nodoc />
+        public const string SuspiciousExceptionHandling = "EPC12";
+        
         public const string IncorrectExceptionPropagation = "ERP021";
         public const string AllExceptionSwallowed = "ERP022";
         public const string OnlyExceptionMessageWasObserved = "ERP023";

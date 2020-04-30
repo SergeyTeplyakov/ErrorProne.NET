@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
-    /// An analyzer that warns when non-ref-readonly struct is used as a refreadonly local variable.
+    /// An analyzer that warns when non-ref-readonly struct is used as a ref-readonly local variable.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class NonReadOnlyStructRefReadOnlyLocalAnalyzer : DiagnosticAnalyzer
@@ -15,9 +15,9 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.NonReadOnlyStructRefReadOnlyLocalDiagnosticId;
 
-        private static readonly string Title = "Non-readonly struct used as ref readonly local variable";
-        private static readonly string MessageFormat = "Non-readonly struct '{0}' used as ref readonly local '{1}'";
-        private static readonly string Description = "Non-readonly structs can caused severe performance issues when used as ref readonly local";
+        private static readonly string Title = "A non-readonly struct is used as a 'ref readonly' local variable";
+        private static readonly string MessageFormat = "A non-readonly struct '{0}' is used as 'ref readonly' local '{1}'";
+        private static readonly string Description = "A non-readonly structs can caused severe performance issues when used as 'ref readonly' locals";
         private const string Category = "Performance";
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 

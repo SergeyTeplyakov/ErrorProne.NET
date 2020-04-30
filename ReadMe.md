@@ -2,232 +2,297 @@
 
 [![Build Status](https://seteplia.visualstudio.com/ErrorProne.NET/_apis/build/status/SergeyTeplyakov.ErrorProne.NET?label=build)](https://seteplia.visualstudio.com/ErrorProne.NET/_build/latest?definitionId=1)
 
-ErrorProne.NET is a set of Roslyn-based analyzers that will help you to write correct code. The idea is similar to Google's [error-prone](https://github.com/google/error-prone) but focusing on correctness (and, maybe, performance) of C# programs.
+ErrorProne.NET is a set of Roslyn-based analyzers that will help you to write correct code. The idea is similar to Google's [error-prone](https://github.com/google/error-prone) but instead of Java, the analyzers are focusing on correctness (and, maybe, performance) of C# programs.
 
-Current implementation supports various rules that helps to prevent common coding errors.
+Currently, there are two types of analyzers that split into two projects that ended up in two separate nuget packages: 
+* ErrorProne.CoreAnalyzers - the analyzers covering the most common cases that may occur in almost any project, like error handling or correctness of some widely used API.
+* ErrorProne.StructAnalyzers - the analyzers focusing on potential performance problem when dealing with structs in C#.
 
-## Non-observed return value for pure methods
+## ErrorProne.CoreAnalyzers
+The "core" analyzers are the analyzers that will be useful in almost any .NET project by focusing on the correctness aspects and not on performance or low memory footprint.
 
-Result for every call to side-effect free method should be observed in one or another way. If such a method is invoked without observing the result, then it could lead to undesired behavior of the program.
-ErrorProne.NET has some special rules and heuristics to detect such invocations. For instance, calls to method marked with `PureAttribute` should be observed. The same is true for well-known immutable types like `object`, `IEnumerable` etc. All method invocations for extensions method of such immutable types considered pure as well.
+### Core Analyzers
 
-Here is a short list that shows this rule on practice. Every line ended with `// Non-Observed return value` produces the warning: 
-
-```csharp
-// Linq methods
-Enumerable.Range(1, 10);
-Enumerable.Range(1, 5).Select(x => x.ToString()).FirstOrDefault();
-
-// Third-party extensions methods for IEnumerable<T>
-new int[] { 1, 2 }.ToImmutableList(); // Non-Observed return value
-
-// Methods on string
-"x".Substring(1); // Non-Observed return value
-
-// On pure methods
-PureMethod(); // Non-Observed return value
-
-// member of all immutable collections
-var list = Enumerable.Range(1, 10).ToImmutableList();
-list.Add(42); // Non-Observed return value
-
-// On With pattern
-var tree = CSharpSyntaxTree.ParseText("class Foo {}");
-tree.WithFilePath("path"); // Non-Observed return value
-
-// Calls to well-known system types
-Convert.ToByte(42); // Non-Observed return value
-ToString(); // Non-Observed return value
-object.ReferenceEquals(null, 42); // Non-Observed return value
-IComparable<int> n = 42; 
-n.CompareTo(3); // Non-Observed return value
-
-// Static methods on well-known structs
-char.IsDigit('c');
-int.Parse("foo");
-```
-
-## Assignment-free object construction
-In many cases object creation via `new` expression also considered pure and such invocation should be observed in some way. Unfortunately, there is no simple way to analyze whether constructor has additional side effects or not, but in some cases it is known for sure that side effects are absent. For instance, "default constructors" on structs could not have any side effects, and the same is true for all immutable types and for some mutable types like collections.
-
-Following code snippet shows this rule in action:
+#### Unobserved Result Analysis
+Some projects are heavily rely on a set of special result type and instead of exception handling patterns are using `Result<T>` or `Possible<T>` families of types.
+In this case, it is very important for the callers of operations that return a result to observe it:
 
 ```csharp
-// Assignment free construction of well-known primitive types
-new object(); // Assignment-free object construction
-new string('c', 42); // Assignment-free object construction
-
-// default constructor for structs
-new int(); // Assignment-free object construction
-// Including custom structs
-new CustomStruct();
-
-// Default constructor for enums
-new CustomEnum();
-
-// Default constructor for all collections
-new List<int>();
-```
-
-## Assignment-free exception creation
-Exception creation could be considered side-effect free as well, but because of its special nature it deserves it's own rule. Assignment-free, throw-free exception creation will lead to an error by this tool:
-
-```csharp
-// Standalone exception creation is an error!
-new Exception();
-``` 
-
-## Rules for validating formatting string
-Another common source of errors - invalid format argument for such methods like `string.Format`, `Console.WriteLine` etc. There is 3 types of errors: 1) expected argument was not provided 2) argument was provided but was not used in the format string and 3) format string is invalid. ErrorProne.NET checks all of them (please keep in mind, that excessive arguments will not lead to runtime failure but they're considered very suspicious as well).
-
-```csharp
-// Format argument was not provided
-
-// Argument 3 was not provided
-Console.WriteLine("{0}, {3}", 1);
-// Argument 2 was not provided
-var s = string.Format(format: "{2}", arg0: 1);
-// Argument 1 was not provided
-WriteLog("{1}", 1);
-
-// Excessive arguments
-
-// Argument 3 was not used in the format string
-// Rule is working for const fields variables and
-// with static readonly fields/properties
-const string format = "{0}, {1}";
-Console.WriteLine(format, 1, 2, 3);
-
-// Format argument is a valid format string
-s = string.Format("{1\d(");
-```
-
-ErrorProne.NET recognizes custom format methods that marked with `JetBrains.Annotations.StringFormatMethodAttribute`:
-
-```csharp
-namespace JetBrains.Annotations
+public class Result
 {
-    public class StringFormatMethodAttribute : Attribute
+    public bool Success = false;
+}
+
+public static Result ProcessRequest() => null;
+
+// Result of type 'Result' should be observed
+ProcessRequest();
+//~~~~~~~~~~~~
+```
+
+The analyzers emit a diagnostic for every method that return a type with `Result` in its name as well as for some other well-known types that should be observed in vast majority of cases:
+```csharp
+Stream s = null;
+// The result of type 'Task' should be observed
+s.FlushAsync();
+//~~~~~~~~~~
+
+// The result of type 'Exception' should be observed
+getException();
+//~~~~~~~~~~
+Exception getException() => null;
+```
+
+### Suspisous equality implementation
+```csharp
+public class FooBar : IEquatable<FooBar>
+{
+    private string _s;
+
+    // Suspicious equality implementation: parameter 'other' is never used
+    public bool Equals(FooBar other)
+    //                        ~~~~~
     {
-        public StringFormatMethodAttribute(string name) { }
+        return _s == "42";
     }
 }
 
-public class StringFormatAnalysis
+public class Baz : IEquatable<Baz>
 {
-	[JetBrains.Annotations.StringFormatMethod("message")]
-	public static void WriteLog(string message, params object[] args) { }
+    private string _s;
 
-	public void Sample()
-	{
-		// Argument 1 was not provided
-		WriteLog("{1}", 1);
-	}
-}
-```
-
-ErrorProne.NET also has special rule that checks regex validity. So following code will trigger an error:
-
-```csharp
-// Regex pattern is invalid: parsing "\d(" - Not enough )'s.
-var regex = new Regex("\\d(");
-```
-
-## Switch completeness analysis
-ErrorProne.NET has special rule that enforces completeness of the switch statement over variable of enum type. Consider following example:
-
-```csharp
-enum ShapeType
-{
-    Circle,
-    Rectangle,
-    Square
-}
-abstract class Shape
-{
-    public static Shape CreateShape(ShapeType shapeType)
+    // Suspicious equality implementation: no instance members are used
+    public bool Equals(Baz other)
+    //          ~~~~~~
     {
-        // Warning: Possible missed enum case(s) 'Square' int the switch statement
-        switch(shapeType)
-        {
-            case ShapeType.Circle: return new Circle();
-            case ShapeType.Rectangle:return new Rectangle();
-            default: throw new InvalidOperationException($"Unknown shape type '{shapeType}'");
-        }
+        return other != null;
     }
 }
-class Circle : Shape { }
-class Rectangle : Shape { }
-``` 
-
-ErrorProne.NET recognizes that default section of the switch statement throws `InvalidOperationException` that could be a marker that all the cases are checked by the switch. If this is not the case warning would be emitted that some cases were potentially missed.
-
-## Exception handling rules
-ErrorProne.NET has few rules that enforces exception handling best practices.
-
-### Incorrect exception propagation
-Incorrect exception propagation with `throw ex` is probably most well-known issue that any developer can face in any project. `throw ex` will change the original exception stack tract that can complicates further diagnostic a lot.
-
-```csharp
-// Incorrect exception propagation
-try { throw new Exception(); }
-catch (Exception e)
-// Incorrect exception propagation. Use throw; instead
-{ throw e; }
 ```
 
-### Suspicious exception observation
-Another common mistake that can significantly complicate production postmortem is related to incorrect observation of the exception. Catching `System.Exception` considered harmful because it can leave system in unpredictable state, but even when base exception is caught it is very important that full exception object (including stack trace and inner exception) is observed.
+### Exception handling analyzers
 
-Consider following case:
+Correct exception handling is a very complex topic, but one case that is very common requires special attention. A generic handler that handles `System.Exception` or `System.AggregateException` should "observe" the whole exception instance and not only the `Message` property. The `Message` property is quite important, but in some cases it can be quite meaningless. For instance, the `Message` property for `TargetInvocationException`, `AggregateException`, `TypeLoadExcpetion` and some others doesn't provide anything useful in it's message and the most useful information is stored in `InnerException`.
 
-```csharp
-class WillThrow
-{
-    public WillThrow()
-    {
-        throw new Exception("Oops!");
-    }
-}
-
-public static T Create<T>() where T : new()
-{
-    return new T();
-}
-
-public void Sample()
-{
-    try { Create<WillThrow>(); }
-    // Warn for ex.Message: Only ex.Message was observed in the exception block!
-    catch(Exception ex) { Console.WriteLine(ex.Message); }
-}
-```
-
-Due to implementation details of the C# programming language, every exception thrown during object construction in would be wrapped into `TargetInvocationException`. This aspect will lead to very obscure error message: `Exception has been thrown by the target of an invocation` without any hints of the root cause of the problem. To avoid such kind of problems ErrorProne.NET will warn if only `ex.Message` was observed in exception handler that takes `System.Exception`.
-
-### Swallowing base exceptions considered harmful
-
-Another common bad practice in exception handling is swallowing all exception by using `catch(System.Exception)` or `catch {}`. To avoid swallowing exceptions, ErrorProne.NET has a rule that will check exit points of the catch block and warn if exception was swallowed without observing it's state:
+To avoid this anti-pattern, the analyzer will warn you if the code only traces the `Exception` property without "looking inside":
 
 ```csharp
-try { throw new Exception(); }
+try
+{
+    Console.WriteLine();
+}
 catch (Exception e)
 {
-    if (e is AggregateException) return;
-} // Exit point '}' swallows unobserved exception
+    // Suspicious exception handling: only e.Message is observed in exception block
+    Console.WriteLine(e.Message);
+    //                  ~~~~~~~
+}
+
+try
+{
+    Console.WriteLine();
+}
+catch (Exception e)
+{
+    // Exit point 'return' swallows an unobserved exception
+    return;
+//  ~~~~~~
+}
+
+try
+{
+    Console.WriteLine();
+}
+catch (Exception e)
+{
+    // Incorrect exception propagation: use 'throw' instead
+    throw e;
+    //    ~
+}
 ```
 
-Please note, that this rule will warn only when exception object was not observed (like printed to console, log etc).
+### Async Analyzers
+
+```csharp
+Stream sample = null;
+// Awaiting the result of a null-conditional expression may cause NullReferenceException.
+await sample?.FlushAsync();
+```
+
+#### Configuring `ConfigureAwait` behavior
+
+The strictness of whether to use `ConfigureAwait` everywhere is very much depends on the project and the layer of the project. It is very important for all the library code to always use `ConfigureAwait(false)` to avoid potential issues like deadlocks. On the other hand, some other parts of the system maybe used only in service layer and the team may decide not to litter the code with redudnat `ConfigureAwait(false)` calls. But regardless of what a team decides to do - whether to call `ConfigureAwait` or not, its very important to enforce (if possible) the consistency of the code.
+
+ErrorProne.NET allows a developer to "annotate" the assembly with an attribute and the anlyzers will enforce the desired behavior:
+
+```csharp
+[assembly: UseConfigureAwaitFalse()]
+public class UseConfigureAwaitFalseAttribute : System.Attribute { }
+
+public static async Task CopyTo(Stream source, Stream destination)
+{
+    // ConfigureAwait(false) must be used
+    await source.CopyToAsync(destination);
+    //    ~~~~~~~~~~~~~~~~~~
+}
+```
+
+```csharp
+[assembly: DoNotUseConfigureAwaitFalse()]
+public class UseConfigureAwaitFalseAttribute : System.Attribute { }
+// ConfigureAwait(false) call is redundant
+await source.CopyToAsync(destination).ConfigureAwait(false);
+//                                    ~~~~~~~~~~~~~~~~~~~~~
+```
+
+In both cases, the analyzers will look for a special attribute used for a given assembly and will emit diagnostics based on the required usage of `ConfigureAwait`. In the second case, the `ConfigureAwait(false)` will be grayed-out in the IDE and the IDE will suggest a fixer to remove the redundant call.
+
+Please note, that you don't have to reference any ErrorProne.NET assembly in order to use this feature. You can just declare the two attributes by yourself and the analyzer will use duck-typing approach to detect that the right attributes were used.
+
+## Struct Analyzers
+
+Value types are very important in high performance scenarios, but they have its own limitations and hidden aspects that can cause incorrect behavior or performance degradations.
+
+### Do not use default contructors for structs
+
+In high-performant code it is quite common to use structs as an optimization tool. And in some cases, the default constructor for structs can not establish the invariants required for the correct behavior. Such structs can be marked with a special attribute (`DoNotUseDefaultConstruction`) and any attempt to create the struct marked with this attribute using `new` or `default` will trigger a diagnostic:
+
+
+```csharp
+[System.AttributeUsage(System.AttributeTargets.Struct)]
+public class DoNotUseDefaultConstructionAttribute : System.Attribute { }
+
+[DoNotUseDefaultConstruction]
+public readonly struct TaskSourceSlim<T>
+{
+    private readonly TaskCompletionSource<T> _tcs;
+    public TaskSourceSlim(TaskCompletionSource<T> tcs) => _tcs = tcs;
+    // Other members
+}
+
+// Do not use default construction for struct 'TaskSourceSlim' marked with 'DoNotUseDefaultConstruction' attribute
+var tss = new TaskSourceSlim<object>();
+//        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// The same warning.
+TaskSourceSlim<object> tss2 = default;
+//                            ~~~~~~~
+
+// The same warning.
+var tss3 = Create<TaskSourceSlim<object>>();
+//         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var a = new TaskSourceSlim<object>[5]; // OK
+
+// The same warning! ImmutableArray will throw NRE
+var ia = new ImmutableArray<int>();
+//           ~~~~~~~~~~~~~~~~~~~~~
+
+public static T Create<T>() where T : new() => default;
+```
+
+And you can't embed a struct marked with this attribute into another struct, unless the other struct is marked with `DoNotUseDefaultConstruction` attribute as well:
+
+```csharp
+public readonly struct S2
+{
+    // Do not embed struct 'TaskSourceSlim' marked with 'DoNotUseDefaultConstruction' attribute into another struct
+    private readonly TaskSourceSlim<object> _tss;
+    //               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+```
+
+### A hashtable unfriendly type is used as a key in a dictionary
+
+Every type that is used as the key in a dictionary must implement `Equals` and `GetHashCode`. By default the CLR provides the default implementations for `Equals` and `GetHashCode` that follows "value semantics", i.e. the two instances of a struct are equals when all the fields are equals. But unfortunately, the calling a default `Equal` or `GetHashCode` methods causes boxing allocation and may be implemented using reflection, that can be extremely slow.
+
+```csharp
+public struct MyStruct
+{
+    private readonly long _x;
+    private readonly long _y;
+    public void FooBar() { }
+    // Struct 'MyStruct' with the default Equals and HashCode implementation
+    // is used as a key in a hash table.
+    private static Dictionary<MyStruct, string> Table;
+    //             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+```
+
+The same issue may occur when `MyStruct` instance is embedded into another struct that provide custom implementations for `Equals` and `GetHashCode`. And there is an analyzer that warns in this case as well:
+
+```csharp
+
+```
+
+### A struct can be made readonly
+Marking a struct readonly can be beneficial in terms of design, because it allows conveying the intent more clearly, and also readonly structs can be more performant by avoiding defensive copies in readonly contexts (like when passed by `in`, when stored in readonly field, `ref readonly` variables etc):
+
+```csharp
+// Struct 'MyStruct' can be made readonly
+public struct MyStruct
+//            ~~~~~~~~
+{
+    private readonly long _x;
+    private readonly long _y;
+    public void FooBar() { }
+}
+```
+
+All the analyzers below will trigger a diagnostics only for "large" structs, i.e. with the structs larger than 16 bytes. This is done to avoid too many warnings when there is potential performance issues because the copy of a small struct will be very much negligible.
+
+### Non-readonly struct is passed as in-parameter
+It doesn't make sense to pass non-readonly and non-poco structs as `in` parameter, because almost every access to the argument will cause a defensive copy that will eliminate all the benefits of "passing by reference":
+
+```csharp
+// Non-readonly struct 'MyStruct' is passed as in-parameter 'ms'
+public static void InParameter(in MyStruct ms)
+//                             ~~~~~~~~~~~~~~
+{
+}
+
+// Non-readonly struct 'MyStruct' returned by readonly reference
+public static ref readonly MyStruct Return() => throw null;
+//            ~~~~~~~~~~~~~~~~~~~~~
+```
+
+### Defensive copy analyzers
+C# 7.3 introduced features that help passing or returning struct by "readonly" reference. The features are very helpful for readonly structs, but for non-readonly members of non-readonly structs that can decrease performance by causing a lots of redundant copies.
+
+```csharp
+public static void HiddenCopy(in MyStruct ms)
+{
+    // Some analyzers are triggered only for "large" structs to avoid extra noise
+    // Hidden copy copy
+    
+    // Expression 'FooBar' causes a hidden copy of a non-readonly struct 'MyStruct'
+    ms.FooBar();
+    // ~~~~~~
+
+    ref readonly MyStruct local = ref ms;
+
+    // Hidden copy as well
+    local.FooBar();
+    //    ~~~~~~
+
+    // Hidden copy as well
+    _staticStruct.FooBar();
+    //            ~~~~~~
+}
+
+private static readonly MyStruct _staticStruct;
+```
 
 # Contributions
 Are highly appreciated. You may send a pull request with various fixes or you can suggest some interesting rule that can prevent from some nasty bugs in your app!
 
+# HowTos
+Q: How to generate stable nuget packages that can be added to a local nuget feed?
+A: msbuild /p:PublicRelease=true
+
+Q: How to add a newly generate nuget package into a local nuget feed?
+A: nuget add $package -source c:\localPackages
+
 # Roadmap
 
-* Add `Immutable` attribute that will enforce type immutability
-* Add well known attribute like `NoExceptionSwallowing` that will enforce some rules related to exception handling
-* Add `NoAdditionalHeapAllocations` attribute that will warn on uncesseary boxing operations on different levels (method, class, assembly)
-* Warn on using `ToString` on collections
-* Warn on using `Equals`, `GetHashCode` on collections
-* Add a `Record` attribute that will enforce that all class/struct fields are used in `ToString`/`GetHashCode` and `ToString` methods
-* Make pure-method rule extensibile (external annotations? use attributes from Code Contracts repo?) 
+TBD

@@ -16,9 +16,9 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.NonReadOnlyStructPassedAsInParameterDiagnosticId;
 
-        private static readonly string Title = "Non-readonly struct used as in-parameter";
-        private static readonly string MessageFormat = "Non-readonly struct '{0}' used as in-parameter '{1}'";
-        private static readonly string Description = "Non-readonly structs can caused severe performance issues when used as in-parameters";
+        private static readonly string Title = "A non-readonly struct used as in-parameter";
+        private static readonly string MessageFormat = "A non-readonly struct '{0}' used as in-parameter '{1}'";
+        private static readonly string Description = "A non-readonly structs can caused severe performance issues when passed as in-parameters";
         private const string Category = "Performance";
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 

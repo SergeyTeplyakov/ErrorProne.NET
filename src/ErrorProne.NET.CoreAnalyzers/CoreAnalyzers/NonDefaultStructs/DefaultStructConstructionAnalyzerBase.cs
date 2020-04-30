@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 namespace ErrorProne.NET.CoreAnalyzers.NonDefaultStructs
 {
     /// <summary>
-    /// A base class for analysing structs marked with <seealso cref="DoNotUseDefaultConstructionAttributeName"/>.
+    /// A base class for analyzing structs marked with <seealso cref="DoNotUseDefaultConstructionAttributeName"/>.
     /// </summary>
     public abstract class DefaultStructConstructionAnalyzerBase : DiagnosticAnalyzerBase
     {

@@ -9,16 +9,16 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 {
     internal sealed class IfThrowPrecondition
     {
-        public IfThrowPrecondition(StatementSyntax ifThrowStaement, ThrowStatementSyntax throwStatement)
+        public IfThrowPrecondition(StatementSyntax ifThrowStatement, ThrowStatementSyntax throwStatement)
         {
-            Contract.Requires(ifThrowStaement != null);
+            Contract.Requires(ifThrowStatement != null);
             Contract.Requires(throwStatement != null);
 
-            IfThrowStaement = ifThrowStaement;
+            IfThrowStatement = ifThrowStatement;
             ThrowStatement = throwStatement;
         }
 
-        public StatementSyntax IfThrowStaement { get; }
+        public StatementSyntax IfThrowStatement { get; }
         public ThrowStatementSyntax ThrowStatement { get; }
     }
 

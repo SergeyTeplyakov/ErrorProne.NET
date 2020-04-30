@@ -19,7 +19,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private static readonly string Title = "A struct can be made readonly";
         private static readonly string MessageFormat = "Struct '{0}' can be made readonly";
-        private static readonly string Description = "Readonly structs have better performance when passed/return by readonly reference.";
+        private static readonly string Description = "Readonly structs have a better performance when passed or return by readonly reference.";
         private const string Category = "Performance";
         
         // Using warning for visibility purposes
