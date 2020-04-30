@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
+using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 
-namespace ErrorProne.NET.CoreAnalyzers.NonDefaultStructs
+namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
 {
     /// <summary>
     /// A base class for analyzing structs marked with <seealso cref="DoNotUseDefaultConstructionAttributeName"/>.

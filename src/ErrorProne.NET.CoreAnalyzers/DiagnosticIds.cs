@@ -31,9 +31,5 @@
 
         // Concurrency
         public const string UsageIsNotThreadSafe = "ERP031";
-
-        // Other analyzers
-        public const string DoNotUseDefaultConstructionForStruct = "ERP041";
-        public const string DoNotEmbedStructsMarkedWithDoUseDefaultConstructionForStruct = "ERP042";
     }
 }

@@ -1,10 +1,11 @@
 using System.Linq;
+using ErrorProne.NET.StructAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ErrorProne.NET.CoreAnalyzers.NonDefaultStructs
+namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
 {
     /// <summary>
     /// Analyzer warns when a struct with non-default invariants is embedded into another struct.

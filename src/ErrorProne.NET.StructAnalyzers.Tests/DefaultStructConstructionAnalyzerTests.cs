@@ -2,11 +2,11 @@
 using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.NET.CoreAnalyzers.NonDefaultStructs.DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer,
+    ErrorProne.Net.StructAnalyzers.NonDefaultStructs.DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 using VerifyEmbedCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.NET.CoreAnalyzers.NonDefaultStructs.DoNotEmbedStructsWithNoDefaultStructConstructionAttributeAnalyzer,
+    ErrorProne.Net.StructAnalyzers.NonDefaultStructs.DoNotEmbedStructsWithNoDefaultStructConstructionAttributeAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests
@@ -58,6 +58,90 @@ public class Foo
 
             await VerifySource(code);
         }
+
+        [Test]
+        public async Task Warn_On_Default_Construction_Via_Factory()
+        {
+            string code = @"
+[DoNotUseDefaultConstructionAttribute]
+public struct MyS
+{
+}
+public class Foo
+{
+    public void Check()
+    {
+        MyS s = [|Create<MyS>()|];
+        MyS s2 = [|Create2<int, MyS>(42)|];
+    }
+
+    public static T Create<T>() where T: new() => new T();
+    public static U Create2<T, U>(T t) where U: new() => new U();
+}
+";
+
+            await VerifySource(code);
+        }
+        
+        [Test]
+        public async Task Warn_On_Default_Construction_Via_Out_Or_Ref_Generic()
+        {
+            string code = @"
+[DoNotUseDefaultConstructionAttribute]
+public struct MyS
+{
+  public MyS(int n) {}
+}
+public class Foo
+{
+    public void Check()
+    {
+        [|CreateOutput<MyS>(out var s)|];
+
+        [|CreateRef(ref s)|];
+    }
+
+    // Should warn even without any constraints.
+    public static void CreateOutput<T>(out T t)
+    {
+        t = default;
+    }
+    
+    public static void CreateRef<T>(ref T t)
+    {
+        t = default;
+    }
+}
+";
+
+            await VerifySource(code);
+        }
+        
+        [Test]
+        public async Task Warn_On_Default_Construction_Via_Out_Or_Non_Generic()
+        {
+            string code = @"
+[DoNotUseDefaultConstructionAttribute]
+public struct MyS
+{
+  public MyS(int n) {}
+}
+public class Foo
+{
+    public static void CreateOutput(out MyS t)
+    {
+        t = [|default|];
+    }
+    
+    public static void CreateRef(ref MyS t)
+    {
+        t = [|new MyS()|];
+    }
+}
+";
+
+            await VerifySource(code);
+        }
         
         [Test]
         public async Task Warn_On_Default_Construction_And_Emit_Provided_Error_Message()
@@ -92,6 +176,7 @@ public class Foo
             private MyS _s;
 #pragma warning restore CS0169 // The field 'field_name' is never used
         }
+        
         // generics.
         public static T Create<T>() where T : new()
         {
@@ -99,7 +184,7 @@ public class Foo
             return default;
 #pragma warning restore CS8603 // Possible null reference return.
         }
-        
+
         [Test]
         public async Task Warn_If_Embedded_As_Field()
         {
