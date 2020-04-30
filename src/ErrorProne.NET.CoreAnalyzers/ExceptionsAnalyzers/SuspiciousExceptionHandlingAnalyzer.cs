@@ -21,16 +21,14 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.SuspiciousExceptionHandling;
 
-        public const string DiagnosticIdWithoutSuggestion = DiagnosticIds.SuspiciousExceptionHandling + "WithoutSuggestion";
-
         private const string Title =
-            "Suspicious exception handling: only Message property is observed in exception block.";
+            "Suspicious exception handling: only the 'Message' property is observed in the catch block.";
 
         private const string MessageFormat =
-            "Suspicious exception handling: only {0}.Message is observed in exception block.";
+            "Suspicious exception handling: only '{0}.Message' is observed in the catch block.";
 
         private const string Description =
-            "In many cases Message property contains irrelevant information and actual data is kept in inner exceptions.";
+            "In many cases the 'Message' property contains irrelevant information and actual data is kept in inner exceptions.";
 
         private const string Category = "CodeSmell";
 

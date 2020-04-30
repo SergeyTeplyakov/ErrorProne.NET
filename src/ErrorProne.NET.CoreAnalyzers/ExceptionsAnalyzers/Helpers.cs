@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ErrorProne.NET.ExceptionAnalyzers
 {
-    internal struct ExceptionReference
+    internal readonly struct ExceptionReference
     {
         public ExceptionReference(ISymbol symbol, IdentifierNameSyntax identifier)
         {

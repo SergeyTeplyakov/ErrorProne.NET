@@ -21,7 +21,7 @@ namespace ErrorProne.NET.CoreAnalyzers
         public const string DiagnosticId = DiagnosticIds.SuspiciousEqualsMethodImplementation;
 
         private static readonly string RhsTitle = "Suspicious equality implementation: Equals method does not use rhs-parameter.";
-        private static readonly string RhsMessageFormat = "Suspicious equality implementation: parameter {0} is never used.";
+        private static readonly string RhsMessageFormat = "Suspicious equality implementation: parameter '{0}' is never used.";
         private static readonly string RhsDescription = "Equals method implementation that does not uses another instance is suspicious.";
 
         private static readonly string Title = "Suspicious equality implementation: no instance members are used.";

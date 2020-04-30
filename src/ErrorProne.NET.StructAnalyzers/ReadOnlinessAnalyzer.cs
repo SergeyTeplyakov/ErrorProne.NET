@@ -71,7 +71,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
             foreach (var member in type.GetMembers())
             {
-                // Shoudl ignore static members, they has nothing to do with it.
+                // Should ignore static members, they has nothing to do with it.
                 if (member.IsStatic)
                 {
                     continue;
@@ -92,7 +92,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
             if (!hasPropertiesOrMethods)
             {
-                // No methods/properties: poco or empty
+                // No methods/properties: POCO or empty
                 return ReadOnlyRefFriendliness.FrienlyPoco;
             }
 

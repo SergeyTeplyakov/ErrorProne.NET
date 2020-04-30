@@ -16,7 +16,7 @@ namespace ErrorProne.NET.StructAnalyzers
         public const string DiagnosticId = DiagnosticIds.UseInModifierForReadOnlyStructDiagnosticId;
 
         private static readonly string Title = "Use in-modifier for a readonly struct";
-        private static readonly string MessageFormat = "Use in-modifier for passing readonly struct '{0}'";
+        private static readonly string MessageFormat = "Use in-modifier for passing a readonly struct '{0}'";
         private static readonly string Description = "Readonly structs have better performance when passed readonly reference";
         private const string Category = "Performance";
         // Using warning for visibility purposes

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using ErrorProne.NET.Core;
-using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,8 +18,8 @@ namespace ErrorProne.NET.StructAnalyzers
         public const string DiagnosticId = DiagnosticIds.HiddenStructCopyDiagnosticId;
 
         private static readonly string Title = "Hidden struct copy operation";
-        private static readonly string MessageFormat = "Expression '{0}' causes a hidden copy of a {2}struct '{1}'";
-        private static readonly string Description = "Compiler emits a defensive copy to make sure a struct instance remains unchanged";
+        private static readonly string MessageFormat = "An expression '{0}' causes a hidden copy of a {2}struct '{1}'";
+        private static readonly string Description = "The compiler emits a defensive copy to make sure a struct instance remains unchanged";
         private const string Category = "Performance";
         
         // Using warning for visibility purposes

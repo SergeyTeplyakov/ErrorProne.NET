@@ -15,7 +15,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
         public const string DiagnosticId = DiagnosticIds.IncorrectExceptionPropagation;
 
         internal const string Title = "Incorrect exception propagation";
-        public const string MessageFormat = "Incorrect exception propagation. Use throw; instead.";
+        public const string MessageFormat = "Incorrect exception propagation. Use 'throw;' instead.";
         internal const string Category = "CodeSmell";
 
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(

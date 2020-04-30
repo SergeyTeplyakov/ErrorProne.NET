@@ -16,9 +16,9 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.NonReadOnlyStructReturnedByReadOnlyRefDiagnosticId;
 
-        private static readonly string Title = "Non-readonly struct returned by readonly reference";
-        private static readonly string MessageFormat = "Non-readonly struct '{0}' returned by readonly reference";
-        private static readonly string Description = "Non-readonly structs can caused severe performance issues when captured in ref readonly variable";
+        private static readonly string Title = "A non-readonly struct returned by readonly reference";
+        private static readonly string MessageFormat = "A non-readonly struct '{0}' returned by readonly reference";
+        private static readonly string Description = "A non-readonly structs can caused severe performance issues when captured in 'ref readonly' variable";
         private const string Category = "Performance";
         private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
 

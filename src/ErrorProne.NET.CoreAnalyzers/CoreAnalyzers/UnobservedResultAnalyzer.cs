@@ -23,9 +23,9 @@ namespace ErrorProne.NET.CoreAnalyzers
         public const string DiagnosticId = DiagnosticIds.UnobservedResult;
 
         private static readonly string Title = "Suspiciously unobserved result.";
-        private static readonly string Message = "Result of type '{0}' should be observed.";
+        private static readonly string Message = "The result of type '{0}' should be observed.";
 
-        private static readonly string Description = "Return values of some methods should be observed.";
+        private static readonly string Description = "Return values of some methods should always be observed.";
         private const string Category = "CodeSmell";
 
         // Using warning for visibility purposes
@@ -219,5 +219,4 @@ namespace ErrorProne.NET.CoreAnalyzers
             return (simpleMemberAccess?.Name ?? invocationExpression.Expression).GetLocation();
         }
     }
-
 }

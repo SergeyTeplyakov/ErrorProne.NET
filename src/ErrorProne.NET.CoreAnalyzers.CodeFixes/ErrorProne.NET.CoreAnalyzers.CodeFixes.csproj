@@ -17,6 +17,7 @@
   <PropertyGroup>
     <PackageId>ErrorProne.NET.CoreAnalyzers</PackageId>
     <Authors>Sergey Teplyakov</Authors>
+    <PackageVersion>1.3.0.0</PackageVersion>
     <PackageLicenseUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
