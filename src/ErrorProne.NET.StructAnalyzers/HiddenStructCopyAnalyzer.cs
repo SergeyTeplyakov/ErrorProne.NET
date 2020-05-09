@@ -1,5 +1,7 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics;
+﻿using System;
+using System.Collections.Immutable;
+using System.Diagnostics.ContractsLight;
+using System.Linq;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -65,7 +67,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private static RefKind GetExtensionMethodThisRefKind(IMethodSymbol method)
         {
-            Debug.Assert(method.IsExtensionMethod);
+            Contract.Requires(method.IsExtensionMethod);
 
             // The logic is quite tricky because it depends on the call form:
             // If an extension method is called using foo.Extension() then the parameter
@@ -88,7 +90,7 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
                 GetExtensionMethodThisRefKind(ms) == RefKind.None &&
-                ms.ReceiverType.IsLargeStruct(context.Compilation, Settings.LargeStructThreashold))
+                ms.ReceiverType.IsLargeStruct(context.Compilation, Settings.LargeStructThreshold))
             {
                 // The expression calls an extension method that takes a struct by value.
                 ReportDiagnostic(context, name ?? expression, ms.ReceiverType);
@@ -123,10 +125,14 @@ namespace ErrorProne.NET.StructAnalyzers
             if (targetSymbol != null && 
                 !(targetSymbol is IFieldSymbol) &&
                 resolvedType.IsValueType &&
+                // Dispose method is special: ignoring them
+                !targetSymbol.IsDisposeMethod() &&
                 resolvedType.TypeKind != TypeKind.Enum &&
+                // Skipping access to nullable type properties.
+                !resolvedType.IsNullableType() &&
                 !resolvedType.IsReadOnlyStruct() &&
                 // Warn only when the size of the struct is larger then threshold
-                resolvedType.IsLargeStruct(context.Compilation, Settings.LargeStructThreashold))
+                resolvedType.IsLargeStruct(context.Compilation, Settings.LargeStructThreshold))
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
@@ -135,13 +141,14 @@ namespace ErrorProne.NET.StructAnalyzers
         }
 
         private static void ReportDiagnostic(
-            SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType, string? modifier = null)
+            SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType,
+            string? modifier = null)
         {
             var diagnostic = Diagnostic.Create(
                 Rule,
                 expression.GetLocation(),
                 expression.ToFullString(),
-                resolvedType.Name,
+                resolvedType.ToDisplayString(),
                 modifier ?? string.Empty);
 
             context.ReportDiagnostic(diagnostic);

@@ -82,10 +82,11 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private static void WarnIfParameterIsReadOnly(Compilation compilation, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
         {
-            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, Settings.LargeStructThreashold))
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, Settings.LargeStructThreshold))
             {
                 Location location = p.GetParameterLocation();
-                var diagnostic = Diagnostic.Create(Rule, location, p.Type.Name, p.Name);
+
+                var diagnostic = Diagnostic.Create(Rule, location, p.Type.ToDisplayString(), p.Name);
 
                 diagnosticReporter(diagnostic);
             }

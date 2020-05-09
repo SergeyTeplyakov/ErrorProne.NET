@@ -17,7 +17,7 @@ namespace ErrorProne.NET.Core
         /// </summary>
         /// <remarks>
         /// This computation is not perfect, but could be good for the first time.
-        /// Current algorythm was reversed engineered for sequential layout by set of test cases and here it is:
+        /// Current algorithm was reversed engineered for sequential layout by set of test cases and here it is:
         /// CLR tries to pack members based on their size.
         /// If next item has larger size, then previous items are aligned to it (with empty space)
         /// and new item is aligned in memory:
@@ -174,10 +174,18 @@ namespace ErrorProne.NET.Core
             else
             {
                 bool empty = true;
-                foreach (var field in type.GetMembers().OfType<IFieldSymbol>().Where(f => !f.IsStatic))
+                foreach (var member in type.GetMembers().Where(f => !f.IsStatic))
                 {
-                    GetSize(compilation, field.Type, ref capacity, ref largestFieldSize, ref actualSize);
-                    empty = false;
+                    if (member is IFieldSymbol field)
+                    {
+                        GetSize(compilation, field.Type, ref capacity, ref largestFieldSize, ref actualSize);
+                        empty = false;
+                    }
+                    else if (member is IPropertySymbol property && property.IsReadOnly && property.GetMethod == null)
+                    {
+                        GetSize(compilation, property.Type, ref capacity, ref largestFieldSize, ref actualSize);
+                        empty = false;
+                    }
                 }
 
                 if (empty)
@@ -186,7 +194,7 @@ namespace ErrorProne.NET.Core
                     GetSize(compilation, compilation.GetSpecialType(SpecialType.System_Byte), ref capacity, ref largestFieldSize, ref actualSize);
                 }
 
-                // When composite type layed out, need to adjust actual size to current capacity,
+                // When composite type lay out, need to adjust actual size to current capacity,
                 // because CLR will not put new fields into padding left from the composite type.
                 // Consider following example:
                 // struct NestedWithLongAndByteAndInt2 { struct N { byte b; long l; byte b2; } N n; int i; }

@@ -26,8 +26,8 @@ namespace ErrorProne.NET.StructAnalyzers
 
             if (type.IsNullableType())
             {
-                // Nullable types are not quite readonly, but effectively they are.
-                return true;
+                // Nullable type is readonly if the underlying type is readonly
+                return ((INamedTypeSymbol)type).TypeArguments[0].IsReadOnlyStruct();
             }
 
             if (TryGetPropertyAccessor(IsReadOnlyAccessors, "IsReadOnly", type.GetType(), out var accessor))

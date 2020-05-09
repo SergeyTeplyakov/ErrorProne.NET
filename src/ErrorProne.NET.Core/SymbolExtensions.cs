@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -15,6 +16,18 @@ namespace ErrorProne.NET.Core
         public static bool IsConstructor(this ISymbol symbol)
         {
             return (symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Constructor);
+        }
+
+        public static bool IsDisposeMethod(this ISymbol symbol)
+        {
+            if (symbol is IMethodSymbol method
+                && method.Name == nameof(IDisposable.Dispose)
+                && method.ContainingType.Interfaces.Any(i => i.Name == nameof(IDisposable)))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static IEnumerable<ISymbol> GetAllUsedSymbols(Compilation compilation, SyntaxNode root)
