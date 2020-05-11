@@ -33,6 +33,33 @@ class Test
 }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
+
+        [Test]
+        public async Task NoWarnOnPropertyGetter()
+        {
+            string code = @"
+struct Struct1
+{
+ private readonly long l1, l2, l3;
+}
+
+struct Struct2
+{
+  private readonly long l1, l2, l3;
+  public Struct1 S1 {get;}
+}
+class Class {
+  public readonly Struct2 S2;
+}
+class Test
+{
+  void Foo() {
+    Class s3 = default;
+    var s = s3?.S2.S1.ToString();
+  }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
         
         [Test]
         public async Task WarnOnDisposeNotFromIDisposable()

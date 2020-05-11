@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -9,7 +10,7 @@ namespace ErrorProne.NET.Core
 {
     public static class StructSizeCalculator
     {
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>> _typeSizeCache =
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>> TypeSizeCache =
             new ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>>();
 
         /// <summary>
@@ -33,7 +34,7 @@ namespace ErrorProne.NET.Core
         /// </remarks>
         public static int ComputeStructSize(this ITypeSymbol type, Compilation compilation)
         {
-            var cache = _typeSizeCache.GetOrCreateValue(compilation);
+            var cache = TypeSizeCache.GetOrCreateValue(compilation);
             if (cache.TryGetValue(type, out var size))
             {
                 return size;
@@ -173,22 +174,14 @@ namespace ErrorProne.NET.Core
             }
             else
             {
-                bool empty = true;
-                foreach (var member in type.GetMembers().Where(f => !f.IsStatic))
+                var fieldOrPropertyTypes = (type.IsNullableType() ? getPropertyTypesForNullableType() : getFieldOrPropertyTypes()).ToList();
+
+                foreach (var t in fieldOrPropertyTypes)
                 {
-                    if (member is IFieldSymbol field)
-                    {
-                        GetSize(compilation, field.Type, ref capacity, ref largestFieldSize, ref actualSize);
-                        empty = false;
-                    }
-                    else if (member is IPropertySymbol property && property.IsReadOnly && property.GetMethod == null)
-                    {
-                        GetSize(compilation, property.Type, ref capacity, ref largestFieldSize, ref actualSize);
-                        empty = false;
-                    }
+                        GetSize(compilation, t, ref capacity, ref largestFieldSize, ref actualSize);
                 }
 
-                if (empty)
+                if (fieldOrPropertyTypes.Count == 0)
                 {
                     // Empty struct is similar to byte struct. The size is 1.
                     GetSize(compilation, compilation.GetSpecialType(SpecialType.System_Byte), ref capacity, ref largestFieldSize, ref actualSize);
@@ -201,6 +194,37 @@ namespace ErrorProne.NET.Core
                 // In this case, for N field capacity is 24, but actual size is 17.
                 // But in this case, int i would not be stored in the same bucket, but new bucket would be created.
                 actualSize = capacity;
+
+                IEnumerable<ITypeSymbol> getFieldOrPropertyTypes()
+                {
+                    foreach (var member in type.GetMembers().Where(f => !f.IsStatic))
+                    {
+                        if (member is IFieldSymbol field)
+                        {
+                            yield return field.Type;
+                        }
+                        else if (member is IPropertySymbol property && property.IsReadOnly && property.GetMethod == null)
+                        {
+                            yield return property.Type;
+                        }
+                    }
+                }
+
+                IEnumerable<ITypeSymbol> getPropertyTypesForNullableType()
+                {
+                    // Treating nullable types differently, because normally read-only properties should
+                    // not have methods to indicate that its an auto property.
+                    // But this is not the case for Nullable<T>.
+
+                    // Just explicitly looking for 2 known properties.
+                    return type.GetMembers()
+                        .OfType<IPropertySymbol>()
+                        .Where(p => 
+                            !p.IsStatic && 
+                            (p.Name == nameof(Nullable<int>.HasValue) || p.Name == nameof(Nullable<int>.Value)))
+                        .Select(p => p.Type);
+                        
+                }
             }
         }
     }

@@ -20,7 +20,7 @@ namespace ErrorProne.NET.StructAnalyzers
         public const string DiagnosticId = DiagnosticIds.HiddenStructCopyDiagnosticId;
 
         private const string Title = "Hidden struct copy operation";
-        private const string MessageFormat = "An expression '{0}' causes a hidden copy of a {2}struct '{1}'";
+        private const string MessageFormat = "An expression '{0}' causes a hidden copy of a {2}struct '{1}' of estimated size '{3}'";
         private const string Description = "The compiler emits a defensive copy to make sure a struct instance remains unchanged";
         private const string Category = "Performance";
         
@@ -90,10 +90,10 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
                 GetExtensionMethodThisRefKind(ms) == RefKind.None &&
-                ms.ReceiverType.IsLargeStruct(context.Compilation, Settings.LargeStructThreshold))
+                ms.ReceiverType.IsLargeStruct(context.Compilation, Settings.LargeStructThreshold, out var estimatedSize))
             {
                 // The expression calls an extension method that takes a struct by value.
-                ReportDiagnostic(context, name ?? expression, ms.ReceiverType);
+                ReportDiagnostic(context, name ?? expression, ms.ReceiverType, estimatedSize);
             }
 
             var symbol = context.SemanticModel.GetSymbolInfo(expression).Symbol;
@@ -132,16 +132,17 @@ namespace ErrorProne.NET.StructAnalyzers
                 !resolvedType.IsNullableType() &&
                 !resolvedType.IsReadOnlyStruct() &&
                 // Warn only when the size of the struct is larger then threshold
-                resolvedType.IsLargeStruct(context.Compilation, Settings.LargeStructThreshold))
+                resolvedType.IsLargeStruct(context.Compilation, Settings.LargeStructThreshold, out var estimatedSize))
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
-                ReportDiagnostic(context, expression, resolvedType, "non-readonly ");
+                ReportDiagnostic(context, expression, resolvedType, estimatedSize, "non-readonly ");
             }
         }
 
         private static void ReportDiagnostic(
             SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType,
+            int estimatedSize,
             string? modifier = null)
         {
             var diagnostic = Diagnostic.Create(
@@ -149,7 +150,8 @@ namespace ErrorProne.NET.StructAnalyzers
                 expression.GetLocation(),
                 expression.ToFullString(),
                 resolvedType.ToDisplayString(),
-                modifier ?? string.Empty);
+                modifier ?? string.Empty,
+                estimatedSize);
 
             context.ReportDiagnostic(diagnostic);
         }

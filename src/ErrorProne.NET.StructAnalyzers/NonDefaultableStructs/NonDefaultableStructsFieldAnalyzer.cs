@@ -11,18 +11,18 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     /// Analyzer warns when a struct with non-default invariants is embedded into another struct.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class DoNotEmbedStructsWithNoDefaultStructConstructionAttributeAnalyzer : DefaultStructConstructionAnalyzerBase
+    public sealed class NonDefaultableStructsFieldAnalyzer : NonDefaultableStructAnalyzerBase
     {
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.DoNotEmbedStructsMarkedWithDoUseDefaultConstructionForStruct;
 
-        private static readonly string Title = $"Do not embed structs marked with `{DoNotUseDefaultConstructionAttributeName}` attribute into another structs.";
+        private const string Title = "Do not embed non-defaultable structs into another structs.";
 
-        private static readonly string Message =
-            $"Do not embed a struct '{{0}}' marked with `{DoNotUseDefaultConstructionAttributeName}` into another struct.";
-        private static readonly string Description = $"Structs marked with `{DoNotUseDefaultConstructionAttributeName}` should be " +
+        private const string Message =
+            "Do not embed a non-defaultable struct '{0}' into another struct.";
+        private const string Description = "Non-defaultable structs should be " +
                                                      "constructed using a non-default constructor and can not be embedded " +
-                                                     "in other structs not marked with the same attribute.";
+                                                     "in other defaultable structs .";
         
         private const string Category = "CodeSmell";
 
@@ -33,7 +33,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             new DiagnosticDescriptor(DiagnosticId, Title, Message, Category, Severity, isEnabledByDefault: true, description: Description);
 
         /// <nodoc />
-        public DoNotEmbedStructsWithNoDefaultStructConstructionAttributeAnalyzer()
+        public NonDefaultableStructsFieldAnalyzer()
             : base(Rule)
         {
         }

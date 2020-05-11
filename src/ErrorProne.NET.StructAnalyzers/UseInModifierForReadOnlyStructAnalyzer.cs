@@ -15,7 +15,7 @@ namespace ErrorProne.NET.StructAnalyzers
         public const string DiagnosticId = DiagnosticIds.UseInModifierForReadOnlyStructDiagnosticId;
 
         private const string Title = "Use in-modifier for a readonly struct";
-        private const string MessageFormat = "Use in-modifier for passing a readonly struct '{0}'";
+        private const string MessageFormat = "Use in-modifier for passing a readonly struct '{0}' of estimated size '{1}'";
         private const string Description = "Readonly structs have better performance when passed readonly reference";
         private const string Category = "Performance";
         // Using warning for visibility purposes
@@ -82,11 +82,11 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private static void WarnIfParameterIsReadOnly(Compilation compilation, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
         {
-            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, Settings.LargeStructThreshold))
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, Settings.LargeStructThreshold, out var estimatedSize))
             {
                 Location location = p.GetParameterLocation();
 
-                var diagnostic = Diagnostic.Create(Rule, location, p.Type.ToDisplayString(), p.Name);
+                var diagnostic = Diagnostic.Create(Rule, location, p.Type.ToDisplayString(), estimatedSize);
 
                 diagnosticReporter(diagnostic);
             }

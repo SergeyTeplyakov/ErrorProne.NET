@@ -2,23 +2,23 @@
 using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.Net.StructAnalyzers.NonDefaultStructs.DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer,
+    ErrorProne.Net.StructAnalyzers.NonDefaultStructs.NonDefaultableStructsConstructionAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 using VerifyEmbedCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.Net.StructAnalyzers.NonDefaultStructs.DoNotEmbedStructsWithNoDefaultStructConstructionAttributeAnalyzer,
+    ErrorProne.Net.StructAnalyzers.NonDefaultStructs.NonDefaultableStructsFieldAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests
 {
     [TestFixture]
-    public class DefaultStructConstructionAnalyzerTests
+    public class NonDefaultableStructsAnalyzerTests
     {
         [Test]
         public async Task Warn_On_Explicit_Construction()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
     public static void Check()
@@ -40,7 +40,7 @@ public struct MyS
         public async Task Warn_On_Default_Construction()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
 }
@@ -63,7 +63,7 @@ public class Foo
         public async Task Warn_On_Default_Construction_Via_Factory()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
 }
@@ -87,7 +87,7 @@ public class Foo
         public async Task Warn_On_Default_Construction_Via_Out_Or_Ref_Generic()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
   public MyS(int n) {}
@@ -121,7 +121,7 @@ public class Foo
         public async Task Warn_On_Default_Construction_Via_Out_Or_Non_Generic()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
   public MyS(int n) {}
@@ -147,7 +147,7 @@ public class Foo
         public async Task Warn_On_Default_Construction_And_Emit_Provided_Error_Message()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute(""Use MyS.Create() instead"")]
+[NonDefaultableAttribute(""Use MyS.Create() instead"")]
 public struct MyS
 {
 }
@@ -189,7 +189,7 @@ public class Foo
         public async Task Warn_If_Embedded_As_Field()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
 }
@@ -207,7 +207,7 @@ public struct S2
         public async Task Warn_If_Embedded_As_Auto_Get_Only_Property()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
 }
@@ -225,7 +225,7 @@ public struct S2
         public async Task Warn_If_Embedded_As_Auto_Property()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
 }
@@ -243,7 +243,7 @@ public struct S2
         public async Task No_Warn_For_Computed_Property()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
 }
@@ -262,12 +262,12 @@ public struct S2
         public async Task No_Warn_If_Embedded_As_Field_Into_Struct_Marked_With_The_Same_Attribute()
         {
             string code = @"
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct MyS
 {
 }
 
-[DoNotUseDefaultConstructionAttribute]
+[NonDefaultableAttribute]
 public struct S2
 {
   private MyS _s;
@@ -286,7 +286,7 @@ public struct S2
                         Sources = {code},
                     },
                 }
-                .WithDoNotUseDefaultConstructionAttribute()
+                .WithNonDefaultableAttribute()
                 .WithoutGeneratedCodeVerification()
                 .RunAsync();
         }
@@ -300,7 +300,7 @@ public struct S2
                         Sources = {code},
                     },
                 }
-                .WithDoNotUseDefaultConstructionAttribute()
+                .WithNonDefaultableAttribute()
                 .WithoutGeneratedCodeVerification()
                 .RunAsync();
         }
