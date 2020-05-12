@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.ContractsLight;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
@@ -7,23 +8,30 @@ namespace ErrorProne.NET.Core
     // Copied from internal ICompilationExtensions class from the roslyn codebase
     public static class CompilationExtensions
     {
+        public static INamedTypeSymbol GetTypeByFullName(this Compilation compilation, string fullName)
+        {
+            var result = compilation.GetTypeByMetadataName(fullName);
+            Contract.Assert(result != null, $"Can't find type '{fullName}'.");
+            return result;
+        }
+
         public static INamedTypeSymbol TaskType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName(typeof(Task).FullName);
+            => compilation.GetTypeByFullName(typeof(Task).FullName);
 
         public static INamedTypeSymbol TaskOfTType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName(typeof(Task<>).FullName);
+            => compilation.GetTypeByFullName(typeof(Task<>).FullName);
 
         public static INamedTypeSymbol ValueTaskOfTType(this Compilation compilation)
-            => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+            => compilation.GetTypeByFullName("System.Threading.Tasks.ValueTask`1");
 
         public static bool IsSystemObject(this INamedTypeSymbol type)
             => type.SpecialType == SpecialType.System_Object;
 
         public static bool IsClrType(this ISymbol type, Compilation compilation, Type clrType)
-            => type is ITypeSymbol ts && ts.OriginalDefinition.Equals(compilation.GetTypeByMetadataName(clrType.FullName));
+            => type is ITypeSymbol ts && ts.OriginalDefinition.Equals(compilation.GetTypeByFullName(clrType.FullName), SymbolEqualityComparer.Default);
 
         public static bool IsSystemValueType(this INamedTypeSymbol type, Compilation compilation)
-            => type.Equals(compilation.GetTypeByMetadataName("System.ValueType"));
+            => type.Equals(compilation.GetTypeByFullName("System.ValueType"), SymbolEqualityComparer.Default);
 
         public static (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTTypeOpt) GetTaskTypes(Compilation compilation)
         {
@@ -34,25 +42,30 @@ namespace ErrorProne.NET.Core
             return (taskType, taskOfTType, valueTaskOfTType);
         }
 
-        public static bool IsTaskLike(this ITypeSymbol returnType, Compilation compilation)
+        public static bool IsTaskLike(this ITypeSymbol? returnType, Compilation compilation)
         {
+            if (returnType == null)
+            {
+                return false;
+            }
+
             var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
             if (taskType == null || taskOfTType == null)
             {
                 return false; // ?
             }
 
-            if (returnType.Equals(taskType))
+            if (returnType.Equals(taskType, SymbolEqualityComparer.Default))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(taskOfTType))
+            if (returnType.OriginalDefinition.Equals(taskOfTType, SymbolEqualityComparer.Default))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(valueTaskOfTType))
+            if (returnType.OriginalDefinition.Equals(valueTaskOfTType, SymbolEqualityComparer.Default))
             {
                 return true;
             }

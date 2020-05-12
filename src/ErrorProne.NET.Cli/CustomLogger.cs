@@ -14,15 +14,15 @@ namespace ErrorProne.NET.Cli
     /// </summary>
     internal static class CustomLogger
     {
-        private static volatile bool _fileLoggerEnabled;
-        private static volatile string? _logFileName;
+        private static volatile bool FileLoggerEnabled;
+        private static volatile string? LogFileName;
 
         public static void Configure(string logFileName, bool fileLoggerEnabled)
         {
             Contract.Requires(logFileName != null || fileLoggerEnabled);
 
-            _logFileName = logFileName;
-            _fileLoggerEnabled = fileLoggerEnabled;
+            LogFileName = logFileName;
+            FileLoggerEnabled = fileLoggerEnabled;
         }
 
         public static void WriteLine(string text, ConsoleColor color)
@@ -64,9 +64,9 @@ namespace ErrorProne.NET.Cli
             [DiagnosticSeverity.Info] = (message) => WriteInfo(message),
         };
 
-        private static readonly object _consoleLock = new object();
+        private static readonly object ConsoleLock = new object();
         // Need to lock around writing to the file to avoid sharing violation
-        private static readonly object _fileLockEnabled = new object();
+        private static readonly object FileLockEnabled = new object();
 
         public static void PrintStatistics(List<ProjectAnalysisResult> diagnostics, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
@@ -105,7 +105,7 @@ namespace ErrorProne.NET.Cli
                 .ThenBy(i => i.Location.SourceSpan.Start)
                 .ToList();
 
-            lock (_consoleLock)
+            lock (ConsoleLock)
             {
                 WriteCaption(caption);
 
@@ -121,13 +121,13 @@ namespace ErrorProne.NET.Cli
 
         private static void WriteFile(string message)
         {
-            if (_fileLoggerEnabled)
+            if (FileLoggerEnabled)
             {
-                lock (_fileLockEnabled)
+                lock (FileLockEnabled)
                 {
                     try
                     {
-                        File.AppendAllText(_logFileName, message);
+                        File.AppendAllText(LogFileName, message);
                     }
                     catch (Exception e)
                     {

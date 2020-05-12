@@ -111,7 +111,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 int idx = 0;
                 foreach (var p in methodSymbol.Parameters)
                 {
-                    DoAnalyzeType(p.Type, methodDeclarationSyntax.ParameterList.Parameters[idx].Type.GetLocation(), d => context.ReportDiagnostic(d));
+                    DoAnalyzeType(p.Type, methodDeclarationSyntax.ParameterList.Parameters[idx].Type?.GetLocation(), d => context.ReportDiagnostic(d));
                     idx++;
                 }
             }
@@ -160,14 +160,19 @@ namespace ErrorProne.NET.StructAnalyzers
                 int idx = 0;
                 foreach (var p in ms.Parameters)
                 {
-                    DoAnalyzeType(p.Type, syntax.ParameterList.Parameters[idx].Type.GetLocation(), d => context.ReportDiagnostic(d));
+                    DoAnalyzeType(p.Type, syntax.ParameterList.Parameters[idx].Type?.GetLocation(), d => context.ReportDiagnostic(d));
                     idx++;
                 }
             }
         }
 
-        private void DoAnalyzeType(ITypeSymbol type, Location location, Action<Diagnostic> diagnosticsReporter)
+        private void DoAnalyzeType(ITypeSymbol type, Location? location, Action<Diagnostic> diagnosticsReporter)
         {
+            if (location == null)
+            {
+                return;
+            }
+
             if (type is IArrayTypeSymbol at)
             {
                 DoAnalyzeType(at.ElementType, location, diagnosticsReporter);

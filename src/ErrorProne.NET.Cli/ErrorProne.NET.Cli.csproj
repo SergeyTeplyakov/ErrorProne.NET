@@ -12,9 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.0.31" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.9.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="2.9.0" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.5.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.5.0" />
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="1.1.11" />
   </ItemGroup>
@@ -25,6 +25,10 @@
     <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers.CodeFixes\ErrorProne.NET.StructAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers\ErrorProne.NET.StructAnalyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.1.91" />
   </ItemGroup>
 
 </Project>

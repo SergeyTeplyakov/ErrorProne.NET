@@ -37,10 +37,10 @@ namespace ErrorProne.NET.StructAnalyzers
             return Task.CompletedTask;
         }
 
-        private async Task<Document> AddInKeywordAsync(Document document, Location location, CancellationToken cancellationToken)
+        private static async Task<Document> AddInKeywordAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var argument = root.FindNode(location.SourceSpan, getInnermostNodeForTie: true)?.FirstAncestorOrSelf<ArgumentSyntax>();
+            var argument = root?.FindNode(location.SourceSpan, getInnermostNodeForTie: true)?.FirstAncestorOrSelf<ArgumentSyntax>();
             if (argument is null)
             {
                 return document;
@@ -54,7 +54,7 @@ namespace ErrorProne.NET.StructAnalyzers
                     (originalNode, rewrittenNode) => SyntaxFactory.RefExpression(rewrittenNode));
             }
 
-            return document.WithSyntaxRoot(root.ReplaceNode(argument, newArgument));
+            return document.ReplaceSyntaxRoot(root.ReplaceNode(argument, newArgument));
         }
     }
 }

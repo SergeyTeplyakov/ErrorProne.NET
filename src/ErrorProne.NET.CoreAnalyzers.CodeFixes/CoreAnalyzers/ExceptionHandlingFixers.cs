@@ -40,16 +40,22 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> UseExceptionAsync(Document document, Location location, CancellationToken cancellationToken)
+        private static async Task<Document> UseExceptionAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Find the type declaration identified by the diagnostic.
-            var identifier = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<IdentifierNameSyntax>().FirstOrDefault();
+            var identifier = root
+                ?.FindToken(location.SourceSpan.Start).Parent
+                ?.AncestorsAndSelf()
+                .OfType<IdentifierNameSyntax>().FirstOrDefault();
             if (identifier is { Parent: MemberAccessExpressionSyntax mae })
             {
                 var newRoot = root.ReplaceNode(mae, mae.Expression);
-                return document.WithSyntaxRoot(newRoot);
+                if (newRoot != null)
+                {
+                    return document.WithSyntaxRoot(newRoot);
+                }
             }
 
             return document;

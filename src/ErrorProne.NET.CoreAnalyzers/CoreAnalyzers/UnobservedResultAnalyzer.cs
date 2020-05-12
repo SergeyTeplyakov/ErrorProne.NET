@@ -127,11 +127,11 @@ namespace ErrorProne.NET.CoreAnalyzers
 
             // First, checking that method that is called is an extension method that takes the result.
             if (methodSymbol.IsExtensionMethod &&
-                (methodSymbol.ReturnType.Equals(methodSymbol.ReceiverType) ||
-                 methodSymbol.ReturnType.Equals(methodSymbol.Parameters.FirstOrDefault()?.Type)))
+                (methodSymbol.ReturnType.Equals(methodSymbol.ReceiverType, SymbolEqualityComparer.Default) ||
+                 methodSymbol.ReturnType.Equals(methodSymbol.Parameters.FirstOrDefault()?.Type, SymbolEqualityComparer.Default)))
             {
                 // operation.Type returns a type for 'Foo()'.
-                return operation.Type.Equals(methodSymbol.ReturnType);
+                return operation.Type.Equals(methodSymbol.ReturnType, SymbolEqualityComparer.Default);
             }
 
             return false;
@@ -202,10 +202,11 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         public static IEnumerable<ITypeSymbol> EnumerateBaseTypesAndSelf(ITypeSymbol type)
         {
-            while (type != null)
+            ITypeSymbol? t = type;
+            while (t != null)
             {
-                yield return type;
-                type = type.BaseType;
+                yield return t;
+                t = t.BaseType;
             }
         }
     }

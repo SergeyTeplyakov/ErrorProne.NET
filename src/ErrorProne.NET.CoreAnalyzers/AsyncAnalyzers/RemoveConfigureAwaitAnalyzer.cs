@@ -1,4 +1,5 @@
-﻿using ErrorProne.NET.CoreAnalyzers;
+﻿using System.Diagnostics.ContractsLight;
+using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -65,11 +66,13 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
                             var argsLocation = i.ArgumentList.GetLocation();
                             var nameLocation = mae.Name.GetLocation().SourceSpan;
+                            
+                            Contract.Assert(argsLocation.SourceTree != null);
                             location = Location.Create(argsLocation.SourceTree,
                                 TextSpan.FromBounds(nameLocation.Start, argsLocation.SourceSpan.End));
                         }
 
-                        var diagnostic = Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, location);
+                        var diagnostic = Diagnostic.Create(UnnecessaryWithSuggestionDescriptor!, location);
                         context.ReportDiagnostic(diagnostic);
                     }
                 }

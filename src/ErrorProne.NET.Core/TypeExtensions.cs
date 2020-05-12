@@ -103,14 +103,20 @@ namespace ErrorProne.NET.Core
             return size != 0;
         }
 
-        public static bool IsStruct(this ITypeSymbol type)
+        public static bool IsStruct([NotNullWhen(true)]this ITypeSymbol? type)
         {
-            return type.IsValueType && !type.IsEnum() && !(type is ITypeParameterSymbol);
+            return type != null && type.IsValueType && !type.IsEnum() && !(type is ITypeParameterSymbol);
         }
 
-        public static bool IsLargeStruct(this ITypeSymbol type, Compilation compilation, int threshold, out int estimatedSize)
+        public static bool IsLargeStruct([NotNullWhen(true)]this ITypeSymbol? type, Compilation compilation, int threshold, out int estimatedSize)
         {
             estimatedSize = 0;
+
+            if (type == null)
+            {
+                return false;
+            }
+
             if (!type.IsStruct())
             {
                 return false;

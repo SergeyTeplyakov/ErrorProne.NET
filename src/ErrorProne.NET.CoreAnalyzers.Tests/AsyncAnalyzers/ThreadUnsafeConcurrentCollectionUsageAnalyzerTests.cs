@@ -14,7 +14,6 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
         [Test]
         public async Task Warn_On_ConcurrentDictionary_OrderBy()
         {
-            var list = new List<int>();
             string code = @"
 using System.Linq;
 public class MyClass
@@ -37,7 +36,6 @@ public class MyClass
         [Test]
         public async Task NoWarn_On_ConcurrentDictionary_Keys_OrderBy()
         {
-            var list = new List<int>();
             string code = @"
 using System.Linq;
 public class MyClass
@@ -59,7 +57,6 @@ public class MyClass
         [Test]
         public async Task NoWarn_On_ConcurrentDictionary_Local()
         {
-            var list = new List<int>();
             string code = @"
 using System.Linq;
 public class MyClass

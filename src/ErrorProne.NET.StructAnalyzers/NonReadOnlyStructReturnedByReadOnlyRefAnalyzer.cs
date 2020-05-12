@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Diagnostics.ContractsLight;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -80,6 +81,8 @@ namespace ErrorProne.NET.StructAnalyzers
                         location = Location.Create(syntaxTree, l.ReturnType.Span);
                         break;
                 }
+
+                Contract.Assert(location != null, $"Can't find location for syntax {syntaxNode}.");
 
                 var diagnostic = Diagnostic.Create(Rule, location, method.ReturnType.Name);
                 diagnosticsReporter(diagnostic);
