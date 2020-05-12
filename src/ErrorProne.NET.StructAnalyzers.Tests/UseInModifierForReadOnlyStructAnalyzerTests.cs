@@ -12,33 +12,56 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
     public class UseInModifierForReadOnlyStructAnalyzerTests
     {
         [Test]
+        public async Task CheckDiagnosticDiagnosticMessageForNullableType()
+        {
+            string code = @"readonly struct S {readonly long l, l2,l3;} class FooBar { public void Foo(S? n) {} }";
+            var expected = VerifyCS.Diagnostic(UseInModifierForReadOnlyStructAnalyzer.DiagnosticId)
+                .WithMessage("Use in-modifier for passing a readonly struct 'S?' of estimated size '32'")
+                .WithSpan(1, 76, 1, 80);
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+                ExpectedDiagnostics = { expected }
+            }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+        
+        [Test]
+        public async Task NoDiagnosticsForNullableNonReadOnlyStruct()
+        {
+            string code = @"struct S {private readonly long l1,l2,l3; public static void Foo(S? s = null) {} }";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
         public async Task NoDiagnosticsForAsyncMethod()
         {
-            string code = @"readonly struct S {public async void Foo(S s) {} }";
+            string code = @"readonly struct S {private readonly long l1,l2,l3; public async void Foo(S s) {} }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
         public async Task NoDiagnosticsForIteratorBlock()
         {
-            string code = @"readonly struct S {public System.Collections.Generic.IEnumerable<int> Foo(S s) {yield break;} }";
+            string code = @"readonly struct S {private readonly long l1,l2,l3; public System.Collections.Generic.IEnumerable<int> Foo(S s) {yield break;} }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
         public async Task NoDiagnosticsForReadOnlyStruct()
         {
-            string code = @"readonly struct S {} class FooBar { public void Foo(S n) {} }";
+            string code = @"readonly struct S {private readonly long l1; } class FooBar { public void Foo(S n) {} }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
         public async Task HasDiagnosticsForLargeReadOnlyStruct()
         {
-            string code = @"readonly struct S {readonly long l, l2;} class FooBar { public void Foo([|S n|]) {} }";
+            string code = @"readonly struct S {readonly long l, l2,l3;} class FooBar { public void Foo([|S n|]) {} }";
             await new VerifyCS.Test
             {
                 TestState = { Sources = { code } },
+                ExpectedDiagnostics = { }
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
@@ -46,7 +69,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         public async Task DiagnosticCanBeSuppressed()
         {
             string code = @"
-readonly struct S {readonly long l, l2;}
+readonly struct S {readonly long l, l2, l3;}
 
 class FooBar
 {
@@ -75,21 +98,21 @@ class FooBar
         public static IEnumerable<string> GetHasDiagnosticsTestCases()
         {
             // Expression body for method
-            yield return @"readonly struct FooBar {readonly long l, l2; public static System.Func<FooBar> Foo([|FooBar fb|]) => null; }";
+            yield return @"readonly struct FooBar {readonly long l, l2, l3; public static System.Func<FooBar> Foo([|FooBar fb|]) => null; }";
             
             // Diagnostic for extension method.
-            yield return @"readonly struct FooBar {readonly long l, l2;} static class Extensions { public static string Foo([|this FooBar fb|]) => null; }";
+            yield return @"readonly struct FooBar {readonly long l, l2, l3;} static class Extensions { public static string Foo([|this FooBar fb|]) => null; }";
 
             // Diagnostic for a delegate
-            yield return @"readonly struct S { readonly long l, l2; } delegate void Foo([|S s|]);";
+            yield return @"readonly struct S { readonly long l, l2, l3; } delegate void Foo([|S s|]);";
             
             // Diagnostic for an indexer
             // TODO: the location of the diagnostic is weird, because DeclaredSyntaxReferences for the parameter in this case is empty:(
-            yield return @"readonly struct S { readonly long l,l2; public int this[S [|s|]] => 42; }";
+            yield return @"readonly struct S { readonly long l,l2, l3; public int this[S [|s|]] => 42; }";
 
             // Diagnostic on abstract declaration, but on the overloaded
             yield return
-                @"readonly struct S { readonly long l,l2; }
+                @"readonly struct S { readonly long l,l2,l3; }
 abstract class B {public virtual void Foo([|S s|]) {}}
 class D : B {public override void Foo(S s) {}}
 ";
@@ -108,7 +131,7 @@ class D : B {public override void Foo(S s) {}}
         {
             // No diagnostic for property with a setter
             yield return @"
-readonly struct Foo { private readonly long l1, l2; }
+readonly struct Foo { private readonly long l1, l2,l3; }
 class FooBar { public Foo F {get;set;} }";
             
             // No diagnostic if returns Task

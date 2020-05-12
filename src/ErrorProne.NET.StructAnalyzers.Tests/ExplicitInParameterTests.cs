@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using ErrorProne.NET.TestHelpers;
 using System.Threading.Tasks;
+using Microsoft;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.ExplicitInParameterAnalyzer,
     ErrorProne.NET.StructAnalyzers.ExplicitInParameterCodeFixProvider>;
@@ -286,7 +287,7 @@ struct SomeStruct {
   void Caller() { Method((0, 0)); }
 }
 ";
-
+            
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 

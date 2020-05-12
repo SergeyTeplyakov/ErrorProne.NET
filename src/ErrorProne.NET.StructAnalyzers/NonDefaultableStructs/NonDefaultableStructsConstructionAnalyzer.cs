@@ -10,17 +10,16 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     /// For instance <code>ImmutableArray&lt;int&gt; a = default; int x = a.Count; will fail with NRE.</code>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer : DefaultStructConstructionAnalyzerBase
+    public sealed class NonDefaultableStructsConstructionAnalyzer : NonDefaultableStructAnalyzerBase
     {
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.DoNotUseDefaultConstructionForStruct;
 
-        private static readonly string Title = $"Do not use default construction for a struct marked with `{DoNotUseDefaultConstructionAttributeName}`.";
+        private const string Title = "Do not construct non-defaultable struct with 'default' expression.";
 
-        private static readonly string Message =
-            $"Do not use default construction for a struct '{{0}}' marked with `{DoNotUseDefaultConstructionAttributeName}`.{{1}}";
-        private static readonly string Description = $"Structs marked with `{DoNotUseDefaultConstructionAttributeName}` should be " +
-                                                     "constructed using a non-default constructor.";
+        private const string Message =
+            "Do not construct non-defaultable struct '{0}' with 'deault' expression.{1}";
+        private const string Description = "Non-defaultable structs can not be constructed using the default constructor or default(T) expression.";
         
         private const string Category = "CodeSmell";
 
@@ -31,7 +30,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             new DiagnosticDescriptor(DiagnosticId, Title, Message, Category, Severity, isEnabledByDefault: true, description: Description);
 
         /// <nodoc />
-        public DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer()
+        public NonDefaultableStructsConstructionAnalyzer()
             : base(Rule)
         {
         }
