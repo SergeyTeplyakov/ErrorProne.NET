@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>ErrorProne.Net.CoreAnalyzers.CodeFixes</AssemblyName>
     <RootNamespace>ErrorProne.NET</RootNamespace>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -11,13 +11,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>ErrorProne.NET.CoreAnalyzers</PackageId>
     <Authors>Sergey Teplyakov</Authors>
-    <PackageVersion>1.3.0.0</PackageVersion>
     <PackageLicenseUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
