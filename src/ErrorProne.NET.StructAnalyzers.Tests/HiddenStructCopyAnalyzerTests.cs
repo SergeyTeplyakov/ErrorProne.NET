@@ -34,7 +34,7 @@ class Test
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
-        [Test]
+        //[Test] Should be enabled with readonly members are supported.
         public async Task NoWarnOnPropertyGetter()
         {
             string code = @"
