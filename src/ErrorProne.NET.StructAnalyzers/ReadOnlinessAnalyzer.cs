@@ -22,7 +22,7 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <summary>
         /// A struct can be used in readonly ref contexts because the struct has fields only and doesn't have props or methods.
         /// </summary>
-        FrienlyPoco,
+        FriendlyPoco,
 
         /// <summary>
         /// A should not be used in readonly ref contexts because it consists of properties and methods,
@@ -32,7 +32,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
         /// <summary>
         /// A struct has fields and methods/properties, so it is impossible to decide immediately whether its safe to use it
-        /// in readonly ref contexts or not. Further analysis is reuired (based on how variable is used).
+        /// in readonly ref contexts or not. Further analysis is required (based on how variable is used).
         /// </summary>
         Unknown,
     }
@@ -94,7 +94,7 @@ namespace ErrorProne.NET.StructAnalyzers
             if (!hasPropertiesOrMethods)
             {
                 // No methods/properties: POCO or empty
-                return ReadOnlyRefFriendliness.FrienlyPoco;
+                return ReadOnlyRefFriendliness.FriendlyPoco;
             }
 
             if (!hasFields)
