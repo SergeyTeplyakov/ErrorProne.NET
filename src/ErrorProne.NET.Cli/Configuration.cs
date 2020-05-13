@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
 using System.IO;
 using System.Reflection;
@@ -20,7 +21,7 @@ namespace ErrorProne.NET.Cli
             Solution = options.Solution;
             LogFile = options.LogFile;
             RunInfoLevelDiagnostics = options.RunInfoLevelDiagnostics;
-            SuppressedDiagnostics = (options.DisabledDiagnostics ?? new string[] {}).ToImmutableHashSet();
+            SuppressedDiagnostics = (options.DisabledDiagnostics ?? Array.Empty<string>()).ToImmutableHashSet();
             Analyzers = analyzers;
         }
 

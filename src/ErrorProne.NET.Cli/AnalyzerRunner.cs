@@ -54,7 +54,7 @@ namespace ErrorProne.NET.Cli
             }
         }
 
-        private async Task<List<ProjectAnalysisResult>> AnalyseSolutionAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, Configuration configuration)
+        private async Task<List<ProjectAnalysisResult>> AnalyzeSolutionAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, Configuration configuration)
         {
             var ruleIds = analyzers
                 .SelectMany(a => a.SupportedDiagnostics.Select(d => d.Id))
@@ -110,7 +110,7 @@ namespace ErrorProne.NET.Cli
             // Loading the solution
             var sw = Stopwatch.StartNew();
 
-            var workspace = MSBuildWorkspace.Create();
+            using var workspace = MSBuildWorkspace.Create();
 
             WriteInfo($"Opening solution '{configuration.Solution}'...");
 
@@ -123,14 +123,14 @@ namespace ErrorProne.NET.Cli
             // Running the analysis
             sw.Restart();
 
-            var diagnostics = await AnalyseSolutionAsync(solution, analyzers, configuration);
+            var diagnostics = await AnalyzeSolutionAsync(solution, analyzers, configuration);
 
             WriteInfo($"Found {diagnostics.SelectMany(d => d.Diagnostics).Count()} diagnostics in {sw.ElapsedMilliseconds}ms");
 
             PrintStatistics(diagnostics, analyzers);
         }
 
-        private void LocateMsBuild()
+        private static void LocateMsBuild()
         {
             // More then one VS instance installed on the machine may cause some issues when a solution is opened using MsBuildWorkspace.
             // To avoid the issues we need to locate an msbuild.

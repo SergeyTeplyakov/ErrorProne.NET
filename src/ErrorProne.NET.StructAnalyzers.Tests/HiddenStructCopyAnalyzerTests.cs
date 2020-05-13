@@ -34,7 +34,7 @@ class Test
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
-        //[Test] Should be enabled with readonly members are supported.
+        // [Test]
         public async Task NoWarnOnPropertyGetter()
         {
             string code = @"
@@ -78,6 +78,27 @@ class Test
     _s.[|Dispose|]();
   }
 }";
+            await VerifyCS.VerifyAsync(code);
+        }
+        
+        // [Test]
+        public async Task WarOnMethodCall()
+        {
+            string code = @"
+public struct TestStruct
+    {
+        private int _value;
+
+        public int GetValue() => _value;
+    }
+
+    public static class Program
+    {
+        public static int GetValue(in TestStruct test)
+        {
+            return test.[|GetValue()|];
+        }
+    }";
             await VerifyCS.VerifyAsync(code);
         }
         

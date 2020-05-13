@@ -166,25 +166,6 @@ public class Foo
             await VerifySource(code);
         }
 
-        public struct MyS
-        {
-        }
-
-        public struct S2
-        {
-#pragma warning disable CS0169 // The field 'field_name' is never used
-            private readonly MyS _s;
-#pragma warning restore CS0169 // The field 'field_name' is never used
-        }
-        
-        // generics.
-        public static T Create<T>() where T : new()
-        {
-#pragma warning disable CS8603 // Possible null reference return.
-            return default;
-#pragma warning restore CS8603 // Possible null reference return.
-        }
-
         [Test]
         public async Task Warn_If_Embedded_As_Field()
         {
