@@ -53,16 +53,6 @@
     <None Update="tools\*.ps1" Pack="true" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- Analyzer packages should not have any dependencies. -->
-    <PackageReference Update="@(PackageReference)" PrivateAssets="all" />
-    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.6">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <ProjectReference Update="@(ProjectReference)" PrivateAssets="all" />
-  </ItemGroup>
-
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
       <_File Include="$(OutputPath)$(AssemblyName).dll" />
