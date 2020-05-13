@@ -18,13 +18,19 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
-* EPC11: warns when Equals method is potentially implemented incorrectly.
-* EPC12: warns when generic exception instance is not fully observed (only `Message` was accessed in catch block).
-* EPC13: warns when possible-like result is not observed.
-* EPC14: warns when `ConfigureAwait(false)` is used even though a project is configured not to use it.
-* EPC15: warns when `ConfigureAwait(false)` is not used on an awaited task but a project is configured to always use it.
-* EPC16: null-conditional operator is used in await expression causing NRE if a task is null.
-</PackageReleaseNotes>
+        0.3.0
+        * EPC17: warns when async void delegate is accidentally created where `Action` should be used.
+        * ERP031: warns when some unsafe methods are used for `ConcurrentDictionary` instance like `ToArray`.
+        * 
+
+        0.2.0
+        * EPC11: warns when Equals method is potentially implemented incorrectly.
+        * EPC12: warns when generic exception instance is not fully observed (only `Message` was accessed in catch block).
+        * EPC13: warns when possible-like result is not observed.
+        * EPC14: warns when `ConfigureAwait(false)` is used even though a project is configured not to use it.
+        * EPC15: warns when `ConfigureAwait(false)` is not used on an awaited task but a project is configured to always use it.
+        * EPC16: null-conditional operator is used in await expression causing NRE if a task is null.
+    </PackageReleaseNotes>
     <Copyright>Copyright Sergey Teplyakov</Copyright>
     <PackageTags>ErrorProne.NET, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>

@@ -18,12 +18,21 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Analyzers that help avoiding struct and readonly reference performance pitfalls</Description>
     <PackageReleaseNotes>
-* EPS01: detects that a struct could be made readonly;
-* EPS02: detects that a struct not suitable for readonly contexts is passed using 'in'-parameter
-* EPS03: detects that a struct not suitable for readonly contexts is returned by ref readonly reference.
-* EPS04: detects that a struct not suitable for readonly contexts is stored in ref readonly local.
-* EPS05: detects that a struct could be passed using 'in'-modifier for performance reasons.
-* EPS06: detects that the compiler emits a defensive copy for a given expression.
+        0.3.0
+        * EPS07: detects that a struct that does not override `Equals` or `GetHashCode` is used as the key in the dictionary or in a hashset.
+        * EPS08: detects that the default `ValueType.Equals` or `ValueType.GetHashCode` are used in the implmentation of the `Equals` or `GetHashCode` for a custom struct.
+        * EPS09: detects that `in` modifier can be explicitely specified in a method call.
+        * EPS10: detects attemps of constructing non-defaultable structs by using `new T`, `default` or similar.
+        * EPS11: detects that a non-defaultable struct is embedded in a defaultable struct.
+        * Various bug fixes.
+
+        0.2.0
+        * EPS01: detects that a struct could be made readonly;
+        * EPS02: detects that a struct not suitable for readonly contexts is passed using 'in'-parameter
+        * EPS03: detects that a struct not suitable for readonly contexts is returned by ref readonly reference.
+        * EPS04: detects that a struct not suitable for readonly contexts is stored in ref readonly local.
+        * EPS05: detects that a struct could be passed using 'in'-modifier for performance reasons.
+        * EPS06: detects that the compiler emits a defensive copy for a given expression.
 </PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
     <PackageTags>ErrorProne.NET, analyzers</PackageTags>
