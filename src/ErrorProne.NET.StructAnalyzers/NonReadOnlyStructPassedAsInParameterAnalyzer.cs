@@ -70,7 +70,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 {
                     // If the method is declared in the struct itself, then we should not warn
                     // because this method can access private state.
-                    if (p.ContainingType.Equals(p.Type) && p.Type.HasInstanceFields())
+                    if (p.ContainingType.Equals(p.Type, SymbolEqualityComparer.Default) && p.Type.HasInstanceFields())
                     {
                         continue;
                     }

@@ -66,7 +66,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                 .OfType<IdentifierNameSyntax>()
                 .Select(id => new {semanticModel.GetSymbolInfo(id).Symbol, Id = id })
                 .Where(x => x.Symbol != null && x.Symbol.ExceptionFromCatchBlock())
-                .Select(x => new ExceptionReference(x.Symbol, x.Id))
+                .Select(x => new ExceptionReference(x.Symbol!, x.Id))
                 .ToList();
 
             return usages;

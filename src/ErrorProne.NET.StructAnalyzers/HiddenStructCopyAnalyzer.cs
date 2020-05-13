@@ -86,7 +86,7 @@ namespace ErrorProne.NET.StructAnalyzers
             SyntaxNodeAnalysisContext context,
             ExpressionSyntax expression,
             SimpleNameSyntax? name,
-            ISymbol targetSymbol)
+            ISymbol? targetSymbol)
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
                 GetExtensionMethodThisRefKind(ms) == RefKind.None &&
@@ -120,7 +120,7 @@ namespace ErrorProne.NET.StructAnalyzers
         }
 
         private static void ReportDiagnosticIfTargetIsNotField(SyntaxNodeAnalysisContext context,
-            ExpressionSyntax expression, ITypeSymbol resolvedType, ISymbol targetSymbol)
+            ExpressionSyntax expression, ITypeSymbol resolvedType, ISymbol? targetSymbol)
         {
             if (targetSymbol != null && 
                 !(targetSymbol is IFieldSymbol) &&

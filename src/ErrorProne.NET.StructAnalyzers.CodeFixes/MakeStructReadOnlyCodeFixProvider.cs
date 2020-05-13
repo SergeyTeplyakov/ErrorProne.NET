@@ -41,12 +41,16 @@ namespace ErrorProne.NET.StructAnalyzers
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> MakeReadOnlyAsync(Document document, Location location, CancellationToken cancellationToken)
+        private static async Task<Document> MakeReadOnlyAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Find the type declaration identified by the diagnostic.
-            var typeDecl = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<StructDeclarationSyntax>().FirstOrDefault();
+            var typeDecl = root
+                ?.FindToken(location.SourceSpan.Start)
+                .Parent?.AncestorsAndSelf()
+                .OfType<StructDeclarationSyntax>()
+                .FirstOrDefault();
             if (typeDecl is null)
             {
                 return document;
@@ -66,7 +70,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
             var newType = typeDecl.WithModifiers(modifiers);
 
-            return document.WithSyntaxRoot(root.ReplaceNode(typeDecl, newType));
+            return document.ReplaceSyntaxRoot(root.ReplaceNode(typeDecl, newType));
         }
     }
 }

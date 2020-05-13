@@ -87,9 +87,12 @@ namespace ErrorProne.NET.CoreAnalyzers
                                     return;
                                 }
 
-                                var bodyOrExpression = (SyntaxNode)methodSyntax.Body ?? methodSyntax.ExpressionBody;
+                                var bodyOrExpression = (SyntaxNode?)methodSyntax.Body ?? methodSyntax.ExpressionBody;
+                                
+                                Contract.Assert(bodyOrExpression != null);
                                 var symbols = SymbolExtensions.GetAllUsedSymbols(blockStartContext.Compilation, bodyOrExpression).ToList();
-                                if (!symbols.Any(s => s is IParameterSymbol p && Equals(p.ContainingSymbol, ms) && !p.IsThis))
+                                if (!symbols.Any(s => 
+                                    s is IParameterSymbol p && p.ContainingSymbol.Equals(ms, SymbolEqualityComparer.Default) && !p.IsThis))
                                 {
                                     var location = ms.Parameters[0].Locations[0];
 
@@ -105,7 +108,7 @@ namespace ErrorProne.NET.CoreAnalyzers
 
                                     blockEndContext.ReportDiagnostic(
                                         Diagnostic.Create(
-                                            UnnecessaryWithSuggestionDescriptor,
+                                            UnnecessaryWithSuggestionDescriptor!,
                                             location));
                                 }
                             });
@@ -151,22 +154,26 @@ namespace ErrorProne.NET.CoreAnalyzers
             return false;
         }
 
-        private bool HasInstanceMembers(INamedTypeSymbol type)
+        private static bool HasInstanceMembers(INamedTypeSymbol type)
         {
-            // Looking for instancce members but excluding constructors.
+            // Looking for instance members but excluding constructors.
             return type.GetMembers()
                 .Where(m => !m.IsStatic)
                 .Any(m => m is IFieldSymbol || m is IPropertySymbol);
         }
 
-        private bool IsInstanceMember(INamedTypeSymbol methodContainingType, ISymbol symbol)
+        private static bool IsInstanceMember(INamedTypeSymbol methodContainingType, ISymbol symbol)
         {
             if (symbol.IsStatic)
             {
                 return false;
             }
 
-            if (symbol is IMethodSymbol ms && ms.Parameters.Length == 1 && (ms.Name == "Equals" || ms.Name == "CompareTo") && symbol.ContainingType?.Equals(methodContainingType) == true)
+            if (
+                symbol is IMethodSymbol ms 
+                && ms.Parameters.Length == 1 
+                && (ms.Name == "Equals" || ms.Name == "CompareTo") 
+                && symbol.ContainingType?.Equals(methodContainingType, SymbolEqualityComparer.Default) == true)
             {
                 // Special case for Equals(object) => this is MyT && Equals((MyT)other).
                 return true;

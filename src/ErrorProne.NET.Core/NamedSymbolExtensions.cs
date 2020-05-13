@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Reflection;
+using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET.Extensions
@@ -35,16 +36,19 @@ namespace ErrorProne.NET.Extensions
         public static List<Tuple<IFieldSymbol, long>> GetSortedEnumFieldsAndValues(this INamedTypeSymbol enumType)
         {
             var result = new List<Tuple<IFieldSymbol, long>>();
-            var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-            foreach (var member in enumType.GetMembers())
+            var underlyingSpecialType = enumType.EnumUnderlyingType?.SpecialType;
+            if (underlyingSpecialType != null)
             {
-                if (member.Kind == SymbolKind.Field)
+                foreach (var member in enumType.GetMembers())
                 {
-                    var field = (IFieldSymbol)member;
-                    if (field.HasConstantValue)
+                    if (member.Kind == SymbolKind.Field)
                     {
-                        var value = (long)ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
-                        result.Add(Tuple.Create(field, value));
+                        var field = (IFieldSymbol)member;
+                        if (field.HasConstantValue)
+                        {
+                            var value = (long)ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue!, underlyingSpecialType.Value);
+                            result.Add(Tuple.Create(field, value));
+                        }
                     }
                 }
             }
@@ -89,28 +93,28 @@ namespace ErrorProne.NET.Extensions
             return Enumerable.Any(namedType.AllInterfaces, symbol => symbol.IsType(type));
         }
 
-        public static bool IsExceptionType(this ISymbol symbol, SemanticModel model)
+        public static bool IsExceptionType(this ISymbol? symbol, SemanticModel model)
         {
             if (!(symbol is INamedTypeSymbol namedSymbol))
             {
                 return false;
             }
 
-            var exceptionType = model.Compilation.GetTypeByMetadataName(typeof(Exception).FullName);
+            var exceptionType = model.Compilation.GetTypeByFullName(typeof(Exception).FullName);
 
-            return TraverseTypeAndItsBaseTypes(namedSymbol).Any(x => x.Equals(exceptionType));
+            return TraverseTypeAndItsBaseTypes(namedSymbol).Any(x => x.Equals(exceptionType, SymbolEqualityComparer.Default));
         }
 
-        public static bool IsArgumentExceptionType(this ISymbol symbol, SemanticModel model)
+        public static bool IsArgumentExceptionType(this ISymbol? symbol, SemanticModel model)
         {
             if (!(symbol is INamedTypeSymbol namedSymbol))
             {
                 return false;
             }
 
-            var exceptionType = model.Compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName);
+            var exceptionType = model.Compilation.GetTypeByFullName(typeof(ArgumentException).FullName);
 
-            return TraverseTypeAndItsBaseTypes(namedSymbol).Any(x => x.Equals(exceptionType));
+            return TraverseTypeAndItsBaseTypes(namedSymbol).Any(x => x.Equals(exceptionType, SymbolEqualityComparer.Default));
         }
     }
 }

@@ -125,13 +125,16 @@ namespace ErrorProne.NET.StructAnalyzers
             foreach (var refExpression in syntax.DescendantNodesAndSelf()
                 .OfType<RefExpressionSyntax>())
             {
-                var operation = model.GetOperation(refExpression.Parent);
-                if (operation.Parent is IVariableDeclaratorOperation decl)
+                if (refExpression.Parent != null)
                 {
-                    if (decl.Symbol != null && decl.Symbol.IsRef && decl.Symbol.RefKind == RefKind.In)
+                    var operation = model.GetOperation(refExpression.Parent);
+                    if (operation?.Parent is IVariableDeclaratorOperation decl)
                     {
-                        // this is 'ref readonly' case.
-                        return false;
+                        if (decl.Symbol != null && decl.Symbol.IsRef && decl.Symbol.RefKind == RefKind.In)
+                        {
+                            // this is 'ref readonly' case.
+                            return false;
+                        }
                     }
                 }
 

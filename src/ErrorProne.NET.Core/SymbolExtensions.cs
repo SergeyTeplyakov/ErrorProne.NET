@@ -44,7 +44,7 @@ namespace ErrorProne.NET.Core
                     case SyntaxKind.InvocationExpression:
                         break;
                     default:
-                        ISymbol symbol = model.GetSymbolInfo(node).Symbol;
+                        ISymbol? symbol = model.GetSymbolInfo(node).Symbol;
 
                         if (symbol != null)
                         {
@@ -156,7 +156,7 @@ namespace ErrorProne.NET.Core
                 var implementedInterfaceMembersWithSameName = implementedInterface.GetMembers(method.Name);
                 foreach (var implementedInterfaceMember in implementedInterfaceMembersWithSameName)
                 {
-                    if (method.Equals(containingType.FindImplementationForInterfaceMember(implementedInterfaceMember)))
+                    if (method.Equals(containingType.FindImplementationForInterfaceMember(implementedInterfaceMember), SymbolEqualityComparer.Default))
                     {
                         implementedMethod = implementedInterfaceMember;
                         return true;

@@ -10,7 +10,7 @@ namespace ErrorProne.NET.Core
 
         public static INamedTypeSymbol GetExceptionType(this SemanticModel model)
         {
-            return model.Compilation.GetTypeByMetadataName(typeof(Exception).FullName);
+            return model.Compilation.GetTypeByFullName(typeof(Exception).FullName);
         }
 
         public static INamedTypeSymbol GetBoolType(this SemanticModel model)
@@ -25,7 +25,7 @@ namespace ErrorProne.NET.Core
 
         public static INamedTypeSymbol GetClrType(this SemanticModel model, Type type)
         {
-            return model.Compilation.GetTypeByMetadataName(type.FullName);
+            return model.Compilation.GetTypeByFullName(type.FullName);
         }
 
         public static INamedTypeSymbol GetClrType(this Compilation compilation, Type type)
@@ -35,7 +35,7 @@ namespace ErrorProne.NET.Core
 
         public static INamedTypeSymbol GetClrType(this Compilation compilation, string fullName)
         {
-            return compilation.GetTypeByMetadataName(fullName);
+            return compilation.GetTypeByFullName(fullName);
         }
 
         /// <summary>

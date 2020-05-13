@@ -6,9 +6,14 @@ namespace ErrorProne.NET.Core
 {
     public static class BodySyntaxExtensions
     {
-        public static MethodDeclarationSyntax WithStatements(this MethodDeclarationSyntax method,
+        public static MethodDeclarationSyntax? WithStatements(this MethodDeclarationSyntax method,
             IEnumerable<StatementSyntax> statements)
         {
+            if (method.Body == null)
+            {
+                return null;
+            }
+
             return method.WithBody(method.Body.WithStatements(new SyntaxList<StatementSyntax>().AddRange(statements)));
         }
     }
