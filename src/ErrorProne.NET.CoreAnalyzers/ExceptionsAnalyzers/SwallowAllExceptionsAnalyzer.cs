@@ -62,6 +62,10 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
                 StatementSyntax syntax = catchBlock.Block;
                 var controlFlow = context.SemanticModel.AnalyzeControlFlow(syntax);
+                if (controlFlow == null)
+                {
+                    return;
+                }
 
                 // Warn for every exit points
                 foreach (SyntaxNode @return in controlFlow.ExitPoints)

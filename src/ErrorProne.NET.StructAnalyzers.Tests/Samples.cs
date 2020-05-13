@@ -16,8 +16,7 @@ public readonly struct RS
     public static void UseAsOut(ref RS rs) => rs = default;
 }
 
-
-    readonly struct S
+    public readonly struct S
     {
         public static void Sample()
         {
@@ -29,7 +28,7 @@ public readonly struct RS
     }
 
 
-    static class C
+    public static class C
     {
         // Extension methods for value types
         // (or for generic type parameters with the struct constrained)

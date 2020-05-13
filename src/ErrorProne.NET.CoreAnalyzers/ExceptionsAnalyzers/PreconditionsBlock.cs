@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
+using System.Linq;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -41,7 +43,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
             var preconditions = new List<IfThrowPrecondition>();
 
             // Precondition block ends when something exception precondition check is met.
-            foreach (var statement in method.Body.Statements)
+            foreach (var statement in method.Body?.Statements ?? Enumerable.Empty<StatementSyntax>())
             {
                 // Currently, If-throw precondition means that
                 // if statement has only one statement in the if block
@@ -61,7 +63,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
                 var throwStatementCandidate = block != null ? block.Statements[0] : ifThrowStatement.Statement;
 
                 // The only valid case (when the processing should keep going)
-                // is when the if block has one statement and that statment is a throw of ArgumentException
+                // is when the if block has one statement and that statement is a throw of ArgumentException
                 if (IsThrowArgumentExceptionStatement(throwStatementCandidate, semanticModel))
                 {
                     preconditions.Add(new IfThrowPrecondition(statement, (ThrowStatementSyntax) throwStatementCandidate));

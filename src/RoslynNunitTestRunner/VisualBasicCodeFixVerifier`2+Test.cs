@@ -19,7 +19,13 @@ namespace ErrorProne.NET.TestHelpers
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     var project = solution.GetProject(projectId);
-                    var parseOptions = (VisualBasicParseOptions)project.ParseOptions;
+                    var parseOptions = (VisualBasicParseOptions?)project?.ParseOptions;
+                    
+                    if (parseOptions == null)
+                    {
+                        return solution;
+                    }
+
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
                     return solution;

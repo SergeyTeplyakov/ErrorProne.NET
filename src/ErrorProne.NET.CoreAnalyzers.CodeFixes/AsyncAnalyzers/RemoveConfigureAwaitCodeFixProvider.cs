@@ -42,11 +42,16 @@ namespace ErrorProne.NET.AsyncAnalyzers
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        private async Task<Document> RemoveMethodCallAsync(Document document, Location location, CancellationToken cancellationToken)
+        private static async Task<Document> RemoveMethodCallAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var identifier = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf()
+            if (root == null)
+            {
+                return document;
+            }
+
+            var identifier = root.FindToken(location.SourceSpan.Start).Parent!.AncestorsAndSelf()
                 .OfType<IdentifierNameSyntax>().First();
 
             Debug.Assert(identifier.GetText().ToString() == "ConfigureAwait");

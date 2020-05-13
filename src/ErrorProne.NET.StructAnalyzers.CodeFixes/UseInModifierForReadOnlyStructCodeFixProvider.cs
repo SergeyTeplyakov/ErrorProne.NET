@@ -57,7 +57,7 @@ namespace ErrorProne.NET.StructAnalyzers
             var syntaxRoot = await document.GetSyntaxRootAsync(token).ConfigureAwait(false);
 
             var method = parameter.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            if (method == null)
+            if (syntaxRoot  == null || method == null)
             {
                 // Don't have a method (could be an indexer). This is not yet supported, so avoid showing the code fix.
                 return true;
@@ -106,12 +106,16 @@ namespace ErrorProne.NET.StructAnalyzers
             return false;
         }
 
-        private async Task<Document> AddInModifierAsync(Document document, Location location, CancellationToken cancellationToken)
+        private static async Task<Document> AddInModifierAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Find the type declaration identified by the diagnostic.
-            var paramSyntax = root.FindToken(location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<ParameterSyntax>().FirstOrDefault();
+            var paramSyntax = root
+                ?.FindToken(location.SourceSpan.Start)
+                .Parent?.AncestorsAndSelf()
+                .OfType<ParameterSyntax>()
+                .FirstOrDefault();
             if (paramSyntax is null || await ParameterIsUsedInNonInFriendlyMannerAsync(paramSyntax, document, cancellationToken).ConfigureAwait(false))
             {
                 // It is possible for some weird cases to not have 'ParameterSyntax'. See 'WarnIfParameterIsReadOnly' in UseInModifierAnalyzer.
@@ -124,7 +128,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 .WithModifiers(paramSyntax.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.InKeyword)))
                 .WithLeadingTrivia(trivia);
 
-            return document.WithSyntaxRoot(root.ReplaceNode(paramSyntax, newType));
+            return document.ReplaceSyntaxRoot(root.ReplaceNode(paramSyntax, newType));
         }
     }
 }
