@@ -63,6 +63,12 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
+                if (argument.Value is IUnaryOperation)
+                {
+                    // Skipping cases like '-value'
+                    continue;
+                }
+
                 if (argument.Value is IInstanceReferenceOperation instanceReference
                     && instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance
                     && argument.Value.Type.IsReferenceType)

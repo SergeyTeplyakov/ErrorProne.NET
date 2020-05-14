@@ -49,16 +49,6 @@ namespace ErrorProne.NET.StructAnalyzers
             });
         }
 
-        private void AnalyzeInvocation(SyntaxNodeAnalysisContext context, int largeStructThreshold)
-        {
-            var node = (InvocationExpressionSyntax)context.Node;
-            var operation = context.SemanticModel.GetOperation(node, context.CancellationToken);
-            if (operation is IInvocationOperation invocation)
-            {
-                AnalyzeExpressionAndTargetSymbol(context, largeStructThreshold, invocation.Instance.Syntax, null, invocation.TargetMethod);
-            }
-        }
-        
         private static void AnalyzeDottedExpression(SyntaxNodeAnalysisContext context, int largeStructThreshold)
         {
             if (context.Node is MemberAccessExpressionSyntax ma &&
