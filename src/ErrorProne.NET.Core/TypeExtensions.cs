@@ -164,55 +164,7 @@ namespace ErrorProne.NET.Core
                 return ((INamedTypeSymbol)type).TypeArguments[0].IsReadOnlyStruct();
             }
 
-            if (TryGetPropertyAccessor(IsReadOnlyAccessors, "IsReadOnly", type.GetType(), out var accessor))
-            {
-                return accessor(type);
-            }
-
-            if (type is INamedTypeSymbol nt && nt.DeclaringSyntaxReferences.Length != 0)
-            {
-                return nt.IsReadOnlyStruct();
-            }
-
-            return false;
-        }
-
-        private static bool TryGetPropertyAccessor<T, TResult>(
-            ConcurrentDictionary<Type, Func<T, TResult>?> cache, string propertyName, Type type, [NotNullWhen(true)]out Func<T, TResult>? accessor)
-        {
-            if (cache.TryGetValue(type, out accessor))
-            {
-                return accessor != null;
-            }
-
-            return TryGetPropertyAccessorSlow(cache, propertyName, type, out accessor);
-        }
-
-        private static bool TryGetPropertyAccessorSlow<T, TResult>(
-            ConcurrentDictionary<Type, Func<T, TResult>?> cache, string propertyName, Type type, [NotNullWhen(true)]out Func<T, TResult>? accessor)
-        {
-            accessor = cache.GetOrAdd(
-                type,
-                _ =>
-                {
-                    var getMethod = type.GetRuntimeProperties().FirstOrDefault(property => property.Name == propertyName)?.GetMethod;
-                    if (getMethod is null)
-                    {
-                        return null;
-                    }
-
-                    var obj = Expression.Parameter(typeof(T), "obj");
-                    var instance = !getMethod.IsStatic ? Expression.Convert(obj, getMethod.DeclaringType) : null;
-                    var expr = Expression.Lambda<Func<T, TResult>>(
-                        Expression.Convert(
-                            Expression.Call(instance, getMethod),
-                            typeof(TResult)),
-                        obj);
-
-                    return expr.Compile();
-                });
-
-            return accessor != null;
+            return type.IsReadOnly;
         }
 
         /// <summary>
@@ -222,32 +174,6 @@ namespace ErrorProne.NET.Core
         {
             var original = type.OriginalDefinition;
             return original != null && original.SpecialType == SpecialType.System_Nullable_T;
-        }
-
-        /// <summary>
-        /// Returns true if a given type is a struct and the struct is readonly.
-        /// </summary>
-        public static bool IsReadOnlyStruct(this INamedTypeSymbol type)
-        {
-            if (!type.IsValueType)
-            {
-                return false;
-            }
-
-            // Unfortunately, IsReadOnly property is internal, so we have to compute this manually.
-            foreach (var typeSyntax in type.DeclaringSyntaxReferences.Select(sr => sr.GetSyntax())
-                .OfType<TypeDeclarationSyntax>())
-            {
-                foreach (var modifier in typeSyntax.Modifiers)
-                {
-                    if (modifier.Kind() == SyntaxKind.ReadOnlyKeyword)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
     }
 }
