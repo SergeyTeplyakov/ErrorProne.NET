@@ -1,5 +1,7 @@
-﻿using Microsoft.CodeAnalysis.Testing;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 
 namespace ErrorProne.NET.TestHelpers
 {
@@ -78,6 +80,24 @@ internal sealed class NonDefaultableAttribute : System.Attribute
             {
                 test.BatchFixedState.Sources.Add(file);
             }
+
+            return test;
+        }
+
+        public static TTest WithLargeStructThreshold<TTest>(this TTest test, int largeStructThreshold)
+            where TTest : CodeFixTest<NUnitVerifier>
+        {
+            var content = $@"root = true
+
+[*.{{cs,vb}}]
+error_prone.large_struct_threshold = {largeStructThreshold}
+";
+
+            test.SolutionTransforms.Add((solution, projectId) =>
+            {
+                var documentId = DocumentId.CreateNewId(projectId, ".editorconfig");
+                return solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(content), filePath: "/.editorconfig");
+            });
 
             return test;
         }

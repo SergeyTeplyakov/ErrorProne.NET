@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
-using System.Linq;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -40,11 +38,15 @@ namespace ErrorProne.NET.StructAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSyntaxNodeAction(AnalyzeDottedExpression, SyntaxKind.SimpleMemberAccessExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeElementAccessExpression, SyntaxKind.ElementAccessExpression);
+            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+            {
+                var largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.CodeBlock.SyntaxTree));
+                context.RegisterSyntaxNodeAction(context => AnalyzeDottedExpression(context, largeStructThreshold), SyntaxKind.SimpleMemberAccessExpression);
+                context.RegisterSyntaxNodeAction(context => AnalyzeElementAccessExpression(context, largeStructThreshold), SyntaxKind.ElementAccessExpression);
+            });
         }
 
-        private void AnalyzeDottedExpression(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeDottedExpression(SyntaxNodeAnalysisContext context, int largeStructThreshold)
         {
             if (context.Node is MemberAccessExpressionSyntax ma &&
                 // In a case of 'a.b.c' we need to analyzer 'a.b' case and skip everything else
@@ -52,16 +54,16 @@ namespace ErrorProne.NET.StructAnalyzers
                 !(ma.Expression is MemberAccessExpressionSyntax))
             {
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ma).Symbol;
-                AnalyzeExpressionAndTargetSymbol(context, ma.Expression, ma.Name, targetSymbol);
+                AnalyzeExpressionAndTargetSymbol(context, largeStructThreshold, ma.Expression, ma.Name, targetSymbol);
             }
         }
 
-        private void AnalyzeElementAccessExpression(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeElementAccessExpression(SyntaxNodeAnalysisContext context, int largeStructThreshold)
         {
             if (context.Node is ElementAccessExpressionSyntax ea)
             {
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ea).Symbol;
-                AnalyzeExpressionAndTargetSymbol(context, ea.Expression, null, targetSymbol: targetSymbol);
+                AnalyzeExpressionAndTargetSymbol(context, largeStructThreshold, ea.Expression, null, targetSymbol: targetSymbol);
             }
         }
 
@@ -84,13 +86,14 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private static void AnalyzeExpressionAndTargetSymbol(
             SyntaxNodeAnalysisContext context,
+            int largeStructThreshold,
             ExpressionSyntax expression,
             SimpleNameSyntax? name,
             ISymbol? targetSymbol)
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
                 GetExtensionMethodThisRefKind(ms) == RefKind.None &&
-                ms.ReceiverType.IsLargeStruct(context.Compilation, Settings.LargeStructThreshold, out var estimatedSize))
+                ms.ReceiverType.IsLargeStruct(context.Compilation, largeStructThreshold, out var estimatedSize))
             {
                 // The expression calls an extension method that takes a struct by value.
                 ReportDiagnostic(context, name ?? expression, ms.ReceiverType, estimatedSize);
@@ -100,27 +103,27 @@ namespace ErrorProne.NET.StructAnalyzers
             if (symbol is IFieldSymbol fs && fs.IsReadOnly)
             {
                 // The expression uses readonly field of non-readonly struct
-                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, fs.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructThreshold, fs.Type, targetSymbol);
             }
             else if (symbol is IParameterSymbol p && p.RefKind == RefKind.In)
             {
                 // The expression uses in-parameter
-                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, p.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructThreshold, p.Type, targetSymbol);
             }
             else if (symbol is ILocalSymbol ls && ls.IsRef && ls.RefKind == RefKind.In)
             {
                 // The expression uses ref readonly local
-                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, ls.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructThreshold, ls.Type, targetSymbol);
             }
             else if (symbol is IMethodSymbol method && method.ReturnsByRefReadonly)
             {
                 // The expression uses ref readonly return
-                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, method.ReturnType, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructThreshold, method.ReturnType, targetSymbol);
             }
         }
 
         private static void ReportDiagnosticIfTargetIsNotField(SyntaxNodeAnalysisContext context,
-            ExpressionSyntax expression, ITypeSymbol resolvedType, ISymbol? targetSymbol)
+            ExpressionSyntax expression, int largeStructThreshold, ITypeSymbol resolvedType, ISymbol? targetSymbol)
         {
             if (targetSymbol != null && 
                 !(targetSymbol is IFieldSymbol) &&
@@ -132,7 +135,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 !resolvedType.IsNullableType() &&
                 !resolvedType.IsReadOnlyStruct() &&
                 // Warn only when the size of the struct is larger then threshold
-                resolvedType.IsLargeStruct(context.Compilation, Settings.LargeStructThreshold, out var estimatedSize))
+                resolvedType.IsLargeStruct(context.Compilation, largeStructThreshold, out var estimatedSize))
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.
