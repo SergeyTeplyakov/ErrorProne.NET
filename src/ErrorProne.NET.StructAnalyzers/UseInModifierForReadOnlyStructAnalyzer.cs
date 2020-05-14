@@ -41,12 +41,19 @@ namespace ErrorProne.NET.StructAnalyzers
         private void AnalyzeDelegateDeclaration(SyntaxNodeAnalysisContext context)
         {
             var delegateDeclaration = (DelegateDeclarationSyntax)context.Node;
+            if (!delegateDeclaration.ParameterList.Parameters.Any())
+            {
+                // No need to do any work if there are no parameters
+                return;
+            }
+
+            var largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree));
             var semanticModel = context.SemanticModel;
             foreach (var p in delegateDeclaration.ParameterList.Parameters)
             {
                 if (semanticModel.GetDeclaredSymbol(p) is IParameterSymbol parameterSymbol)
                 {
-                    WarnIfParameterIsReadOnly(context.Compilation, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
+                    WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
                 }
             }
         }
@@ -61,6 +68,21 @@ namespace ErrorProne.NET.StructAnalyzers
                 return;
             }
 
+            int largeStructThreshold;
+            if (context.TryGetSemanticModel(out var semanticModel))
+            {
+                largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(semanticModel.SyntaxTree));
+            }
+            else if (context.Symbol.Locations is { IsDefaultOrEmpty: false } locations
+                && locations[0] is { IsInSource: true } location)
+            {
+                largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(location.SourceTree));
+            }
+            else
+            {
+                largeStructThreshold = Settings.DefaultLargeStructThreshold;
+            }
+
             // Should analyze only subset of methods, not all of them.
             // What about operators?
             if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
@@ -69,7 +91,7 @@ namespace ErrorProne.NET.StructAnalyzers
             {
                 foreach (var p in method.Parameters)
                 {
-                    WarnIfParameterIsReadOnly(context.Compilation, p, diagnostic => context.ReportDiagnostic(diagnostic));
+                    WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, p, diagnostic => context.ReportDiagnostic(diagnostic));
                 }
             }
         }
@@ -80,9 +102,9 @@ namespace ErrorProne.NET.StructAnalyzers
                    method.IsInterfaceImplementation();   
         }
 
-        private static void WarnIfParameterIsReadOnly(Compilation compilation, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
+        private static void WarnIfParameterIsReadOnly(Compilation compilation, int largeStructThreshold, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
         {
-            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, Settings.LargeStructThreshold, out var estimatedSize))
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, largeStructThreshold, out var estimatedSize))
             {
                 Location location = p.GetParameterLocation();
 

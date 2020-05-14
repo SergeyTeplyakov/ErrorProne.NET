@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Threading.Tasks;
 using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.UseInModifierForReadOnlyStructAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
@@ -15,21 +14,19 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
     [TestFixture]
     public class StructSizeCalculatorIntegrationTests
     {
-        [SetUp]
-        public void Initializer()
-        {
-            Settings.SetLargeStructThresholdForTestingPurposesOnly(3 * IntPtr.Size);
-        }
-
         [Test]
         public async Task GetOnlyPropertyShouldBeIgnoredBySizeCalculator()
         {
             string code = @"
-readonly struct S { private readonly object _o1, _o2; public object Foo => null; }
+readonly struct S { private readonly object _o1, _o2, _o3; public object Foo => null; }
 class Foo {
    public static void Bar(S s) {}
 }";
-            await VerifyCS.VerifyAsync(code);
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+            }.WithLargeStructThreshold(4 * sizeof(long)).RunAsync();
         }
         
         [Test]
@@ -39,7 +36,11 @@ class Foo {
 class Foo {
    public static void Bar(System.ArraySegment<byte> s) {}
 }";
-            await VerifyCS.VerifyAsync(code);
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+            }.RunAsync();
         }
     }
 }

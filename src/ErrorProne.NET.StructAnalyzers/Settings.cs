@@ -1,16 +1,41 @@
-﻿namespace ErrorProne.NET.StructAnalyzers
+﻿using Microsoft.CodeAnalysis.Diagnostics;
+
+namespace ErrorProne.NET.StructAnalyzers
 {
     public static class Settings
     {
-        // Only suggest when the struct is greater or equals to the threshold
-        public static int LargeStructThreshold { get; private set; } =  3 * sizeof(long);
+        internal const int DefaultLargeStructThreshold = 3 * sizeof(long);
+        private const int MaxLargeStructThreshold = 1_000_000;
 
-        /// <summary>
-        /// Sets the large struct limit. SHOULD BE USED BY TESTS ONLY!
-        /// </summary>
-        public static void SetLargeStructThresholdForTestingPurposesOnly(int largeStructSize)
+        public static int GetLargeStructThreshold(AnalyzerConfigOptions options)
         {
-            LargeStructThreshold = largeStructSize;
+            if (!options.TryGetValue("error_prone.large_struct_threshold", out var thresholdString)
+                || string.IsNullOrEmpty(thresholdString)
+                || thresholdString == "unset")
+            {
+                return DefaultLargeStructThreshold;
+            }
+
+            if (thresholdString.Length > 6)
+            {
+                // A threshold of 1MB or larger is a configuration error. Return early to ensure the code below will not
+                // overflow.
+                return MaxLargeStructThreshold;
+            }
+
+            // Fast string to int
+            var result = 0;
+            foreach (var ch in thresholdString)
+            {
+                if (ch < '0' || ch > '9')
+                {
+                    return DefaultLargeStructThreshold;
+                }
+
+                result = result * 10 + (ch - '0');
+            }
+
+            return result;
         }
     }
 }
