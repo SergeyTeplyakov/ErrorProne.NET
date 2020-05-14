@@ -1,6 +1,7 @@
 ﻿using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.HiddenStructCopyAnalyzer,
@@ -34,33 +35,6 @@ class Test
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
-        // [Test]
-        public async Task NoWarnOnPropertyGetter()
-        {
-            string code = @"
-struct Struct1
-{
- private readonly long l1, l2, l3;
-}
-
-struct Struct2
-{
-  private readonly long l1, l2, l3;
-  public Struct1 S1 {get;}
-}
-class Class {
-  public readonly Struct2 S2;
-}
-class Test
-{
-  void Foo() {
-    Class s3 = default;
-    var s = s3?.S2.S1.ToString();
-  }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(code);
-        }
-        
         [Test]
         public async Task WarnOnDisposeNotFromIDisposable()
         {
@@ -81,22 +55,117 @@ class Test
             await VerifyCS.VerifyAsync(code);
         }
         
-        // [Test]
+        [Test]
         public async Task WarOnMethodCall()
         {
             string code = @"
 public struct TestStruct
     {
-        private int _value;
+        private long l1, l2, l3;
 
-        public int GetValue() => _value;
+        public int GetValue() => 42;
     }
 
     public static class Program
     {
         public static int GetValue(in TestStruct test)
         {
-            return test.[|GetValue()|];
+            return test.[|GetValue|]();
+        }
+    }";
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
+        public async Task NoWarOnReadOnlyMethodCall()
+        {
+            string code = @"
+public struct TestStruct
+    {
+        private long l1, l2, l3;
+
+        public readonly int GetValue() => 42;
+    }
+
+    public static class Program
+    {
+        public static int GetValue(in TestStruct test)
+        {
+            return test.GetValue();
+        }
+    }";
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
+        public async Task NoWarnOnPropertyGetter()
+        {
+            string code = @"
+struct Struct1
+{
+ private readonly long l1, l2, l3;
+}
+
+struct Struct2
+{
+  private readonly long l1, l2, l3;
+  // get-only properties are implicitly marked with IsReadOnly attribute
+  public Struct1 S1 {get;}
+}
+class Class {
+  public readonly Struct2 S2;
+}
+class Test
+{
+  void Foo() {
+    Class s3 = default;
+    var s = s3?.S2.S1.ToString();
+  }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Test]
+        public async Task NoWarOnAutoProperties()
+        {
+            // The getters in auto-properties are implicitly marked with readonly
+            string code = @"
+public struct TestStruct
+    {
+        private long l1, l2, l3;
+
+        public int X {get;set;}
+    }
+
+    public static class Program
+    {
+        public static int GetValue(in TestStruct test)
+        {
+            return test.X;
+        }
+    }";
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
+        public async Task WarnOnGetOnlyPropertyWithoutReadonlyModifier()
+        {
+            // The getters in auto-properties are implicitly marked with readonly
+            string code = @"
+public struct TestStruct
+    {
+        private long l1, l2, l3;
+
+        public readonly int X => 42;
+        public int Y => 42;
+    }
+
+    public static class Program
+    {
+        public static int GetValue(in TestStruct test)
+        {
+            // X is readonly, no hidden copies there.
+            return test.X + test.[|Y|];
         }
     }";
             await VerifyCS.VerifyAsync(code);

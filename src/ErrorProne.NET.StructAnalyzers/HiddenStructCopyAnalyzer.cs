@@ -1,10 +1,12 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace ErrorProne.NET.StructAnalyzers
 {
@@ -37,15 +39,26 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-
-            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+            
+            context.RegisterCodeBlockStartAction<SyntaxKind>(codeBlockContext =>
             {
-                var largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.CodeBlock.SyntaxTree));
-                context.RegisterSyntaxNodeAction(context => AnalyzeDottedExpression(context, largeStructThreshold), SyntaxKind.SimpleMemberAccessExpression);
-                context.RegisterSyntaxNodeAction(context => AnalyzeElementAccessExpression(context, largeStructThreshold), SyntaxKind.ElementAccessExpression);
+                var largeStructThreshold = Settings.GetLargeStructThreshold(codeBlockContext.Options.AnalyzerConfigOptionsProvider.GetOptions(codeBlockContext.CodeBlock.SyntaxTree));
+                
+                codeBlockContext.RegisterSyntaxNodeAction(c => AnalyzeDottedExpression(c, largeStructThreshold), SyntaxKind.SimpleMemberAccessExpression);
+                codeBlockContext.RegisterSyntaxNodeAction(c => AnalyzeElementAccessExpression(c, largeStructThreshold), SyntaxKind.ElementAccessExpression);
             });
         }
 
+        private void AnalyzeInvocation(SyntaxNodeAnalysisContext context, int largeStructThreshold)
+        {
+            var node = (InvocationExpressionSyntax)context.Node;
+            var operation = context.SemanticModel.GetOperation(node, context.CancellationToken);
+            if (operation is IInvocationOperation invocation)
+            {
+                AnalyzeExpressionAndTargetSymbol(context, largeStructThreshold, invocation.Instance.Syntax, null, invocation.TargetMethod);
+            }
+        }
+        
         private static void AnalyzeDottedExpression(SyntaxNodeAnalysisContext context, int largeStructThreshold)
         {
             if (context.Node is MemberAccessExpressionSyntax ma &&
@@ -87,7 +100,7 @@ namespace ErrorProne.NET.StructAnalyzers
         private static void AnalyzeExpressionAndTargetSymbol(
             SyntaxNodeAnalysisContext context,
             int largeStructThreshold,
-            ExpressionSyntax expression,
+            SyntaxNode expression,
             SimpleNameSyntax? name,
             ISymbol? targetSymbol)
         {
@@ -122,12 +135,22 @@ namespace ErrorProne.NET.StructAnalyzers
             }
         }
 
-        private static void ReportDiagnosticIfTargetIsNotField(SyntaxNodeAnalysisContext context,
-            ExpressionSyntax expression, int largeStructThreshold, ITypeSymbol resolvedType, ISymbol? targetSymbol)
+        private static void ReportDiagnosticIfTargetIsNotField(
+            SyntaxNodeAnalysisContext context,
+            SyntaxNode expression, 
+            int largeStructThreshold, 
+            ITypeSymbol resolvedType, 
+            ISymbol? targetSymbol)
         {
             if (targetSymbol != null && 
                 !(targetSymbol is IFieldSymbol) &&
+                
                 resolvedType.IsValueType &&
+
+                // Its ok if the target method or property marked 'readonly'
+                !(targetSymbol is IMethodSymbol method && method.IsReadOnly) &&
+                !(targetSymbol is IPropertySymbol property && property.GetMethod?.IsReadOnly == true) &&
+
                 // Dispose method is special: ignoring them
                 !targetSymbol.IsDisposeMethod() &&
                 resolvedType.TypeKind != TypeKind.Enum &&
@@ -144,7 +167,9 @@ namespace ErrorProne.NET.StructAnalyzers
         }
 
         private static void ReportDiagnostic(
-            SyntaxNodeAnalysisContext context, ExpressionSyntax expression, ITypeSymbol resolvedType,
+            SyntaxNodeAnalysisContext context, 
+            SyntaxNode expression, 
+            ITypeSymbol resolvedType,
             int estimatedSize,
             string? modifier = null)
         {

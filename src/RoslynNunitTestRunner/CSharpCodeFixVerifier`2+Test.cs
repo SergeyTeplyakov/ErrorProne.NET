@@ -16,6 +16,7 @@ namespace ErrorProne.NET.TestHelpers
             return new Test
             {
                 TestState = { Sources = { code } }
+                
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
@@ -40,7 +41,7 @@ namespace ErrorProne.NET.TestHelpers
                 });
             }
 
-            public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp7_3;
+            public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp8;
         }
     }
 }
