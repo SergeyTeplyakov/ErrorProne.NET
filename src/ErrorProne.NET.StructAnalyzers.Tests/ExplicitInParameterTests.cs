@@ -31,6 +31,19 @@ class Class {
         }
 
         [Test]
+        public async Task ExpressionForDecimal()
+        {
+            string code = @"
+class Class {
+    void Method(in decimal value) => throw null;
+    void Caller(decimal v) => Method(-v);
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
         public async Task DefaultValue()
         {
             string code = @"
