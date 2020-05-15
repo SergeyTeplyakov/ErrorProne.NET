@@ -2,8 +2,6 @@
 using System.Collections.Immutable;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.StructAnalyzers
@@ -34,27 +32,42 @@ namespace ErrorProne.NET.StructAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSyntaxNodeAction(AnalyzeDelegateDeclaration, SyntaxKind.DelegateDeclaration);
+            context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
             context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
         }
 
-        private void AnalyzeDelegateDeclaration(SyntaxNodeAnalysisContext context)
+        private void AnalyzeNamedType(SymbolAnalysisContext context)
         {
-            var delegateDeclaration = (DelegateDeclarationSyntax)context.Node;
-            if (!delegateDeclaration.ParameterList.Parameters.Any())
+            var symbol = (INamedTypeSymbol)context.Symbol;
+            if (symbol.TypeKind != TypeKind.Delegate)
+            {
+                return;
+            }
+
+            if (symbol.DelegateInvokeMethod is null || symbol.DelegateInvokeMethod.Parameters.IsEmpty)
             {
                 // No need to do any work if there are no parameters
                 return;
             }
 
-            var largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree));
-            var semanticModel = context.SemanticModel;
-            foreach (var p in delegateDeclaration.ParameterList.Parameters)
+            int largeStructThreshold;
+            if (context.TryGetSemanticModel(out var semanticModel))
             {
-                if (semanticModel.GetDeclaredSymbol(p) is IParameterSymbol parameterSymbol)
-                {
-                    WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
-                }
+                largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(semanticModel.SyntaxTree));
+            }
+            else if (context.Symbol.Locations is { IsDefaultOrEmpty: false } locations
+                && locations[0] is { IsInSource: true } location)
+            {
+                largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(location.SourceTree));
+            }
+            else
+            {
+                largeStructThreshold = Settings.DefaultLargeStructThreshold;
+            }
+
+            foreach (var parameterSymbol in symbol.DelegateInvokeMethod.Parameters)
+            {
+                WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
             }
         }
 
