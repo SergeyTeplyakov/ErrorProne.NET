@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using ErrorProne.NET.Core;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -70,6 +71,16 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
                     if (localFlow.Succeeded && localFlow.StartPointIsReachable)
                     {
+                        var returnOperation = (IReturnOperation?)context.SemanticModel.GetOperation(@return);
+                        if (returnOperation?.ReturnedValue is ILocalReferenceOperation lr)
+                        {
+                            // This is 'return e;' case. Just ignore it.
+                            if (lr.Local.ExceptionFromCatchBlock())
+                            {
+                                continue;
+                            }
+                        }
+
                         // Block is empty, create and report diagnostic warning.
                         var diagnostic = Diagnostic.Create(Rule, @return.GetLocation(), @return.WithoutTrivia().GetText());
                         context.ReportDiagnostic(diagnostic);
@@ -89,21 +100,14 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
         {
             foreach (var usage in usages)
             {
-                var operation = usage.Operation;
                 var u = usage.Identifier;
                 if (
-                    operation.Parent is IArgumentOperation || // Exception object was used directly
-                    operation.Parent is IAssignmentOperation || // Was saved to field or local
-                    // or Inner exception, Message or other properties were used
-                    operation.Parent is IMemberReferenceOperation ||
+                    u.Parent is ArgumentSyntax || // Exception object was used directly
+                    u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
                     // For instance in Console.WriteLine($"e = {e}");
-                    operation.Parent is IInterpolatedStringOperation ||
-                    operation.Parent is IInterpolationOperation ||
-                    // Exception is returned.
-                    operation.Parent is IReturnOperation ||
-                    // Exception is referenced by a local function for instance
-                    // catch(Exception e) { void observe() => Console.WriteLine(e); observe();}
-                    operation is ILocalReferenceOperation)
+                    u.Parent is InterpolationSyntax ||
+                    // or Inner exception, Message or other properties were used
+                    u.Parent is MemberAccessExpressionSyntax)
                 {
                     return true;
                 }

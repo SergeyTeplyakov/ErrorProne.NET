@@ -11,16 +11,14 @@ namespace ErrorProne.NET.CoreAnalyzers
 {
     public readonly struct ExceptionReference : IEquatable<ExceptionReference>
     {
-        public ExceptionReference(ISymbol symbol, IOperation operation, IdentifierNameSyntax identifier)
+        public ExceptionReference(ISymbol symbol, IdentifierNameSyntax identifier)
         {
             Symbol = symbol;
             Identifier = identifier;
-            Operation = operation;
         }
 
         public ISymbol Symbol { get; }
         public IdentifierNameSyntax Identifier { get; }
-        public IOperation Operation { get; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
@@ -33,14 +31,13 @@ namespace ErrorProne.NET.CoreAnalyzers
         public bool Equals(ExceptionReference other)
         {
             return Symbol.Equals(other.Symbol, SymbolEqualityComparer.Default) &&
-                EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier) &&
-                Operation.Equals(other.Operation);
+                EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier);
         }
 
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return (Symbol, Identifier, Operation).GetHashCode();
+            return (Symbol, Identifier).GetHashCode();
         }
 
         /// <nodoc />
@@ -67,10 +64,9 @@ namespace ErrorProne.NET.CoreAnalyzers
                 {
                     Symbol = semanticModel.GetSymbolInfo(id).Symbol,
                     Id = id,
-                    Operation = semanticModel.GetOperation(id)
                 })
-                .Where(x => x.Symbol != null && x.Symbol.ExceptionFromCatchBlock() && x.Operation != null)
-                .Select(x => new ExceptionReference(x.Symbol!, x.Operation!, x.Id))
+                .Where(x => x.Symbol != null && x.Symbol.ExceptionFromCatchBlock())
+                .Select(x => new ExceptionReference(x.Symbol!, x.Id))
                 .ToList();
 
             return usages;

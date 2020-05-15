@@ -58,11 +58,30 @@ class Test
   public System.Exception Foo()
   {
     try { new object(); }
-    catch(System.Exception e) { return  e;}
+    catch(System.Exception e) { return e;}
     return null;
   }
 }";
             await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
+        public async Task WarnOnConditionalReturn()
+        {
+            string code = @"
+class Test
+{
+  public System.Exception Foo()
+  {
+    try { new object(); }
+    catch(System.Exception e) { if (e is System.ArgumentException) return e;[|}|]
+    return null;
+  }
+}";
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
