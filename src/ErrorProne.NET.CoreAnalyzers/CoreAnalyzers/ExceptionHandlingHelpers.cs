@@ -13,9 +13,6 @@ namespace ErrorProne.NET.CoreAnalyzers
     {
         public ExceptionReference(ISymbol symbol, IdentifierNameSyntax identifier)
         {
-            Contract.Requires(symbol != null);
-            Contract.Requires(identifier != null);
-
             Symbol = symbol;
             Identifier = identifier;
         }
@@ -27,15 +24,14 @@ namespace ErrorProne.NET.CoreAnalyzers
         public override bool Equals(object? obj)
         {
             return obj is ExceptionReference other &&
-                   EqualityComparer<ISymbol>.Default.Equals(Symbol, other.Symbol) &&
-                   EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier);
+                   Equals(other);
         }
 
         /// <inheritdoc/>
         public bool Equals(ExceptionReference other)
         {
-            return EqualityComparer<ISymbol>.Default.Equals(Symbol, other.Symbol) &&
-                   EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier);
+            return Symbol.Equals(other.Symbol, SymbolEqualityComparer.Default) &&
+                EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier);
         }
 
         /// <inheritdoc/>
@@ -64,7 +60,11 @@ namespace ErrorProne.NET.CoreAnalyzers
             var usages = (searchRoot ?? semanticModel.SyntaxTree.GetRoot())
                 .DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
-                .Select(id => new {semanticModel.GetSymbolInfo(id).Symbol, Id = id })
+                .Select(id => new
+                {
+                    Symbol = semanticModel.GetSymbolInfo(id).Symbol,
+                    Id = id,
+                })
                 .Where(x => x.Symbol != null && x.Symbol.ExceptionFromCatchBlock())
                 .Select(x => new ExceptionReference(x.Symbol!, x.Id))
                 .ToList();

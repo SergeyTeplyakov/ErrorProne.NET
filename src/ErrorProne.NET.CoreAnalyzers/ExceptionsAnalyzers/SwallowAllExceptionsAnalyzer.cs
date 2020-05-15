@@ -1,11 +1,15 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using ErrorProne.NET.Core;
 using ErrorProne.NET.CoreAnalyzers;
-using ErrorProne.NET.ExceptionAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+using ExceptionReference = ErrorProne.NET.CoreAnalyzers.ExceptionReference;
 
 namespace ErrorProne.NET.ExceptionsAnalyzers
 {
@@ -42,19 +46,9 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
             if (catchBlock.Declaration == null || catchBlock.Declaration.CatchIsTooGeneric(context.SemanticModel))
             {
-                var usages = Helpers.GetExceptionIdentifierUsages(context.SemanticModel, catchBlock);
+                var usages = context.SemanticModel.GetExceptionIdentifierUsages(catchBlock);
 
-                bool wasObserved =
-                usages.
-                    Select(id => id.Identifier)
-                    .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
-                              u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
-                                                                        // For instance in Console.WriteLine($"e = {e}");
-                              u.Parent is InterpolationSyntax ||
-                              // or Inner exception, Message or other properties were used
-                              u.Parent is MemberAccessExpressionSyntax);
-
-                if (wasObserved)
+                if (IsObserved(usages))
                 {
                     // Exception was observed!
                     return;
@@ -77,6 +71,16 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
                     if (localFlow.Succeeded && localFlow.StartPointIsReachable)
                     {
+                        var returnOperation = (IReturnOperation?)context.SemanticModel.GetOperation(@return);
+                        if (returnOperation?.ReturnedValue is ILocalReferenceOperation lr)
+                        {
+                            // This is 'return e;' case. Just ignore it.
+                            if (lr.Local.ExceptionFromCatchBlock())
+                            {
+                                continue;
+                            }
+                        }
+
                         // Block is empty, create and report diagnostic warning.
                         var diagnostic = Diagnostic.Create(Rule, @return.GetLocation(), @return.WithoutTrivia().GetText());
                         context.ReportDiagnostic(diagnostic);
@@ -90,6 +94,26 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
                     context.ReportDiagnostic(diagnostic);
                 }
             }
+        }
+
+        private static bool IsObserved(IEnumerable<ExceptionReference> usages)
+        {
+            foreach (var usage in usages)
+            {
+                var u = usage.Identifier;
+                if (
+                    u.Parent is ArgumentSyntax || // Exception object was used directly
+                    u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
+                    // For instance in Console.WriteLine($"e = {e}");
+                    u.Parent is InterpolationSyntax ||
+                    // or Inner exception, Message or other properties were used
+                    u.Parent is MemberAccessExpressionSyntax)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -11,7 +11,7 @@ using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.ExceptionsAnalyzers.SwallowAllExceptionsAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
-namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExeptionHandling
+namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExceptionHandling
 {
     [TestFixture]
     public class SwallowAllExceptionsAnalyzerTests
@@ -47,6 +47,41 @@ class Test
   }
 }";
             await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
+        public async Task NoWarnWhenExceptionIsReturned()
+        {
+            string code = @"
+class Test
+{
+  public System.Exception Foo()
+  {
+    try { new object(); }
+    catch(System.Exception e) { return e;}
+    return null;
+  }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
+        public async Task WarnOnConditionalReturn()
+        {
+            string code = @"
+class Test
+{
+  public System.Exception Foo()
+  {
+    try { new object(); }
+    catch(System.Exception e) { if (e is System.ArgumentException) return e;[|}|]
+    return null;
+  }
+}";
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
         [Test]
@@ -178,6 +213,44 @@ class Test
     try { Console.WriteLine(); }
     catch(Exception e) {Console.WriteLine(e.Message); } // should be another warning when only e.Message was observed!
   }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
+        public async Task NoWarnIfExceptionWasObservedInLocalFunction()
+        {
+            string code = @"
+using System;
+class Test
+{
+  public void Foo()
+  {
+    try { Console.WriteLine(); }
+    catch(Exception e) {
+      observe();
+      void observe() => Console.WriteLine(e);
+    }
+  }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
+        public async Task NoWarnIfExceptionWasObservedByCallingMethod()
+        {
+            string code = @"
+using System;
+class Test
+{
+  public void Foo()
+  {
+    try { Console.WriteLine(); }
+    catch(Exception e) {
+      Observe(e);
+    }
+  }
+  static void Observe(Exception e) => Console.WriteLine(e);
 }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
