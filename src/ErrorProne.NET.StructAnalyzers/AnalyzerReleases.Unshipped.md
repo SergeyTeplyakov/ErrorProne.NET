@@ -5,9 +5,6 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 EPS01 | Performance | Warning | MakeStructReadOnlyAnalyzer
-EPS02 | Performance | Warning | NonReadOnlyStructPassedAsInParameterAnalyzer
-EPS03 | Performance | Warning | NonReadOnlyStructReturnedByReadOnlyRefAnalyzer
-EPS04 | Performance | Warning | NonReadOnlyStructRefReadOnlyLocalAnalyzer
 EPS05 | Performance | Warning | UseInModifierForReadOnlyStructAnalyzer
 EPS06 | Performance | Warning | HiddenStructCopyAnalyzer
 EPS07 | Performance | Warning | HashTableIncompatibilityAnalyzer

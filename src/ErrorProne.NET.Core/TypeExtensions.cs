@@ -20,14 +20,11 @@ namespace ErrorProne.NET.Core
         /// </summary>
         public static bool IsEnum(this ITypeSymbol type)
         {
-            Contract.Requires(type != null);
             return type.TypeKind == TypeKind.Enum;
         }
 
         public static ITypeSymbol? GetEnumUnderlyingType(this ITypeSymbol enumType)
         {
-            Contract.Requires(enumType != null);
-
             var namedTypeSymbol = enumType as INamedTypeSymbol;
             return namedTypeSymbol?.EnumUnderlyingType;
         }
@@ -58,7 +55,6 @@ namespace ErrorProne.NET.Core
 
         public static bool TryGetPrimitiveSize(this ITypeSymbol type, out int size)
         {
-            Contract.Requires(type != null);
             switch (type.SpecialType)
             {
                 case SpecialType.System_Boolean:
