@@ -6,7 +6,7 @@ using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.SuspiciousExceptionHandlingAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
-namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExeptionHandling
+namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExceptionHandling
 {
     [TestFixture]
     public class OnlyMessageIsUsedTests

@@ -142,8 +142,6 @@ namespace ErrorProne.NET.Core
             return valueTypeEquality != ValueTypeEqualityImplementations.None;
         }
 
-        private static readonly ConcurrentDictionary<Type, Func<ITypeSymbol, bool>?> IsReadOnlyAccessors = new ConcurrentDictionary<Type, Func<ITypeSymbol, bool>?>();
-
         /// <summary>
         /// Returns true if a given type is a struct and the struct is readonly.
         /// </summary>

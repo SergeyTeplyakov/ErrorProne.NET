@@ -11,37 +11,36 @@ namespace ErrorProne.NET.CoreAnalyzers
 {
     public readonly struct ExceptionReference : IEquatable<ExceptionReference>
     {
-        public ExceptionReference(ISymbol symbol, IdentifierNameSyntax identifier)
+        public ExceptionReference(ISymbol symbol, IOperation operation, IdentifierNameSyntax identifier)
         {
-            Contract.Requires(symbol != null);
-            Contract.Requires(identifier != null);
-
             Symbol = symbol;
             Identifier = identifier;
+            Operation = operation;
         }
 
         public ISymbol Symbol { get; }
         public IdentifierNameSyntax Identifier { get; }
+        public IOperation Operation { get; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
             return obj is ExceptionReference other &&
-                   EqualityComparer<ISymbol>.Default.Equals(Symbol, other.Symbol) &&
-                   EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier);
+                   Equals(other);
         }
 
         /// <inheritdoc/>
         public bool Equals(ExceptionReference other)
         {
-            return EqualityComparer<ISymbol>.Default.Equals(Symbol, other.Symbol) &&
-                   EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier);
+            return Symbol.Equals(other.Symbol, SymbolEqualityComparer.Default) &&
+                EqualityComparer<IdentifierNameSyntax>.Default.Equals(Identifier, other.Identifier) &&
+                Operation.Equals(other.Operation);
         }
 
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return (Symbol, Identifier).GetHashCode();
+            return (Symbol, Identifier, Operation).GetHashCode();
         }
 
         /// <nodoc />
@@ -64,9 +63,14 @@ namespace ErrorProne.NET.CoreAnalyzers
             var usages = (searchRoot ?? semanticModel.SyntaxTree.GetRoot())
                 .DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
-                .Select(id => new {semanticModel.GetSymbolInfo(id).Symbol, Id = id })
-                .Where(x => x.Symbol != null && x.Symbol.ExceptionFromCatchBlock())
-                .Select(x => new ExceptionReference(x.Symbol!, x.Id))
+                .Select(id => new
+                {
+                    Symbol = semanticModel.GetSymbolInfo(id).Symbol,
+                    Id = id,
+                    Operation = semanticModel.GetOperation(id)
+                })
+                .Where(x => x.Symbol != null && x.Symbol.ExceptionFromCatchBlock() && x.Operation != null)
+                .Select(x => new ExceptionReference(x.Symbol!, x.Operation!, x.Id))
                 .ToList();
 
             return usages;

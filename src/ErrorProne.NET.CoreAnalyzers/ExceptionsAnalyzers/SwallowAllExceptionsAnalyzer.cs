@@ -1,11 +1,14 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.CoreAnalyzers;
-using ErrorProne.NET.ExceptionAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+using ExceptionReference = ErrorProne.NET.CoreAnalyzers.ExceptionReference;
 
 namespace ErrorProne.NET.ExceptionsAnalyzers
 {
@@ -42,19 +45,9 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
             if (catchBlock.Declaration == null || catchBlock.Declaration.CatchIsTooGeneric(context.SemanticModel))
             {
-                var usages = Helpers.GetExceptionIdentifierUsages(context.SemanticModel, catchBlock);
+                var usages = context.SemanticModel.GetExceptionIdentifierUsages(catchBlock);
 
-                bool wasObserved =
-                usages.
-                    Select(id => id.Identifier)
-                    .Any(u => u.Parent is ArgumentSyntax || // Exception object was used directly
-                              u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
-                                                                        // For instance in Console.WriteLine($"e = {e}");
-                              u.Parent is InterpolationSyntax ||
-                              // or Inner exception, Message or other properties were used
-                              u.Parent is MemberAccessExpressionSyntax);
-
-                if (wasObserved)
+                if (IsObserved(usages))
                 {
                     // Exception was observed!
                     return;
@@ -90,6 +83,33 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
                     context.ReportDiagnostic(diagnostic);
                 }
             }
+        }
+
+        private static bool IsObserved(IEnumerable<ExceptionReference> usages)
+        {
+            foreach (var usage in usages)
+            {
+                var operation = usage.Operation;
+                var u = usage.Identifier;
+                if (
+                    operation.Parent is IArgumentOperation || // Exception object was used directly
+                    operation.Parent is IAssignmentOperation || // Was saved to field or local
+                    // or Inner exception, Message or other properties were used
+                    operation.Parent is IMemberReferenceOperation ||
+                    // For instance in Console.WriteLine($"e = {e}");
+                    operation.Parent is IInterpolatedStringOperation ||
+                    operation.Parent is IInterpolationOperation ||
+                    // Exception is returned.
+                    operation.Parent is IReturnOperation ||
+                    // Exception is referenced by a local function for instance
+                    // catch(Exception e) { void observe() => Console.WriteLine(e); observe();}
+                    operation is ILocalReferenceOperation)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
