@@ -41,7 +41,7 @@ namespace ErrorProne.NET.StructAnalyzers
             
             context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
             {
-                var largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.CodeBlock.SyntaxTree));
+                var largeStructThreshold = Settings.GetLargeStructThreshold(context.GetAnalyzerConfigOptions());
                 
                 context.RegisterSyntaxNodeAction(context => AnalyzeDottedExpression(context, largeStructThreshold), SyntaxKind.SimpleMemberAccessExpression);
                 context.RegisterSyntaxNodeAction(context => AnalyzeElementAccessExpression(context, largeStructThreshold), SyntaxKind.ElementAccessExpression);
