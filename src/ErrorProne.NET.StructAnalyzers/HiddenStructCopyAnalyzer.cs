@@ -39,12 +39,12 @@ namespace ErrorProne.NET.StructAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
             
-            context.RegisterCodeBlockStartAction<SyntaxKind>(codeBlockContext =>
+            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
             {
-                var largeStructThreshold = Settings.GetLargeStructThreshold(codeBlockContext.Options.AnalyzerConfigOptionsProvider.GetOptions(codeBlockContext.CodeBlock.SyntaxTree));
+                var largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.CodeBlock.SyntaxTree));
                 
-                codeBlockContext.RegisterSyntaxNodeAction(c => AnalyzeDottedExpression(c, largeStructThreshold), SyntaxKind.SimpleMemberAccessExpression);
-                codeBlockContext.RegisterSyntaxNodeAction(c => AnalyzeElementAccessExpression(c, largeStructThreshold), SyntaxKind.ElementAccessExpression);
+                context.RegisterSyntaxNodeAction(context => AnalyzeDottedExpression(context, largeStructThreshold), SyntaxKind.SimpleMemberAccessExpression);
+                context.RegisterSyntaxNodeAction(context => AnalyzeElementAccessExpression(context, largeStructThreshold), SyntaxKind.ElementAccessExpression);
             });
         }
 
