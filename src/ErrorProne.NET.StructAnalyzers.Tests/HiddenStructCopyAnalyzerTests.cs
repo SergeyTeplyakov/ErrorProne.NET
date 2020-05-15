@@ -146,7 +146,7 @@ public struct TestStruct
     }";
             await VerifyCS.VerifyAsync(code);
         }
-
+        
         [Test]
         public async Task WarnOnGetOnlyPropertyWithoutReadonlyModifier()
         {
