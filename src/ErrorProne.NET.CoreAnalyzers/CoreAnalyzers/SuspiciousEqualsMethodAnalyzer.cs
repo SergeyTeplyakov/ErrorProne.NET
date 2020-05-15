@@ -51,26 +51,26 @@ namespace ErrorProne.NET.CoreAnalyzers
             // I didn't figure out the way to find all the symbols used in a method.
             // The only solution to find if a method references instance members or not is to use
             // a long chain of 'RegisterSomAction' methods.
-            context.RegisterCompilationStartAction(compilationContext =>
+            context.RegisterCompilationStartAction(context =>
             {
-                compilationContext.RegisterOperationBlockStartAction(blockStartContext =>
+                context.RegisterOperationBlockStartAction(context =>
                 {
                     // Only interested in 'object.Equals' and `IEquatable<T>.Equals' methods
-                    if (blockStartContext.OwningSymbol is IMethodSymbol ms &&
+                    if (context.OwningSymbol is IMethodSymbol ms &&
                         !OnlyThrow(ms) &&
-                        (OverridesEquals(ms, blockStartContext.Compilation) || ImplementsEquals(ms, blockStartContext.Compilation)))
+                        (OverridesEquals(ms, context.Compilation) || ImplementsEquals(ms, context.Compilation)))
                     {
                         // Checking that Equals method accesses instance members
                         if (HasInstanceMembers(ms.ContainingType))
                         {
                             bool isInstanceReferenced = false;
 
-                            blockStartContext.RegisterOperationAction(operationContext =>
+                            context.RegisterOperationAction(context =>
                             {
                                 isInstanceReferenced = true;
                             }, OperationKind.InstanceReference);
 
-                            blockStartContext.RegisterOperationBlockEndAction(blockEndContext =>
+                            context.RegisterOperationBlockEndAction(context =>
                             {
                                 if (!isInstanceReferenced)
                                 {
@@ -78,7 +78,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                                         InstanceMembersAreNotUsedRule,
                                         ms.Locations[0]);
 
-                                    blockEndContext.ReportDiagnostic(diagnostic);
+                                    context.ReportDiagnostic(diagnostic);
                                 }
 
                                 // Checking that Equals method uses 'obj' parameter
@@ -90,7 +90,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                                 var bodyOrExpression = (SyntaxNode?)methodSyntax.Body ?? methodSyntax.ExpressionBody;
                                 
                                 Contract.Assert(bodyOrExpression != null);
-                                var symbols = SymbolExtensions.GetAllUsedSymbols(blockStartContext.Compilation, bodyOrExpression).ToList();
+                                var symbols = SymbolExtensions.GetAllUsedSymbols(context.Compilation, bodyOrExpression).ToList();
                                 if (!symbols.Any(s => 
                                     s is IParameterSymbol p && p.ContainingSymbol.Equals(ms, SymbolEqualityComparer.Default) && !p.IsThis))
                                 {
@@ -102,11 +102,11 @@ namespace ErrorProne.NET.CoreAnalyzers
                                         location,
                                         ms.Parameters[0].Name);
 
-                                    blockEndContext.ReportDiagnostic(diagnostic);
+                                    context.ReportDiagnostic(diagnostic);
 
                                     // Fading 'obj' away
 
-                                    blockEndContext.ReportDiagnostic(
+                                    context.ReportDiagnostic(
                                         Diagnostic.Create(
                                             UnnecessaryWithSuggestionDescriptor!,
                                             location));
