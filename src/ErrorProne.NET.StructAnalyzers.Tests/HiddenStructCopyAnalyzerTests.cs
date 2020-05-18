@@ -75,6 +75,21 @@ public struct TestStruct
     }";
             await VerifyCS.VerifyAsync(code);
         }
+        
+        [Test]
+        public async Task WarnForOperators()
+        {
+            string code = @"
+public struct S
+    {
+        private long l1, l2, l3;
+
+        public int GetValue() => 42;
+        public static int operator+(in S lhs, in S rhs) => lhs.[|GetValue|]() + rhs.[|GetValue|]();
+    }
+";
+            await VerifyCS.VerifyAsync(code);
+        }
 
         [Test]
         public async Task NoWarOnReadOnlyMethodCall()
