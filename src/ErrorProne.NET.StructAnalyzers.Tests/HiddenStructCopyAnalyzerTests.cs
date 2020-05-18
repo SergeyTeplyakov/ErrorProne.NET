@@ -90,6 +90,25 @@ public struct S
 ";
             await VerifyCS.VerifyAsync(code);
         }
+        
+        [Test]
+        public async Task WarnForOperatorApplication()
+        {
+            string code = @"
+public struct S
+    {
+        private long l1, l2, l3;
+
+        public int GetValue() => 42;
+        public static S operator+(S lhs, int n) => default;
+        public static void TestCase() {
+            var s = new S();
+            var s2 = s + 1;
+        }
+    }
+";
+            await VerifyCS.VerifyAsync(code);
+        }
 
         [Test]
         public async Task NoWarOnReadOnlyMethodCall()

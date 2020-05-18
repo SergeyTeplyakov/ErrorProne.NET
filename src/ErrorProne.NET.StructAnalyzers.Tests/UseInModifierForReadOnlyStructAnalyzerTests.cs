@@ -34,6 +34,13 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         }
         
         [Test]
+        public async Task NoDiagnosticsWhenParameterIsCaptured()
+        {
+            string code = @"readonly struct S {private readonly long l1,l2,l3; public static System.Action Foo(S s) => () => System.Console.WriteLine(s); }";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
         public async Task NoDiagnosticsForAsyncMethod()
         {
             string code = @"readonly struct S {private readonly long l1,l2,l3; public async void Foo(S s) {} }";
@@ -63,6 +70,13 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
                 TestState = { Sources = { code } },
                 ExpectedDiagnostics = { }
             }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+
+        [Test]
+        public async Task HasDiagnosticsForOperators()
+        {
+            string code = @"readonly struct S {private readonly long l1,l2,l3; public static S operator+([|S s|], int n) => default; }";
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]

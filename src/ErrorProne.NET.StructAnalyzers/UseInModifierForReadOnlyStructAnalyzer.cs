@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -60,6 +61,8 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private void AnalyzeMethod(SymbolAnalysisContext context)
         {
+            context.TryGetSemanticModel(out var semanticModel);
+
             var method = (IMethodSymbol) context.Symbol;
             if (IsOverridenMethod(method) || method.IsAsyncOrTaskBased(context.Compilation) || method.IsIteratorBlock())
             {
@@ -69,7 +72,7 @@ namespace ErrorProne.NET.StructAnalyzers
             }
 
             int largeStructThreshold;
-            if (context.TryGetSemanticModel(out var semanticModel))
+            if (semanticModel != null)
             {
                 largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(semanticModel.SyntaxTree));
             }
@@ -84,16 +87,34 @@ namespace ErrorProne.NET.StructAnalyzers
             }
 
             // Should analyze only subset of methods, not all of them.
-            // What about operators?
             if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
                 method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
-                method.MethodKind == MethodKind.PropertyGet)
+                method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.UserDefinedOperator)
             {
                 foreach (var p in method.Parameters)
                 {
-                    WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, p, diagnostic => context.ReportDiagnostic(diagnostic));
+                    if (!ParameterIsCapturedByAnonymousMethod(p, method, semanticModel))
+                    {
+                        WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, p, diagnostic => context.ReportDiagnostic(diagnostic));
+                    }
                 }
             }
+        }
+
+        private bool ParameterIsCapturedByAnonymousMethod(IParameterSymbol parameter, IMethodSymbol method, SemanticModel? semanticModel)
+        {
+            if (semanticModel == null)
+            {
+                return false;
+            }
+
+            var dataFlow = method.AnalyzeDataFlow(semanticModel);
+            if (dataFlow == null || !dataFlow.Succeeded)
+            {
+                return false;
+            }
+
+            return dataFlow.CapturedInside.FirstOrDefault(f => f.Equals(parameter, SymbolEqualityComparer.Default)) != null;
         }
 
         private static bool IsOverridenMethod(IMethodSymbol method)
