@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace ErrorProne.NET.StructAnalyzers
 {
@@ -41,127 +37,17 @@ namespace ErrorProne.NET.StructAnalyzers
         private void AnalyzeStructDeclaration(SymbolAnalysisContext context)
         {
             var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
-
-            if (!namedTypeSymbol.IsValueType || namedTypeSymbol.TypeKind == TypeKind.Enum)
+            if (!context.TryGetSemanticModel(out var semanticModel))
             {
                 return;
             }
 
-            if (namedTypeSymbol.IsReadOnlyStruct())
-            {
-                return;
-            }
-
-            if (!context.TryGetSemanticModel(out var model))
-            {
-                return;
-            }
-
-            // Struct can be readonly when all the instance fields and properties are readonly.
-            var members = namedTypeSymbol
-                .GetMembers()
-                .Where(m => !m.IsStatic)
-                .Where(f => f is IFieldSymbol || f is IPropertySymbol || f is IMethodSymbol).ToList();
-            
-            // If there is a 'this' assignment, like void Foo() => this = new MyStruct();
-            // then the struct can't be readonly.
-            if (members.All(m => IsReadonly(m)) && 
-                !members.Any(m => HasAssignmentToThis(m, model)))
+            if (ReadOnlyAnalyzer.StructCanBeReadOnly(namedTypeSymbol, semanticModel))
             {
                 var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
 
                 context.ReportDiagnostic(diagnostic);
             }
-        }
-
-        //public readonly struct S
-        //{
-        //    public void Foo(S s)
-        //    {
-        //        this = s;
-        //    }
-        //}
-        private static bool HasAssignmentToThis(ISymbol symbol, SemanticModel model)
-        {
-            if (symbol.IsConstructor())
-            {
-                // Assignments in constructors are fine.
-                return false;
-            }
-
-            var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-            if (syntax == null)
-            {
-                return false;
-            }
-
-            // Unfortunately, an approach based on dataflow analysis doesn't work,
-            // because in the following two cases WrittenInside property contains
-            // IParameterSymbol with IsThis equals true:
-            // public void M(SelfAssign other) => 
-            //    this = other; // <=== here
-            // public int X {get;}
-            // public int GetX() => X; // <=== here
-            // So using syntax based approach instead.
-
-            bool hasThisAssignment = syntax.DescendantNodesAndSelf()
-                .OfType<AssignmentExpressionSyntax>()
-                .Any(a => a.Left is ThisExpressionSyntax);
-
-            if (hasThisAssignment)
-            {
-                return true;
-            }
-
-            // Now another crazy case:
-            // ref MyStruct this_ = ref this;
-            // this_ = new MyStruct();
-
-            // So, if we see 'ref this' we won't emit a warning.
-
-            // But we need to consider two cases:
-            // ref readonly MyStruct this_ = ref this; // fine
-
-            foreach (var refExpression in syntax.DescendantNodesAndSelf()
-                .OfType<RefExpressionSyntax>())
-            {
-                if (refExpression.Parent != null)
-                {
-                    var operation = model.GetOperation(refExpression.Parent);
-                    if (operation?.Parent is IVariableDeclaratorOperation decl)
-                    {
-                        if (decl.Symbol != null && decl.Symbol.IsRef && decl.Symbol.RefKind == RefKind.In)
-                        {
-                            // this is 'ref readonly' case.
-                            return false;
-                        }
-                    }
-                }
-
-                // It seems that we have 'ref this' but it is not used
-                // in 'ref readonly MyType = ' assignment.
-                return true;
-            }
-
-
-            // The old version that doesn't work.
-            //var dataFlows = syntax.AnalyzeDataflow(model);
-
-            //bool hasThisAssignment =
-            //    dataFlows.Where(df => df != null && df.Succeeded)
-            //        .Any(a => a.WrittenInside.Any(w => w is IParameterSymbol ps && ps.IsThis));
-            return false;
-        }
-
-        private static bool IsReadonly(ISymbol member)
-        {
-            return member switch
-            {
-                IFieldSymbol fs => fs.IsReadOnly,
-                IPropertySymbol ps => ps.IsReadOnly || ps.SetMethod != null,// Property is readonly, like 'public int X {get;}' or has an explicit setter.
-                IMethodSymbol _ => true,
-                _ => throw new InvalidOperationException($"Unknown member type '{member.GetType()}'."),
-            };
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Linq;
+using ErrorProne.NET.Extensions;
 using ErrorProne.NET.StructAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -59,32 +60,11 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             // It is ok to embed one struct marked with special attribute into another struct
             // marked with the same special attribute.
             
-            if (IsAutoProperty(propertyDeclaration) && !HasDoNotUseDefaultConstructionOrSpecial(context.Compilation, containingType, out _))
+            if (propertyDeclaration.IsAutoProperty() && !HasDoNotUseDefaultConstructionOrSpecial(context.Compilation, containingType, out _))
             {
                 ReportDiagnosticForTypeIfNeeded(context.Compilation, propertyDeclaration, type.Type, Rule,
                     context.ReportDiagnostic);
             }
-        }
-
-        private static bool IsAutoProperty(BasePropertyDeclarationSyntax syntax)
-        {
-            bool isAutoProperty = true;
-            if (syntax.AccessorList != null)
-            {
-                foreach (var accessor in syntax.AccessorList.Accessors)
-                {
-                    if (accessor.Body != null || accessor.ExpressionBody != null)
-                    {
-                        isAutoProperty = false;
-                    }
-                }
-            }
-            else
-            {
-                isAutoProperty = false;
-            }
-
-            return isAutoProperty;
         }
 
         private void AnalyzeFieldDeclaration(SyntaxNodeAnalysisContext context)

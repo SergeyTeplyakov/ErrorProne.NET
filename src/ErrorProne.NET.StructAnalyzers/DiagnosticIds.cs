@@ -29,5 +29,8 @@
         /// <nodoc />
         public const string DoNotEmbedStructsMarkedWithDoUseDefaultConstructionForStruct = "EPS11";
 
+        /// <nodoc />
+        public const string MakeStructMemberReadOnly = "EPS12";
+
     }
 }
