@@ -50,21 +50,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 return;
             }
 
-            int largeStructThreshold;
-            if (context.TryGetSemanticModel(out var semanticModel))
-            {
-                largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(semanticModel.SyntaxTree));
-            }
-            else if (context.Symbol.Locations is { IsDefaultOrEmpty: false } locations
-                && locations[0] is { IsInSource: true } location)
-            {
-                largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(location.SourceTree));
-            }
-            else
-            {
-                largeStructThreshold = Settings.DefaultLargeStructThreshold;
-            }
-
+            var largeStructThreshold = Settings.GetLargeStructThresholdOrDefault(context.TryGetAnalyzerConfigOptions());
             foreach (var parameterSymbol in symbol.DelegateInvokeMethod.Parameters)
             {
                 WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
@@ -81,20 +67,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 return;
             }
 
-            int largeStructThreshold;
-            if (context.TryGetSemanticModel(out var semanticModel))
-            {
-                largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(semanticModel.SyntaxTree));
-            }
-            else if (context.Symbol.Locations is { IsDefaultOrEmpty: false } locations
-                && locations[0] is { IsInSource: true } location)
-            {
-                largeStructThreshold = Settings.GetLargeStructThreshold(context.Options.AnalyzerConfigOptionsProvider.GetOptions(location.SourceTree));
-            }
-            else
-            {
-                largeStructThreshold = Settings.DefaultLargeStructThreshold;
-            }
+            var largeStructThreshold = Settings.GetLargeStructThresholdOrDefault(context.TryGetAnalyzerConfigOptions());
 
             // Should analyze only subset of methods, not all of them.
             // What about operators?
