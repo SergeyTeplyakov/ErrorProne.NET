@@ -7,6 +7,16 @@ namespace ErrorProne.NET.StructAnalyzers
         internal const int DefaultLargeStructThreshold = 3 * sizeof(long);
         private const int MaxLargeStructThreshold = 1_000_000;
 
+        public static int GetLargeStructThresholdOrDefault(AnalyzerConfigOptions? options)
+        {
+            if (options is null)
+            {
+                return DefaultLargeStructThreshold;
+            }
+
+            return GetLargeStructThreshold(options);
+        }
+
         public static int GetLargeStructThreshold(AnalyzerConfigOptions options)
         {
             if (!options.TryGetValue("error_prone.large_struct_threshold", out var thresholdString)
