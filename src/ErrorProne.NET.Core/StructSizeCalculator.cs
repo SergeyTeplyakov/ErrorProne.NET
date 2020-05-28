@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace ErrorProne.NET.Core
 {
@@ -52,15 +53,32 @@ namespace ErrorProne.NET.Core
 
             return cache.GetOrAdd(type, t =>
             {
-                // Current implementation does not respect StructLayoutAttribute.
-                // It just adjusts a size based on ptr size.
                 int actualSize = 0;
                 int capacity = 0;
                 int largestFieldSize = 0;
 
-                GetSize(compilation, type, ref capacity, ref largestFieldSize, ref actualSize);
+                ComputeSize(compilation, type, ref capacity, ref largestFieldSize, ref actualSize);
+
                 return capacity;
             });
+        }
+
+        private static int? TryGetStructLayoutSize(ITypeSymbol type)
+        {
+            var structLayoutAttribute = type.GetAttributes()
+                .FirstOrDefault(a => a.AttributeClass.Name == nameof(StructLayoutAttribute));
+            if (structLayoutAttribute == null)
+            {
+                return null;
+            }
+
+            var size = structLayoutAttribute.NamedArguments.FirstOrDefault(kvp => kvp.Key == "Size");
+            if (size.Key == null)
+            {
+                return null;
+            }
+
+            return Convert.ToInt32(size.Value.Value, null);
         }
 
         private static bool TryGetPrimitiveSize(Compilation compilation, ITypeSymbol type, out int size, ref int largestFieldSize)
@@ -133,7 +151,7 @@ namespace ErrorProne.NET.Core
             return size != 0;
         }
 
-        private static void GetSize(Compilation compilation, ITypeSymbol type, ref int capacity, ref int largestFieldSize, ref int actualSize)
+        private static void ComputeSize(Compilation compilation, ITypeSymbol type, ref int capacity, ref int largestFieldSize, ref int actualSize)
         {
             if (type == null)
             {
@@ -178,13 +196,13 @@ namespace ErrorProne.NET.Core
 
                 foreach (var t in fieldOrPropertyTypes)
                 {
-                        GetSize(compilation, t, ref capacity, ref largestFieldSize, ref actualSize);
+                    ComputeSize(compilation, t, ref capacity, ref largestFieldSize, ref actualSize);
                 }
 
                 if (fieldOrPropertyTypes.Count == 0)
                 {
                     // Empty struct is similar to byte struct. The size is 1.
-                    GetSize(compilation, compilation.GetSpecialType(SpecialType.System_Byte), ref capacity, ref largestFieldSize, ref actualSize);
+                    ComputeSize(compilation, compilation.GetSpecialType(SpecialType.System_Byte), ref capacity, ref largestFieldSize, ref actualSize);
                 }
 
                 // When composite type lay out, need to adjust actual size to current capacity,
@@ -194,6 +212,12 @@ namespace ErrorProne.NET.Core
                 // In this case, for N field capacity is 24, but actual size is 17.
                 // But in this case, int i would not be stored in the same bucket, but new bucket would be created.
                 actualSize = capacity;
+
+                int? structLayoutSize = TryGetStructLayoutSize(type);
+                if (structLayoutSize > actualSize)
+                {
+                    actualSize = capacity = structLayoutSize.Value;
+                }
 
                 IEnumerable<ITypeSymbol> getFieldOrPropertyTypes()
                 {
