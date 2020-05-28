@@ -42,6 +42,7 @@ namespace ErrorProne.NET.StructAnalyzers
             var symbol = (INamedTypeSymbol)context.Symbol;
             if (symbol.TypeKind != TypeKind.Delegate)
             {
+                // We're interested only in 'delegate void FooBar(MyStruct s);' cases.
                 return;
             }
 
@@ -87,7 +88,7 @@ namespace ErrorProne.NET.StructAnalyzers
             }
         }
 
-        private bool ParameterIsCapturedByAnonymousMethod(IParameterSymbol parameter, IMethodSymbol method, SemanticModel? semanticModel)
+        private static bool ParameterIsCapturedByAnonymousMethod(IParameterSymbol parameter, IMethodSymbol method, SemanticModel? semanticModel)
         {
             if (semanticModel == null)
             {

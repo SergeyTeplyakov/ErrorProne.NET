@@ -37,9 +37,15 @@ namespace ErrorProne.NET.Core
 
         public static DataFlowAnalysis? AnalyzeDataFlow(this IMethodSymbol method, SemanticModel model)
         {
-            if (method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is MethodDeclarationSyntax methodSyntax)
+            var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+            if (syntax is MethodDeclarationSyntax methodSyntax)
             {
                 return AnalyzeMethod(methodSyntax, model);
+            }
+            
+            if (syntax is ArrowExpressionClauseSyntax aes)
+            {
+                return model.AnalyzeDataFlow(aes.Expression);
             }
 
             return null;
