@@ -32,6 +32,35 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             string code = @"struct S {private readonly long l1,l2,l3; public static void Foo(S? s = null) {} }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
+
+        [TestCaseSource(nameof(NoDiagnosticsWhenParameterIsCapturedCases))]
+        public async Task NoDiagnosticsWhenParameterIsCaptured(string code)
+        {
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        public static IEnumerable<string> NoDiagnosticsWhenParameterIsCapturedCases()
+        {
+            // Captured in indexer
+            yield return @"readonly struct FooBar { readonly (long, long, long) data; }
+        class FooClass { public System.Func<FooBar> this[FooBar fb] => () => fb; }";
+
+            // Captured in anonymous delegate
+            yield return @"readonly struct FooBar { public static void Foo(FooBar fb) { System.Func<FooBar> a = delegate(){ return fb;}; } readonly (long, long, long) data; }";
+
+            // Captured in lambda
+            yield return @"readonly struct FooBar { public static void Foo(FooBar fb) {System.Func<FooBar> a = () => fb; } readonly (long, long, long) data; }";
+
+            // Captured in lambda2
+            yield return @"readonly struct FooBar { public static System.Func<FooBar> Foo(FooBar fb) => () => fb; readonly (long, long, long) data; }";
+        }
+
+        [Test]
+        public async Task NoDiagnosticsWhenParameterIsCaptured()
+        {
+            string code = @"readonly struct S {private readonly long l1,l2,l3; public static System.Action Foo(S s) => () => System.Console.WriteLine(s); }";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
         
         [Test]
         public async Task NoDiagnosticsForAsyncMethod()
@@ -53,6 +82,32 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             string code = @"readonly struct S {private readonly long l1; } class FooBar { public void Foo(S n) {} }";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
+        
+        [Test]
+        public async Task NoDiagnosticsWhenPassedByIn()
+        {
+            string code = @"public struct SomeStruct {
+        public int Filed, Field1, Field2, Field3, Field4, Field5, Field6, Field7;
+    }
+
+    public static class Extension
+    {
+        public static bool Is42(this in SomeStruct str) {
+            return str.Filed == 42;
+        }
+
+        public static void OtherStuff(this in SomeStruct str)
+        {
+            bool result = str.Is42();
+        }
+        
+        public static void OtherStuffStaticCall(this in SomeStruct str)
+        {
+            bool result = Is42(str);
+        }
+    }";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
 
         [Test]
         public async Task HasDiagnosticsForLargeReadOnlyStruct()
@@ -63,6 +118,27 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
                 TestState = { Sources = { code } },
                 ExpectedDiagnostics = { }
             }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+        
+        [Test]
+        public async Task HasDiagnosticsForIndexer()
+        {
+            // Note, that the location of the error is a bit off compared to other places:
+            // For indexers, the error is just on the parameter name itself!
+            string code = @"readonly struct FooBar { readonly (long, long, long) data; }
+        class FooClass { public int this[FooBar [|fb|]] => 42; }";
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+                ExpectedDiagnostics = { }
+            }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+
+        [Test]
+        public async Task HasDiagnosticsForOperators()
+        {
+            string code = @"readonly struct S {private readonly long l1,l2,l3; public static S operator+([|S s|], int n) => default; }";
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]

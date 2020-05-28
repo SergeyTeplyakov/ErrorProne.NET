@@ -5,6 +5,7 @@
 // --------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -32,6 +33,22 @@ namespace ErrorProne.NET.Core
             {
                 yield return AnalyzeMethod(method, model);
             }
+        }
+
+        public static DataFlowAnalysis? AnalyzeDataFlow(this IMethodSymbol method, SemanticModel model)
+        {
+            var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+            if (syntax is MethodDeclarationSyntax methodSyntax)
+            {
+                return AnalyzeMethod(methodSyntax, model);
+            }
+            
+            if (syntax is ArrowExpressionClauseSyntax aes)
+            {
+                return model.AnalyzeDataFlow(aes.Expression);
+            }
+
+            return null;
         }
 
         public static DataFlowAnalysis? AnalyzeMethod(this MethodDeclarationSyntax method, SemanticModel model)

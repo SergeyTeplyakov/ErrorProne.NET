@@ -100,32 +100,5 @@ public readonly struct RS
                 NumberOfIncrementalIterations = 1,
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
-
-        [TestCaseSource(nameof(GetDoNothingCodeFixes))]
-        public async Task DoNothingCodeFixes(string code)
-        {
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { code } },
-                NumberOfIncrementalIterations = 1,
-            }.WithoutGeneratedCodeVerification().RunAsync();
-        }
-
-        public static IEnumerable<string> GetDoNothingCodeFixes()
-        {
-            // Captured in indexer
-            yield return @"readonly struct FooBar { readonly (long, long, long) data; }
-        class FooClass { public System.Func<FooBar> this[FooBar [|fb|]] => () => fb; }";
-
-            // Captured in anonymous delegate
-            yield return @"readonly struct FooBar { public static void Foo([|FooBar fb|]) { System.Func<FooBar> a = delegate(){ return fb;}; } readonly (long, long, long) data; }";
-
-            // Captured in lambda
-            yield return @"readonly struct FooBar { public static void Foo([|FooBar fb|]) {System.Func<FooBar> a = () => fb; } readonly (long, long, long) data; }";
-
-            // Captured in lambda2
-            yield return @"readonly struct FooBar { public static System.Func<FooBar> Foo([|FooBar fb|]) => () => fb; readonly (long, long, long) data; }";
-        }
     }
 }
