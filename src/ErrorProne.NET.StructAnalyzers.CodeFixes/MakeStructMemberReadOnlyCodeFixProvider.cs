@@ -15,9 +15,9 @@ namespace ErrorProne.NET.StructAnalyzers
     /// A fixer for <see cref="MakeStructReadOnlyAnalyzer"/>.
     /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeStructReadOnlyCodeFixProvider)), Shared]
-    public class MakeStructReadOnlyCodeFixProvider : CodeFixProvider
+    public class MakeStructMemberReadOnlyCodeFixProvider : CodeFixProvider
     {
-        public const string Title = "Make a struct readonly";
+        public const string Title = "Make a struct member readonly";
 
         /// <inheritdoc />
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -36,7 +36,7 @@ namespace ErrorProne.NET.StructAnalyzers
         }
 
         /// <inheritdoc />
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeStructReadOnlyAnalyzer.DiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeStructMemberReadOnlyAnalyzer.DiagnosticId);
 
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -46,31 +46,31 @@ namespace ErrorProne.NET.StructAnalyzers
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Find the type declaration identified by the diagnostic.
-            var typeDecl = root
+            var memberDeclaration = root
                 ?.FindToken(location.SourceSpan.Start)
                 .Parent?.AncestorsAndSelf()
-                .OfType<StructDeclarationSyntax>()
+                .OfType<MemberDeclarationSyntax>()
                 .FirstOrDefault();
-            if (typeDecl is null)
+            if (memberDeclaration is null)
             {
                 return document;
             }
 
             var readonlyToken = SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword);
             SyntaxTokenList modifiers;
-            int partialIndex = typeDecl.Modifiers.IndexOf(SyntaxKind.PartialKeyword);
+            int partialIndex = memberDeclaration.Modifiers.IndexOf(SyntaxKind.PartialKeyword);
             if (partialIndex != -1)
             {
-                modifiers = typeDecl.Modifiers.Insert(partialIndex, readonlyToken);
+                modifiers = memberDeclaration.Modifiers.Insert(partialIndex, readonlyToken);
             }
             else
             {
-                modifiers = typeDecl.Modifiers.Add(readonlyToken);
+                modifiers = memberDeclaration.Modifiers.Add(readonlyToken);
             }
 
-            var newType = typeDecl.WithModifiers(modifiers);
+            var newType = memberDeclaration.WithModifiers(modifiers);
 
-            return document.ReplaceSyntaxRoot(root.ReplaceNode(typeDecl, newType));
+            return document.ReplaceSyntaxRoot(root.ReplaceNode(memberDeclaration, newType));
         }
     }
 }

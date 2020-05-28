@@ -65,18 +65,18 @@ this = other;
 
             await VerifyCS.VerifyAnalyzerAsync(code);
 
-        //    string code2 = @"struct SelfAssign2
-        //{
-        //    public int X
-        //    {
-        //        set
-        //        {
-        //            this = new SelfAssign2();
-        //        }
-        //    }
-        //}";
+            string code2 = @"struct SelfAssign2
+        {
+            public int X
+            {
+                set
+                {
+                    this = new SelfAssign2();
+                }
+            }
+        }";
 
-            await VerifyCS.VerifyAnalyzerAsync(code);
+            await VerifyCS.VerifyAnalyzerAsync(code2);
         }
 
         [Test]
@@ -114,6 +114,23 @@ this = other;
             {
                 TestState = { Sources = { code } },
             }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+        
+        [Test]
+        public async Task NosDiagnosticForRef()
+        {
+            string code = @"struct SelfAssign
+        {
+            public readonly int Field;
+            public SelfAssign(int f) => Field = f;
+
+            public void Foo()
+            {
+                ref SelfAssign x = ref this;
+            }
+        }";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
 
         [Test]
@@ -175,6 +192,13 @@ this = other;
             yield return
 @"struct [|FooBar|] {
     public int X {get;}
+    public FooBar(int x) => X = x;
+}";
+            
+            // With one public readonly property marked with readonly
+            yield return
+@"struct [|FooBar|] {
+    public readonly int X {get;}
     public FooBar(int x) => X = x;
 }";
             
@@ -256,7 +280,7 @@ this = other;
         }
 
         [Test]
-        public async Task NoDiagnosticCasesWhenStructIsAlreadyReadonlyWithPartialDeclaation()
+        public async Task NoDiagnosticCasesWhenStructIsAlreadyReadonlyWithPartialDeclaration()
         {
             string code = @"partial struct FooBar {} readonly partial struct FooBar {}";
             await VerifyCS.VerifyAnalyzerAsync(code);
@@ -289,6 +313,12 @@ this = other;
             yield return
 @"struct FooBar {
     public int X {get; private set;}
+}";
+            
+            // Auto property
+            yield return
+@"struct FooBar {
+    public int X {get; set;}
 }";
 
         }
