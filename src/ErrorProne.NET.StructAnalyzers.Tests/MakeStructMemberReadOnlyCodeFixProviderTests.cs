@@ -109,11 +109,5 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
                 FixedState = { Sources = { expected } },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
-
-        // With comment.
-        // Property with body
-        // Method with expression body
-        // Method with body
-        
     }
 }
