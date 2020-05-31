@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -39,10 +41,17 @@ namespace ErrorProne.NET.StructAnalyzers
         private void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
         {
             var method = (MethodDeclarationSyntax)context.Node;
+            if (method.Identifier.Text == "ToDebuggerDisplay")
+            {
+                // Analyzing ToDebuggerDisplay methods causes InvalidCastException in the middle of Roslyn infrastructure.
+                return;
+            }
+
             if (ReadOnlyAnalyzer.MethodCanBeReadOnly(method, context.SemanticModel))
             {
                 var methodSymbol = context.SemanticModel.GetDeclaredSymbol(method);
-                if (methodSymbol != null && ReadOnlyAnalyzer.StructCanBeReadOnly(methodSymbol.ContainingType, context.SemanticModel))
+                if (methodSymbol != null &&
+                    ReadOnlyAnalyzer.StructCanBeReadOnly(methodSymbol.ContainingType, context.SemanticModel))
                 {
                     // Do not emit the diagnostic if the entire struct can be made readonly.
                     return;

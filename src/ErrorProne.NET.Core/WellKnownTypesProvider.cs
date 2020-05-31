@@ -8,7 +8,7 @@ namespace ErrorProne.NET.Core
         private static readonly SymbolDisplayFormat SymbolDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
-        public static INamedTypeSymbol GetExceptionType(this SemanticModel model)
+        public static INamedTypeSymbol? GetExceptionType(this SemanticModel model)
         {
             return model.Compilation.GetTypeByFullName(typeof(Exception).FullName);
         }
@@ -23,17 +23,17 @@ namespace ErrorProne.NET.Core
             return model.Compilation.GetSpecialType(SpecialType.System_Object);
         }
 
-        public static INamedTypeSymbol GetClrType(this SemanticModel model, Type type)
+        public static INamedTypeSymbol? GetClrType(this SemanticModel model, Type type)
         {
             return model.Compilation.GetTypeByFullName(type.FullName);
         }
 
-        public static INamedTypeSymbol GetClrType(this Compilation compilation, Type type)
+        public static INamedTypeSymbol? GetClrType(this Compilation compilation, Type type)
         {
             return compilation.GetClrType(type.FullName);
         }
 
-        public static INamedTypeSymbol GetClrType(this Compilation compilation, string fullName)
+        public static INamedTypeSymbol? GetClrType(this Compilation compilation, string fullName)
         {
             return compilation.GetTypeByFullName(fullName);
         }
