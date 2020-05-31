@@ -43,7 +43,7 @@ getException();
 Exception getException() => null;
 ```
 
-### Suspisous equality implementation
+### Suspicious equality implementation
 ```csharp
 public class FooBar : IEquatable<FooBar>
 {
