@@ -34,10 +34,11 @@ namespace ErrorProne.NET.Extensions
         }
 
         public static bool IsGetSetAutoProperty(this BasePropertyDeclarationSyntax property)
-        {
-            return property.AccessorList?.Accessors.Count == 2 && property.IsAutoProperty();
-        }
+            => property.HasGetterAndSetter() && property.IsAutoProperty();
 
+        public static bool HasGetterAndSetter(this BasePropertyDeclarationSyntax property)
+            => property.AccessorList?.Accessors.Count == 2;
+        
         public static bool MarkedWithReadOnlyModifier(this BasePropertyDeclarationSyntax syntax)
         {
             return syntax.Modifiers.Any(m => m.Kind() == SyntaxKind.ReadOnlyKeyword);

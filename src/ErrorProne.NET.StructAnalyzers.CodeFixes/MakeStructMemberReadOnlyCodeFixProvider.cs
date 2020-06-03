@@ -68,9 +68,22 @@ namespace ErrorProne.NET.StructAnalyzers
                 modifiers = memberDeclaration.Modifiers.Add(readonlyToken);
             }
 
-            var newType = memberDeclaration.WithModifiers(modifiers);
+            MemberDeclarationSyntax newDeclaration;
+            if (memberDeclaration.HasLeadingTrivia)
+            {
+                // There is an issue with just calling memberDeclaration.WithModifier
+                // if the member has a comment and implements interface explicitly.
+                // In this case the final code would looks like: readonly /// <nodoc/>int IMyInterface.X => 42;
+                var leadingTrivia = memberDeclaration.GetLeadingTrivia();
+                newDeclaration = memberDeclaration.WithLeadingTrivia(SyntaxFactory.Space);
+                newDeclaration = newDeclaration.WithModifiers(modifiers).WithLeadingTrivia(leadingTrivia);
+            }
+            else
+            {
+                newDeclaration = memberDeclaration.WithModifiers(modifiers);
+            }
 
-            return document.ReplaceSyntaxRoot(root.ReplaceNode(memberDeclaration, newType));
+            return document.ReplaceSyntaxRoot(root.ReplaceNode(memberDeclaration, newDeclaration));
         }
     }
 }

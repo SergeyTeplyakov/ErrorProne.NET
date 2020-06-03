@@ -34,19 +34,14 @@ namespace ErrorProne.NET.StructAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSyntaxNodeAction(AnalyzePropertyDeclaration, SyntaxKind.PropertyDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(c => DoAnalyze(() => AnalyzePropertyDeclaration(c)), SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(c => DoAnalyze(() => AnalyzeIndexerDeclaration(c)), SyntaxKind.IndexerDeclaration);
+            context.RegisterSyntaxNodeAction(c => DoAnalyze(() => AnalyzeMethodDeclaration(c)), SyntaxKind.MethodDeclaration);
         }
 
-        private void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
         {
             var method = (MethodDeclarationSyntax)context.Node;
-            if (method.Identifier.Text == "ToDebuggerDisplay")
-            {
-                // Analyzing ToDebuggerDisplay methods causes InvalidCastException in the middle of Roslyn infrastructure.
-                return;
-            }
-
             if (ReadOnlyAnalyzer.MethodCanBeReadOnly(method, context.SemanticModel))
             {
                 var methodSymbol = context.SemanticModel.GetDeclaredSymbol(method);
@@ -62,23 +57,80 @@ namespace ErrorProne.NET.StructAnalyzers
             }
         }
 
-        private void AnalyzePropertyDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzePropertyDeclaration(SyntaxNodeAnalysisContext context)
         {
             var property = (PropertyDeclarationSyntax)context.Node;
+            var propertySymbol = context.SemanticModel.GetDeclaredSymbol(property);
 
-            if (!property.IsGetOnlyAutoProperty() // Excluding int X {get;} because it can be made readonly, but it is already readonly.
-                &&ReadOnlyAnalyzer.PropertyCanBeReadOnly(property, context.SemanticModel))
+            // Excluding int X {get;} because it can be made readonly, but it is already readonly.
+            if (property.IsGetOnlyAutoProperty() || propertySymbol == null || property.IsGetSetAutoProperty())
             {
-                var propertySymbol = context.SemanticModel.GetDeclaredSymbol(property);
+                return;
+            }
 
-                if (propertySymbol != null && ReadOnlyAnalyzer.StructCanBeReadOnly(propertySymbol.ContainingType, context.SemanticModel))
+            if (ReadOnlyAnalyzer.PropertyCanBeReadOnly(property, context.SemanticModel))
+            {
+                if (!ReadOnlyAnalyzer.StructCanBeReadOnly(propertySymbol.ContainingType, context.SemanticModel))
                 {
-                    // Do not emit the diagnostic if the entire struct can be made readonly.
-                    return;
+                    var memberName = $"property '{property.Identifier.Text}'";
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, property.Identifier.GetLocation(), memberName));
                 }
+            }
+            else if (property.HasGetterAndSetter())
+            {
+                foreach (var accessor in property.AccessorList!.Accessors)
+                {
+                    if (ReadOnlyAnalyzer.AccessorCanBeReadOnly(accessor, context.SemanticModel) &&
+                        !ReadOnlyAnalyzer.StructCanBeReadOnly(propertySymbol.ContainingType, context.SemanticModel))
+                    {
+                        var memberName = $"property '{property.Identifier.Text}'";
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, accessor.Keyword.GetLocation(), memberName));
+                    }
+                }
+            }
+        }
+        
+        private static void AnalyzeIndexerDeclaration(SyntaxNodeAnalysisContext context)
+        {
+            var property = (IndexerDeclarationSyntax)context.Node;
+            var propertySymbol = context.SemanticModel.GetDeclaredSymbol(property);
+            if (propertySymbol == null || property.IsGetSetAutoProperty())
+            {
+                return;
+            }
 
-                var memberName = $"property '{property.Identifier.Text}'";
-                context.ReportDiagnostic(Diagnostic.Create(Rule, property.Identifier.GetLocation(), memberName));
+            if (ReadOnlyAnalyzer.IndexerCanBeReadOnly(property, context.SemanticModel))
+            {
+                if (!ReadOnlyAnalyzer.StructCanBeReadOnly(propertySymbol.ContainingType, context.SemanticModel))
+                {
+                    var memberName = "indexer";
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, property.ThisKeyword.GetLocation(), memberName));
+                }
+            }
+            else if (property.HasGetterAndSetter() && !property.IsGetSetAutoProperty())
+            {
+                foreach (var accessor in property.AccessorList!.Accessors)
+                {
+                    if (ReadOnlyAnalyzer.AccessorCanBeReadOnly(accessor, context.SemanticModel) &&
+                        !ReadOnlyAnalyzer.StructCanBeReadOnly(propertySymbol.ContainingType, context.SemanticModel))
+                    {
+                        var memberName = "indexer";
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, accessor.Keyword.GetLocation(), memberName));
+                    }
+                }
+            }
+        }
+
+        private static void DoAnalyze(Action action)
+        {
+            try
+            {
+                // Avoiding the following exception from the middle of Roslyn infra:
+                // 'Unable to cast object of type 'Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol' to type 'Microsoft.CodeAnalysis.CSharp.Symbols.SourceAssemblySymbol'.'
+                action();
+            }
+            catch (InvalidCastException)
+            {
             }
         }
     }

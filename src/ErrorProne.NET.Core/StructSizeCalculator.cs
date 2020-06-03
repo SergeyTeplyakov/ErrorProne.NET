@@ -13,6 +13,9 @@ namespace ErrorProne.NET.Core
     {
         private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>> TypeSizeCache =
             new ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>>();
+        
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int?>> StructLayoutSizeCache =
+            new ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int?>>();
 
         /// <summary>
         /// Computes size of the struct.
@@ -46,7 +49,6 @@ namespace ErrorProne.NET.Core
 
         private static int ComputeStructSizeSlow(ITypeSymbol type, ConcurrentDictionary<ITypeSymbol, int> cache, Compilation compilation)
         {
-            // TODO: respect structlayout attribute.
             // TODO: if a struct has a reference type in it, the algorithm is different!
             Contract.Requires(type != null);
             Contract.Requires(type.IsValueType);
@@ -57,30 +59,46 @@ namespace ErrorProne.NET.Core
                 int capacity = 0;
                 int largestFieldSize = 0;
 
-                ComputeSize(compilation, type, ref capacity, ref largestFieldSize, ref actualSize);
+                ComputeSize(compilation, t, ref capacity, ref largestFieldSize, ref actualSize);
 
                 return capacity;
             });
         }
 
-        private static int? TryGetStructLayoutSize(ITypeSymbol type)
+        private static int? TryGetStructLayoutSize(ITypeSymbol type, Compilation compilation)
         {
-            var structLayoutAttribute = type.GetAttributes()
-                .FirstOrDefault(a => a.AttributeClass.Name == nameof(StructLayoutAttribute));
-            if (structLayoutAttribute == null)
+            var cache = StructLayoutSizeCache.GetOrCreateValue(compilation);
+            if (cache.TryGetValue(type, out var result))
             {
-                return null;
+                return result;
             }
 
-            var size = structLayoutAttribute.NamedArguments.FirstOrDefault(kvp => kvp.Key == "Size");
-            if (size.Key == null)
+            return cache.GetOrAdd(type, t =>
             {
-                return null;
-            }
+                return tryGetStructLayoutSize(t, compilation);
+            });
 
-            return Convert.ToInt32(size.Value.Value, null);
+            static int? tryGetStructLayoutSize(ITypeSymbol type, Compilation compilation)
+            {
+                var structLayoutAttribute = type.GetAttributes()
+                    .FirstOrDefault(a => a.AttributeClass.Name == nameof(StructLayoutAttribute));
+                if (structLayoutAttribute == null)
+                {
+                    // When a struct is referenced via ref assemblies, the attributes are missing on the type.
+                    // Using reflection-based hack to obtain the size from the type.UnderlyingSymbol.Layout.Size
+                    return RoslynLayoutSizeRetriever.TryGetUnderlyingSymbolLayoutSize(type, compilation);
+                }
+
+                var size = structLayoutAttribute.NamedArguments.FirstOrDefault(kvp => kvp.Key == "Size");
+                if (size.Key == null)
+                {
+                    return null;
+                }
+
+                return Convert.ToInt32(size.Value.Value, null);
+            }
         }
-
+        
         private static bool TryGetPrimitiveSize(Compilation compilation, ITypeSymbol type, out int size, ref int largestFieldSize)
         {
             if (type == null)
@@ -213,7 +231,7 @@ namespace ErrorProne.NET.Core
                 // But in this case, int i would not be stored in the same bucket, but new bucket would be created.
                 actualSize = capacity;
 
-                int? structLayoutSize = TryGetStructLayoutSize(type);
+                int? structLayoutSize = TryGetStructLayoutSize(type, compilation);
                 if (structLayoutSize > actualSize)
                 {
                     actualSize = capacity = structLayoutSize.Value;

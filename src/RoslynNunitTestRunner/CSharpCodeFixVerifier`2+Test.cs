@@ -15,8 +15,8 @@ namespace ErrorProne.NET.TestHelpers
         {
             return new Test
             {
-                TestState = { Sources = { code } }
-                
+                TestState = { Sources = { code } },
+
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 

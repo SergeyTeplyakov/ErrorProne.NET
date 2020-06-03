@@ -71,6 +71,37 @@ struct SelfAssign
         }
         
         [Test]
+        public async Task MemberCallsReadOnlyOrNonReadOnlyMembers()
+        {
+            string code = @"
+struct SelfAssign
+{
+    public readonly int Field2;
+    public int Field;
+    public SelfAssign(int f) => (Field, Field2) = (f, 42);
+
+    public int [|Foo|]()
+    {
+        return Field;
+    }
+
+    public int [|Foo2|]()
+    {
+        return Field2;
+    }
+
+    // Can't make Bar readonly, because it calls non-readonly member
+    public int Bar() => Foo();
+    public int Baz() => X;
+    public int X => Foo();
+    public int Y => X;
+}
+";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+        
+        [Test]
         public async Task NoWarnForSelfAssign()
         {
             string code = @"struct SelfAssign {
@@ -80,6 +111,16 @@ struct SelfAssign
 if (other.Field > 0)      
 this = other;
     }
+}";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+        
+        [Test]
+        public async Task NoWarnForAutoProperty()
+        {
+            string code = @"struct S {
+    public int NumPipsReloaded { get; set; }
 }";
 
             await VerifyCS.VerifyAsync(code);
@@ -120,8 +161,8 @@ this = other;
     public int X => Field = 42;
     public int Y { get => Field = 42;}
     public int Z {get {Field = 42; return 1;}}
-    public int K {get {return 1;} set {Field = value;}}
-    public int L {get {Field = 42; return 1;} set {}}
+    public int K {get {return Field = 42;} set {Field = value;}}
+    public int L {get {Field = 42; return 1;} set {Field = value;}}
 }";
 
             await VerifyCS.VerifyAnalyzerAsync(code);
@@ -285,6 +326,154 @@ public class Foo { public int X;}
 
             await VerifyCS.VerifyAsync(code);
         }
+        
+        [Test]
+        public async Task WarnForCompareToImplementation()
+        {
+            string code = @"using System;
+using System.IO;
 
+public unsafe struct FixedBytes
+{
+    public const int MaxLength = 11;
+    public const int MaxHexLength = MaxLength * 2;
+    private fixed byte _bytes[MaxLength];
+    public int [|CompareTo|](FixedBytes other)
+    {
+        byte* o = other._bytes;
+        fixed (byte* p = _bytes)
+        {
+            for (var i = 0; i < MaxLength; i++)
+            {
+                var compare = p[i].CompareTo(o[i]);
+                if (compare != 0)
+                {
+                    return compare;
+                }
+            }
+
+            return 0;
+        }
+    }
+
+    public void [|Serialize|](byte[] buffer, int length = MaxLength, int offset = 0)
+    {
+        var len = Math.Min(length, Math.Min(buffer.Length, MaxLength));
+    }
+}
+";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+        
+        [Test]
+        public async Task WarnForTheWholeIndexer()
+        {
+            string code = @"using System;
+using System.IO;
+
+public unsafe struct FixedBytes
+{
+    public const int MaxLength = 11;
+    public const int MaxHexLength = MaxLength * 2;
+    private fixed byte _bytes[MaxLength];
+
+    public byte [|this|][int index]
+    {
+        get
+        {
+            fixed (byte* p = _bytes)
+            {
+                return p[index];
+            }
+        }
+
+        set
+        {
+            fixed (byte* p = _bytes)
+            {
+                p[index] = value;
+            }
+        }
+    }
+}
+";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
+        public async Task WarnForIndexerGetter()
+        {
+            string code = @"using System;
+using System.IO;
+
+public unsafe struct FixedBytes
+{
+    public const int MaxLength = 11;
+    public const int MaxHexLength = MaxLength * 2;
+    private fixed byte _bytes[MaxLength];
+    private int x;
+    public byte this[int index]
+    {
+        [|get|]
+        {
+            fixed (byte* p = _bytes)
+            {
+                return p[index];
+            }
+        }
+
+        set
+        {
+            fixed (byte* p = _bytes)
+            {
+                p[index] = value;
+            }
+            x++;
+        }
+    }
+}
+";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
+        public async Task WarnForPropertyGetter()
+        {
+            string code = @"
+public struct S
+{
+    private int x;
+    public int X
+    {
+        [|get|] {return 42;}
+        set {x = value;}
+    }
+}
+";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+        
+        [Test]
+        public async Task WarnForTheIndexerGetterExpressionBody()
+        {
+            string code = @"using System;
+using System.IO;
+
+public unsafe struct FixedBytes
+{
+    public const int MaxLength = 11;
+    public const int MaxHexLength = MaxLength * 2;
+    private fixed byte _bytes[MaxLength];
+    private int x;
+    public byte [|this|][int index] => 42;
+}
+";
+
+            await VerifyCS.VerifyAsync(code);
+        }
     }
 }

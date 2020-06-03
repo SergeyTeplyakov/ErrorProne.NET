@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
@@ -7,9 +9,15 @@ namespace ErrorProne.NET.Core
     // Copied from internal ICompilationExtensions class from the roslyn codebase
     public static class CompilationExtensions
     {
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<string, INamedTypeSymbol?>> TypeCache =
+            new ConditionalWeakTable<Compilation, ConcurrentDictionary<string, INamedTypeSymbol?>>();
+
         public static INamedTypeSymbol? GetTypeByFullName(this Compilation compilation, string fullName)
         {
-            return compilation.GetBestTypeByMetadataName(fullName);
+            var cache = TypeCache.GetOrCreateValue(compilation);
+
+            // Using a cache because the operation is not free.
+            return cache.GetOrAdd(fullName, _ => compilation.GetBestTypeByMetadataName(fullName));
         }
 
         public static INamedTypeSymbol? TaskType(this Compilation compilation)

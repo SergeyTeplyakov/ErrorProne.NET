@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.StructAnalyzers
@@ -17,8 +18,8 @@ namespace ErrorProne.NET.StructAnalyzers
         private const string MessageFormat = "Use in-modifier for passing a readonly struct '{0}' of estimated size '{1}'";
         private const string Description = "Readonly structs have better performance when passed readonly reference";
         private const string Category = "Performance";
-        // Using warning for visibility purposes
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        // Using info to avoid too much noise from the analyzer
+        private const DiagnosticSeverity Severity = DiagnosticSeverity.Info;
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor Rule = 
@@ -78,6 +79,13 @@ namespace ErrorProne.NET.StructAnalyzers
                 method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
                 method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.UserDefinedOperator)
             {
+                // Just using a dataflow analysis to detect that a member is captured is expensive.
+                // Using a syntax-based approach first to check whether the implementation has anonymous methods.
+                if (!HasAnonymousMethods(method))
+                {
+                    return;
+                }
+
                 foreach (var p in method.Parameters)
                 {
                     if (!ParameterIsCapturedByAnonymousMethod(p, method, semanticModel))
@@ -86,6 +94,23 @@ namespace ErrorProne.NET.StructAnalyzers
                     }
                 }
             }
+        }
+
+        private static bool HasAnonymousMethods(IMethodSymbol method)
+        {
+            var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+            if (syntax == null)
+            {
+                return false;
+            }
+
+            return syntax.DescendantNodes().Any(n =>
+            {
+                var kind = n.Kind();
+                return kind == SyntaxKind.ParenthesizedLambdaExpression ||
+                       kind == SyntaxKind.SimpleLambdaExpression ||
+                       kind == SyntaxKind.AnonymousMethodExpression;
+            });
         }
 
         private static bool ParameterIsCapturedByAnonymousMethod(IParameterSymbol parameter, IMethodSymbol method, SemanticModel? semanticModel)

@@ -77,12 +77,28 @@ namespace ErrorProne.NET.StructAnalyzers
             {
                 return false;
             }
-
+            
+            return !HasAssignmentToThis(propertyInfo, semanticModel);
+        }
+        
+        public static bool IndexerCanBeReadOnly(IndexerDeclarationSyntax property, SemanticModel semanticModel)
+        {
+            var propertyInfo = semanticModel.GetDeclaredSymbol(property);
+            if (propertyInfo == null
+                || propertyInfo.IsStatic
+                || property.IsGetSetAutoProperty() // int Prop {get;set;} property can't be readonly but int Prop {get;} - can!
+                || propertyInfo.ContainingType.IsReadOnly
+                || !propertyInfo.ContainingType.IsValueType
+                || property.MarkedWithReadOnlyModifier()
+            )
+            {
+                return false;
+            }
+            
             return !HasAssignmentToThis(propertyInfo, semanticModel);
         }
 
-
-        public static bool MethodCanBeReadOnly(MethodDeclarationSyntax method, SemanticModel semanticModel)
+        public static bool AccessorCanBeReadOnly(AccessorDeclarationSyntax method, SemanticModel semanticModel)
         {
             var methodSymbol = semanticModel.GetDeclaredSymbol(method);
 
@@ -94,6 +110,21 @@ namespace ErrorProne.NET.StructAnalyzers
             return !HasAssignmentToThis(methodSymbol, semanticModel);
         }
 
+        public static bool MethodCanBeReadOnly(BaseMethodDeclarationSyntax method, SemanticModel semanticModel)
+        {
+            var methodSymbol = semanticModel.GetDeclaredSymbol(method);
+
+            if (methodSymbol == null || methodSymbol.IsStatic || methodSymbol.IsReadOnly || !methodSymbol.ContainingType.IsValueType)
+            {
+                return false;
+            }
+
+            return !HasAssignmentToThis(methodSymbol, semanticModel);
+        }
+        
+        /// <summary>
+        /// Returns true if 'this' instance is mutated directly (via an explicit assignment) or implicitly (via a non-readonly method calls).
+        /// </summary>
         private static bool HasAssignmentToThis(ISymbol symbol, SemanticModel model)
         {
             if (symbol.IsConstructor())
@@ -160,6 +191,23 @@ namespace ErrorProne.NET.StructAnalyzers
                     argument.Parameter.RefKind == RefKind.Ref)
                 {
                     // this is 'FooBar(ref this)' case.
+                    return true;
+                }
+            }
+
+            foreach (var invocation in syntax
+                .DescendantNodesAndSelf()
+                // Looking for all expressions but for invocations.
+                // All the invocations and the arguments covered separately.
+                .Where(n => n is InvocationExpressionSyntax)
+                .ToList())
+            {
+                var operation = model.GetOperation(invocation);
+                if (operation is IInvocationOperation invocationOperation && 
+                    invocationOperation.Instance is IInstanceReferenceOperation instanceReference &&
+                    !invocationOperation.TargetMethod.IsReadOnly)
+                {
+                    // This member calls a non-readonly method.
                     return true;
                 }
             }

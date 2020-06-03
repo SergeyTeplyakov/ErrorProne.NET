@@ -144,8 +144,10 @@ this = other;
             public void Foo()
             {
                 Bar(in this);
+                Bar();
             }
-            public void Bar(in SelfAssign sa) {}
+            public readonly void Bar() {}
+            public readonly void Bar(in SelfAssign sa) {}
         }";
 
             await new VerifyCS.Test
