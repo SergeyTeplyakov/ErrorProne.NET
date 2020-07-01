@@ -39,16 +39,20 @@ namespace ErrorProne.NET.StructAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
             
-            context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+            context.RegisterCompilationStartAction(context =>
             {
-                var largeStructThreshold = Settings.GetLargeStructThreshold(context.GetAnalyzerConfigOptions());
-                
-                context.RegisterSyntaxNodeAction(context => AnalyzeDottedExpression(context, largeStructThreshold), SyntaxKind.SimpleMemberAccessExpression);
-                context.RegisterSyntaxNodeAction(context => AnalyzeElementAccessExpression(context, largeStructThreshold), SyntaxKind.ElementAccessExpression);
+                var structSizeCalculator = new StructSizeCalculator(context.Compilation);
+                context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+                {
+                    var largeStructThreshold = Settings.GetLargeStructThreshold(context.GetAnalyzerConfigOptions());
+                    var largeStructHelper = new LargeStructHelper(structSizeCalculator, largeStructThreshold);
+                    context.RegisterSyntaxNodeAction(context => AnalyzeDottedExpression(context, largeStructHelper), SyntaxKind.SimpleMemberAccessExpression);
+                    context.RegisterSyntaxNodeAction(context => AnalyzeElementAccessExpression(context, largeStructHelper), SyntaxKind.ElementAccessExpression);
+                });
             });
         }
 
-        private static void AnalyzeDottedExpression(SyntaxNodeAnalysisContext context, int largeStructThreshold)
+        private static void AnalyzeDottedExpression(SyntaxNodeAnalysisContext context, LargeStructHelper largeStructHelper)
         {
             if (context.Node is MemberAccessExpressionSyntax ma &&
                 // In a case of 'a.b.c' we need to analyzer 'a.b' case and skip everything else
@@ -56,16 +60,16 @@ namespace ErrorProne.NET.StructAnalyzers
                 !(ma.Expression is MemberAccessExpressionSyntax))
             {
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ma).Symbol;
-                AnalyzeExpressionAndTargetSymbol(context, largeStructThreshold, ma.Expression, ma.Name, targetSymbol);
+                AnalyzeExpressionAndTargetSymbol(context, largeStructHelper, ma.Expression, ma.Name, targetSymbol);
             }
         }
 
-        private static void AnalyzeElementAccessExpression(SyntaxNodeAnalysisContext context, int largeStructThreshold)
+        private static void AnalyzeElementAccessExpression(SyntaxNodeAnalysisContext context, LargeStructHelper largeStructHelper)
         {
             if (context.Node is ElementAccessExpressionSyntax ea)
             {
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ea).Symbol;
-                AnalyzeExpressionAndTargetSymbol(context, largeStructThreshold, ea.Expression, null, targetSymbol: targetSymbol);
+                AnalyzeExpressionAndTargetSymbol(context, largeStructHelper, ea.Expression, null, targetSymbol: targetSymbol);
             }
         }
 
@@ -88,14 +92,14 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private static void AnalyzeExpressionAndTargetSymbol(
             SyntaxNodeAnalysisContext context,
-            int largeStructThreshold,
+            LargeStructHelper largeStructHelper,
             SyntaxNode expression,
             SimpleNameSyntax? name,
             ISymbol? targetSymbol)
         {
             if (targetSymbol is IMethodSymbol ms && ms.IsExtensionMethod && 
                 GetExtensionMethodThisRefKind(ms) == RefKind.None &&
-                ms.ReceiverType.IsLargeStruct(context.Compilation, largeStructThreshold, out var estimatedSize))
+                largeStructHelper.IsLargeStruct(ms.ReceiverType, out var estimatedSize))
             {
                 // The expression calls an extension method that takes a struct by value.
                 ReportDiagnostic(context, name ?? expression, ms.ReceiverType, estimatedSize);
@@ -105,29 +109,29 @@ namespace ErrorProne.NET.StructAnalyzers
             if (symbol is IFieldSymbol fs && fs.IsReadOnly)
             {
                 // The expression uses readonly field of non-readonly struct
-                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructThreshold, fs.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructHelper, fs.Type, targetSymbol);
             }
             else if (symbol is IParameterSymbol p && p.RefKind == RefKind.In)
             {
                 // The expression uses in-parameter
-                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructThreshold, p.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructHelper, p.Type, targetSymbol);
             }
             else if (symbol is ILocalSymbol ls && ls.IsRef && ls.RefKind == RefKind.In)
             {
                 // The expression uses ref readonly local
-                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructThreshold, ls.Type, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructHelper, ls.Type, targetSymbol);
             }
             else if (symbol is IMethodSymbol method && method.ReturnsByRefReadonly)
             {
                 // The expression uses ref readonly return
-                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructThreshold, method.ReturnType, targetSymbol);
+                ReportDiagnosticIfTargetIsNotField(context, name ?? expression, largeStructHelper, method.ReturnType, targetSymbol);
             }
         }
 
         private static void ReportDiagnosticIfTargetIsNotField(
             SyntaxNodeAnalysisContext context,
             SyntaxNode expression, 
-            int largeStructThreshold, 
+            LargeStructHelper largeStructHelper, 
             ITypeSymbol resolvedType, 
             ISymbol? targetSymbol)
         {
@@ -147,7 +151,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 !resolvedType.IsNullableType() &&
                 !resolvedType.IsReadOnlyStruct() &&
                 // Warn only when the size of the struct is larger then threshold
-                resolvedType.IsLargeStruct(context.Compilation, largeStructThreshold, out var estimatedSize))
+                largeStructHelper.IsLargeStruct(resolvedType, out var estimatedSize))
             {
                 // This is not a field, emit a warning because this property access will cause
                 // a defensive copy.

@@ -3,30 +3,27 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET.Core
 {
-    public static class RoslynLayoutSizeRetriever
+    public class RoslynLayoutSizeRetriever
     {
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<(Type type, string propertyName), PropertyAccessor?>> PropertyAccessors =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<(Type type, string propertyName), PropertyAccessor?>>();
+        private readonly ConcurrentDictionary<(Type type, string propertyName), PropertyAccessor?> PropertyAccessors = new ConcurrentDictionary<(Type type, string propertyName), PropertyAccessor?>();
 
-        public static int? TryGetUnderlyingSymbolLayoutSize(object instance, Compilation compilation)
+        public int? TryGetUnderlyingSymbolLayoutSize(object instance)
         {
             // This is a hack, but unfortunately, when the type is referenced via reference assembly,
             // type.GetAttributes() returns an empty array, so we have to look into internal API to get the structs size!
             var type = instance?.GetType();
             if (type?.Name == "NonErrorNamedTypeSymbol")
             {
-                var underlyingSymbolAccessor = GetOrCreatePropertyAccessor(instance?.GetType(), "UnderlyingSymbol", compilation);
+                var underlyingSymbolAccessor = GetOrCreatePropertyAccessor(instance?.GetType(), "UnderlyingSymbol");
                 var underlyingSymbol = underlyingSymbolAccessor?.GetValue(instance);
 
-                var layoutAccessor = GetOrCreatePropertyAccessor(underlyingSymbol?.GetType(), "Layout", compilation);
+                var layoutAccessor = GetOrCreatePropertyAccessor(underlyingSymbol?.GetType(), "Layout");
                 var layout = layoutAccessor?.GetValue(underlyingSymbol);
 
-                var sizeAccessor = GetOrCreatePropertyAccessor(layout?.GetType(), "Size", compilation);
+                var sizeAccessor = GetOrCreatePropertyAccessor(layout?.GetType(), "Size");
                 var size = sizeAccessor?.GetValue(layout);
 
                 if (size is int)
@@ -38,15 +35,14 @@ namespace ErrorProne.NET.Core
             return null;
         }
 
-        private static PropertyAccessor? GetOrCreatePropertyAccessor(Type? type, string propertyName, Compilation compilation)
+        private PropertyAccessor? GetOrCreatePropertyAccessor(Type? type, string propertyName)
         {
             if (type == null)
             {
                 return null;
             }
 
-            var cache = PropertyAccessors.GetOrCreateValue(compilation);
-            return cache.GetOrAdd((type, propertyName), tuple =>
+            return PropertyAccessors.GetOrAdd((type, propertyName), tuple =>
             {
                 return PropertyAccessor.TryCreate(tuple.type, tuple.propertyName);
             });

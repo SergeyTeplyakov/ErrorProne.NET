@@ -33,12 +33,16 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-
-            context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
-            context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
+            
+            context.RegisterCompilationStartAction(context =>
+            {
+                var structSizeCalculator = new StructSizeCalculator(context.Compilation);
+                context.RegisterSymbolAction(analysisContext => AnalyzeNamedType(analysisContext, structSizeCalculator), SymbolKind.NamedType);
+                context.RegisterSymbolAction(analysisContext => AnalyzeMethod(analysisContext, structSizeCalculator), SymbolKind.Method);
+            });
         }
 
-        private void AnalyzeNamedType(SymbolAnalysisContext context)
+        private static void AnalyzeNamedType(SymbolAnalysisContext context, StructSizeCalculator structSizeCalculator)
         {
             var symbol = (INamedTypeSymbol)context.Symbol;
             if (symbol.TypeKind != TypeKind.Delegate)
@@ -54,13 +58,14 @@ namespace ErrorProne.NET.StructAnalyzers
             }
 
             var largeStructThreshold = Settings.GetLargeStructThresholdOrDefault(context.TryGetAnalyzerConfigOptions());
+            var structSizeHelper = new LargeStructHelper(structSizeCalculator, largeStructThreshold);
             foreach (var parameterSymbol in symbol.DelegateInvokeMethod.Parameters)
             {
-                WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
+                WarnIfParameterIsReadOnly(structSizeHelper, parameterSymbol, diagnostic => context.ReportDiagnostic(diagnostic));
             }
         }
 
-        private void AnalyzeMethod(SymbolAnalysisContext context)
+        private static void AnalyzeMethod(SymbolAnalysisContext context, StructSizeCalculator structSizeCalculator)
         {
             context.TryGetSemanticModel(out var semanticModel);
 
@@ -73,7 +78,7 @@ namespace ErrorProne.NET.StructAnalyzers
             }
 
             var largeStructThreshold = Settings.GetLargeStructThresholdOrDefault(context.TryGetAnalyzerConfigOptions());
-
+            var structSizeHelper = new LargeStructHelper(structSizeCalculator, largeStructThreshold);
             // Should analyze only subset of methods, not all of them.
             if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
                 method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
@@ -81,16 +86,11 @@ namespace ErrorProne.NET.StructAnalyzers
             {
                 // Just using a dataflow analysis to detect that a member is captured is expensive.
                 // Using a syntax-based approach first to check whether the implementation has anonymous methods.
-                if (!HasAnonymousMethods(method))
-                {
-                    return;
-                }
-
                 foreach (var p in method.Parameters)
                 {
-                    if (!ParameterIsCapturedByAnonymousMethod(p, method, semanticModel))
+                    if (!HasAnonymousMethods(method) || !ParameterIsCapturedByAnonymousMethod(p, method, semanticModel))
                     {
-                        WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, p, diagnostic => context.ReportDiagnostic(diagnostic));
+                        WarnIfParameterIsReadOnly(structSizeHelper, p, diagnostic => context.ReportDiagnostic(diagnostic));
                     }
                 }
             }
@@ -135,9 +135,9 @@ namespace ErrorProne.NET.StructAnalyzers
                    method.IsInterfaceImplementation();   
         }
 
-        private static void WarnIfParameterIsReadOnly(Compilation compilation, int largeStructThreshold, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
+        private static void WarnIfParameterIsReadOnly(LargeStructHelper helper, IParameterSymbol p, Action<Diagnostic> diagnosticReporter)
         {
-            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, largeStructThreshold, out var estimatedSize))
+            if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && helper.IsLargeStruct(p.Type, out var estimatedSize))
             {
                 Location location = p.GetParameterLocation();
 

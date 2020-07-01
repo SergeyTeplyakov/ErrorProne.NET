@@ -42,7 +42,8 @@ readonly struct S
 }
 class Foo {
    public static void Bar(S s) {}
-}";
+}
+";
 
             var expected = VerifyCS.Diagnostic(UseInModifierForReadOnlyStructAnalyzer.DiagnosticId)
                 .WithMessage("Use in-modifier for passing a readonly struct 'S' of estimated size '24'")

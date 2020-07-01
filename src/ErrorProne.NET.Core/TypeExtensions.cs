@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.ContractsLight;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ErrorProne.NET.Core
 {
@@ -102,24 +94,6 @@ namespace ErrorProne.NET.Core
         public static bool IsStruct([NotNullWhen(true)]this ITypeSymbol? type)
         {
             return type != null && type.IsValueType && !type.IsEnum() && !(type is ITypeParameterSymbol);
-        }
-
-        public static bool IsLargeStruct([NotNullWhen(true)]this ITypeSymbol? type, Compilation compilation, int threshold, out int estimatedSize)
-        {
-            estimatedSize = 0;
-
-            if (type == null)
-            {
-                return false;
-            }
-
-            if (!type.IsStruct())
-            {
-                return false;
-            }
-
-            estimatedSize = type.ComputeStructSize(compilation);
-            return estimatedSize >= threshold;
         }
 
         public static bool HasDefaultEqualsOrHashCodeImplementations(this ITypeSymbol type,

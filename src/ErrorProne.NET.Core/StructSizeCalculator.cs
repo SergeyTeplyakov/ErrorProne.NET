@@ -4,18 +4,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace ErrorProne.NET.Core
 {
-    public static class StructSizeCalculator
+    public class StructSizeCalculator
     {
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>> TypeSizeCache =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int>>();
+        private readonly Compilation _compilation;
+
+        private readonly ConcurrentDictionary<ITypeSymbol, int> _typeSizeCache = new ConcurrentDictionary<ITypeSymbol, int>();
         
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int?>> StructLayoutSizeCache =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<ITypeSymbol, int?>>();
+        private readonly ConcurrentDictionary<ITypeSymbol, int?> _structLayoutSizeCache = new ConcurrentDictionary<ITypeSymbol, int?>();
+
+        private readonly RoslynLayoutSizeRetriever _layoutSizeRetriever = new RoslynLayoutSizeRetriever();
+
+        public StructSizeCalculator(Compilation compilation)
+        {
+            _compilation = compilation;
+        }
 
         /// <summary>
         /// Computes size of the struct.
@@ -36,49 +42,33 @@ namespace ErrorProne.NET.Core
         /// For nested composite field the same rule applied recursively:
         /// 
         /// </remarks>
-        public static int ComputeStructSize(this ITypeSymbol type, Compilation compilation)
-        {
-            var cache = TypeSizeCache.GetOrCreateValue(compilation);
-            if (cache.TryGetValue(type, out var size))
-            {
-                return size;
-            }
-
-            return ComputeStructSizeSlow(type, cache, compilation);
-        }
-
-        private static int ComputeStructSizeSlow(ITypeSymbol type, ConcurrentDictionary<ITypeSymbol, int> cache, Compilation compilation)
+        public int ComputeStructSize(ITypeSymbol type)
         {
             // TODO: if a struct has a reference type in it, the algorithm is different!
+
             Contract.Requires(type != null);
             Contract.Requires(type.IsValueType);
 
-            return cache.GetOrAdd(type, t =>
+            return _typeSizeCache.GetOrAdd(type, t =>
             {
                 int actualSize = 0;
                 int capacity = 0;
                 int largestFieldSize = 0;
 
-                ComputeSize(compilation, t, ref capacity, ref largestFieldSize, ref actualSize);
+                ComputeSize(_compilation, t, ref capacity, ref largestFieldSize, ref actualSize);
 
                 return capacity;
             });
         }
 
-        private static int? TryGetStructLayoutSize(ITypeSymbol type, Compilation compilation)
+        private int? TryGetStructLayoutSize(ITypeSymbol type)
         {
-            var cache = StructLayoutSizeCache.GetOrCreateValue(compilation);
-            if (cache.TryGetValue(type, out var result))
+            return _structLayoutSizeCache.GetOrAdd(type, t =>
             {
-                return result;
-            }
-
-            return cache.GetOrAdd(type, t =>
-            {
-                return tryGetStructLayoutSize(t, compilation);
+                return tryGetStructLayoutSize(t);
             });
 
-            static int? tryGetStructLayoutSize(ITypeSymbol type, Compilation compilation)
+            int? tryGetStructLayoutSize(ITypeSymbol type)
             {
                 var structLayoutAttribute = type.GetAttributes()
                     .FirstOrDefault(a => a.AttributeClass.Name == nameof(StructLayoutAttribute));
@@ -86,7 +76,7 @@ namespace ErrorProne.NET.Core
                 {
                     // When a struct is referenced via ref assemblies, the attributes are missing on the type.
                     // Using reflection-based hack to obtain the size from the type.UnderlyingSymbol.Layout.Size
-                    return RoslynLayoutSizeRetriever.TryGetUnderlyingSymbolLayoutSize(type, compilation);
+                    return _layoutSizeRetriever.TryGetUnderlyingSymbolLayoutSize(type);
                 }
 
                 var size = structLayoutAttribute.NamedArguments.FirstOrDefault(kvp => kvp.Key == "Size");
@@ -169,7 +159,7 @@ namespace ErrorProne.NET.Core
             return size != 0;
         }
 
-        private static void ComputeSize(Compilation compilation, ITypeSymbol type, ref int capacity, ref int largestFieldSize, ref int actualSize)
+        private void ComputeSize(Compilation compilation, ITypeSymbol type, ref int capacity, ref int largestFieldSize, ref int actualSize)
         {
             if (type == null)
             {
@@ -231,7 +221,7 @@ namespace ErrorProne.NET.Core
                 // But in this case, int i would not be stored in the same bucket, but new bucket would be created.
                 actualSize = capacity;
 
-                int? structLayoutSize = TryGetStructLayoutSize(type, compilation);
+                int? structLayoutSize = TryGetStructLayoutSize(type);
                 if (structLayoutSize > actualSize)
                 {
                     actualSize = capacity = structLayoutSize.Value;
