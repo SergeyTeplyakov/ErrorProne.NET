@@ -24,6 +24,9 @@
         /// <nodoc />
         public const string AsyncVoidDelegate = "EPC17";
 
+        /// <nodoc />
+        public const string TaskInstanceToStringConversion = "EPC18";
+
         // Exception handling
         /// <nodoc />
         public const string SuspiciousExceptionHandling = "EPC12";
