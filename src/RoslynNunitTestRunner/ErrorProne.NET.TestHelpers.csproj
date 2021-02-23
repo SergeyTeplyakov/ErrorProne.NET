@@ -7,7 +7,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.5.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.NUnit" Version="1.0.1-beta1.20214.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.NUnit" Version="1.0.1-beta1.20214.2" />
     <PackageReference Include="NUnit" Version="3.12.0" />
   </ItemGroup>
 
