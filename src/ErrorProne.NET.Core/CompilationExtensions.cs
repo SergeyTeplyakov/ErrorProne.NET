@@ -7,11 +7,17 @@ namespace ErrorProne.NET.Core
     // Copied from internal ICompilationExtensions class from the roslyn codebase
     public static class CompilationExtensions
     {
-        public static INamedTypeSymbol? GetTypeByFullName(this Compilation compilation, string fullName)
+        public static INamedTypeSymbol? GetTypeByFullName(this Compilation compilation, string? fullName)
         {
-            return compilation.GetBestTypeByMetadataName(fullName);
+            if (string.IsNullOrEmpty(fullName))
+            {
+                return null;
+            }
+            
+            var provider = WellKnownTypeProvider.GetOrCreate(compilation);
+            return provider.GetTypeByFullName(fullName!);
         }
-
+        
         public static INamedTypeSymbol? TaskType(this Compilation compilation)
             => compilation.GetTypeByFullName(typeof(Task).FullName);
 
@@ -26,6 +32,9 @@ namespace ErrorProne.NET.Core
 
         public static bool IsClrType(this ISymbol type, Compilation compilation, Type clrType)
             => type is ITypeSymbol ts && ts.OriginalDefinition.Equals(compilation.GetTypeByFullName(clrType.FullName), SymbolEqualityComparer.Default);
+        
+        public static bool IsClrType(this ITypeSymbol ts, Compilation compilation, Type clrType)
+            => ts.OriginalDefinition.Equals(compilation.GetTypeByFullName(clrType.FullName), SymbolEqualityComparer.Default);
 
         public static bool IsSystemValueType(this INamedTypeSymbol type, Compilation compilation)
             => type.Equals(compilation.GetTypeByFullName("System.ValueType"), SymbolEqualityComparer.Default);
@@ -109,7 +118,7 @@ namespace ErrorProne.NET.Core
         /// <remarks>
         /// This code is copied from github.com/dotnet/roslyn/blob/master/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/CompilationExtensions.cs
         /// </remarks>
-        public static INamedTypeSymbol? GetBestTypeByMetadataName(this Compilation compilation, string fullyQualifiedMetadataName)
+        internal static INamedTypeSymbol? GetBestTypeByMetadataName(this Compilation compilation, string fullyQualifiedMetadataName)
         {
             // Try to get the unique type with this name, ignoring accessibility
             var type = compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
@@ -140,7 +149,7 @@ namespace ErrorProne.NET.Core
                                 continue;
                         }
 
-                        if (type is object)
+                        if (type is not null)
                         {
                             // Multiple visible types with the same metadata name are present
                             return null;

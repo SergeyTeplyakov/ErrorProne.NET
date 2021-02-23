@@ -1,50 +1,45 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET.Core
 {
-    public static class WellKnownTypesProvider
+    /// <summary>
+    /// A helper that provide 
+    /// </summary>
+    public class WellKnownTypeProvider
     {
-        private static readonly SymbolDisplayFormat SymbolDisplayFormat = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+        private static readonly ConditionalWeakTable<Compilation, Lazy<WellKnownTypeProvider>> _cache = new ();
+        
+        // Full name to symbol map.
+        private readonly ConcurrentDictionary<string, INamedTypeSymbol?> _fullNameToTypeMap;
 
-        public static INamedTypeSymbol? GetExceptionType(this SemanticModel model)
+        private WellKnownTypeProvider(Compilation compilation)
         {
-            return model.Compilation.GetTypeByFullName(typeof(Exception).FullName);
+            Compilation = compilation;
+            _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol?>(StringComparer.Ordinal);
         }
 
-        public static INamedTypeSymbol GetBoolType(this SemanticModel model)
+        public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
         {
-            return model.Compilation.GetSpecialType(SpecialType.System_Boolean);
+            // A delegate provided to 'GetValue' can be called twice.
+            // To avoid creating an WellKnownTypeProvider more than once
+            // using a trick with Lazy.
+            // In this case two instances of Lazy<WellKnownTypeProvider> may be created
+            // but only one of them will be observed by the caller.
+            var cachedValue = _cache.GetValue(compilation,
+                static compilation => new Lazy<WellKnownTypeProvider>(() => new WellKnownTypeProvider(compilation)));
+            return cachedValue.Value;
         }
 
-        public static INamedTypeSymbol GetObjectType(this SemanticModel model)
-        {
-            return model.Compilation.GetSpecialType(SpecialType.System_Object);
-        }
+        public Compilation Compilation { get; }
 
-        public static INamedTypeSymbol? GetClrType(this SemanticModel model, Type type)
+        public INamedTypeSymbol? GetTypeByFullName(string fullName)
         {
-            return model.Compilation.GetTypeByFullName(type.FullName);
-        }
-
-        public static INamedTypeSymbol? GetClrType(this Compilation compilation, Type type)
-        {
-            return compilation.GetClrType(type.FullName);
-        }
-
-        public static INamedTypeSymbol? GetClrType(this Compilation compilation, string fullName)
-        {
-            return compilation.GetTypeByFullName(fullName);
-        }
-
-        /// <summary>
-        /// Returns true if the given <paramref name="type"/> belongs to a <see cref="System.Tuple"/> family of types.
-        /// </summary>
-        public static bool IsSystemTuple(this INamedTypeSymbol type)
-        {
-            // Not perfect but the simplest implementation.
-            return type.IsGenericType && type.ToDisplayString(SymbolDisplayFormat) == "System.Tuple";
+            return _fullNameToTypeMap.GetOrAdd(
+                fullName,
+                v => Compilation.GetBestTypeByMetadataName(v));
         }
     }
 }

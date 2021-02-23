@@ -1,26 +1,30 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.ContractsLight;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ErrorProne.NET.Core
 {
     public static class TypeExtensions
     {
+        private static readonly SymbolDisplayFormat SymbolDisplayFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+        
         /// <summary>
         /// Returns true if the given <paramref name="type"/> is an enum.
         /// </summary>
         public static bool IsEnum(this ITypeSymbol type)
         {
             return type.TypeKind == TypeKind.Enum;
+        }
+
+        /// <summary>
+        /// Returns true if the given <paramref name="type"/> belongs to a <see cref="System.Tuple"/> family of types.
+        /// </summary>
+        public static bool IsSystemTuple(this INamedTypeSymbol type)
+        {
+            // Not perfect but the simplest implementation.
+            return type.IsGenericType && type.ToDisplayString(SymbolDisplayFormat) == "System.Tuple";
         }
 
         public static ITypeSymbol? GetEnumUnderlyingType(this ITypeSymbol enumType)

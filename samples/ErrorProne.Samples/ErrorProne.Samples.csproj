@@ -115,12 +115,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\src\ErrorProne.NET.CoreAnalyzers.CodeFixes\bin\Debug\netstandard1.3\ErrorProne.Net.CoreAnalyzers.CodeFixes.dll" />
-    <Analyzer Include="..\..\src\ErrorProne.NET.CoreAnalyzers\bin\Debug\netstandard1.3\ErrorProne.NET.Core.dll" />
-    <Analyzer Include="packages\ErrorProne.NET.CoreAnalyzers.1.3.0\analyzers\dotnet\cs\ErrorProne.Net.CoreAnalyzers.dll" />
+    <Analyzer Include="..\..\src\ErrorProne.NET.CoreAnalyzers.CodeFixes\bin\Debug\netstandard2.0\ErrorProne.Net.CoreAnalyzers.CodeFixes.dll" />
+    <Analyzer Include="..\..\src\ErrorProne.NET.CoreAnalyzers.CodeFixes\bin\Debug\netstandard2.0\ErrorProne.Net.CoreAnalyzers.dll" />
+    <Analyzer Include="..\..\src\ErrorProne.NET.CoreAnalyzers.CodeFixes\bin\Debug\netstandard2.0\ErrorProne.NET.Core.dll" />
+    <Analyzer Include="..\..\src\ErrorProne.NET.StructAnalyzers\bin\Debug\netstandard2.0\ErrorProne.Net.StructAnalyzers.dll" />
+    <Analyzer Include="..\..\src\ErrorProne.NET.StructAnalyzers\bin\Debug\netstandard2.0\ErrorProne.Net.StructAnalyzers.CodeFixes.dll" />
     <Analyzer Include="packages\ErrorProne.NET.CoreAnalyzers.1.3.0\analyzers\dotnet\cs\RuntimeContracts.dll" />
-    <Analyzer Include="packages\ErrorProne.NET.Structs.1.0.0\analyzers\dotnet\cs\ErrorProne.Net.StructAnalyzers.CodeFixes.dll" />
-    <Analyzer Include="packages\ErrorProne.NET.Structs.1.0.0\analyzers\dotnet\cs\ErrorProne.Net.StructAnalyzers.dll" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

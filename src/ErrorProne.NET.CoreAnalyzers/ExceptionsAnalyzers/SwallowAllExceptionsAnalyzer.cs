@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using ErrorProne.NET.Core;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
@@ -71,8 +69,8 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
                     if (localFlow.Succeeded && localFlow.StartPointIsReachable)
                     {
-                        var returnOperation = (IReturnOperation?)context.SemanticModel.GetOperation(@return);
-                        if (returnOperation?.ReturnedValue is ILocalReferenceOperation lr)
+                        if (context.SemanticModel.GetOperation(@return) is IReturnOperation returnOperation &&
+                            returnOperation.ReturnedValue is ILocalReferenceOperation lr)
                         {
                             // This is 'return e;' case. Just ignore it.
                             if (lr.Local.ExceptionFromCatchBlock())
