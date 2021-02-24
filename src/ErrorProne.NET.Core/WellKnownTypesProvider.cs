@@ -10,7 +10,7 @@ namespace ErrorProne.NET.Core
     /// </summary>
     public class WellKnownTypeProvider
     {
-        private static readonly ConditionalWeakTable<Compilation, Lazy<WellKnownTypeProvider>> _cache = new ();
+        private static readonly ConditionalWeakTable<Compilation, Lazy<WellKnownTypeProvider>> Cache = new ();
         
         // Full name to symbol map.
         private readonly ConcurrentDictionary<string, INamedTypeSymbol?> _fullNameToTypeMap;
@@ -28,7 +28,7 @@ namespace ErrorProne.NET.Core
             // using a trick with Lazy.
             // In this case two instances of Lazy<WellKnownTypeProvider> may be created
             // but only one of them will be observed by the caller.
-            var cachedValue = _cache.GetValue(compilation,
+            var cachedValue = Cache.GetValue(compilation,
                 static compilation => new Lazy<WellKnownTypeProvider>(() => new WellKnownTypeProvider(compilation)));
             return cachedValue.Value;
         }

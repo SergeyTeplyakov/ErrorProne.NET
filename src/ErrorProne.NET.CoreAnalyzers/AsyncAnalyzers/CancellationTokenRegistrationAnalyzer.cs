@@ -54,7 +54,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             {
                 if (invocation.Type.IsClrType(context.Compilation, typeof(CancellationTokenRegistration)))
                 {
-                    var semanticModel = context.Compilation.GetSemanticModel(context.Operation.Syntax.SyntaxTree);
+                    var semanticModel = context.Operation.SemanticModel;
 
                     var target = invocation.Instance;
                     // Covering the cases like 'cts.Token.Register'.
