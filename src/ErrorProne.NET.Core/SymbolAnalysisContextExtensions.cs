@@ -21,7 +21,7 @@ namespace ErrorProne.NET.Core
             }
 
             semanticModel = context.Compilation.GetSemanticModel(context.Symbol.DeclaringSyntaxReferences[0].SyntaxTree);
-            return semanticModel != null;
+            return true;
         }
     }
 }
