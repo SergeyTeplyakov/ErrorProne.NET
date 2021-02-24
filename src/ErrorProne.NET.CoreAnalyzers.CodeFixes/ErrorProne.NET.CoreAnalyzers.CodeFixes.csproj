@@ -18,7 +18,10 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
-        0.3.0
+      0.3.1
+      * EPC18: warn for an implicit Task to string conversion.
+      * EPC19: warn on non-observed Register calls to a potentially long-lived CancellationToken instances.
+      0.3.0
         * EPC17: warns when async void delegate is accidentally created where `Action` should be used.
         * ERP031: warns when some unsafe methods are used for `ConcurrentDictionary` instance like `ToArray`.
         * 
