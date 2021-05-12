@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
@@ -10,6 +11,18 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
     [TestFixture]
     public class MakeStructMemberReadOnlyAnalyzerTests
     {
+        [SetUp]
+        public void Initialize()
+        {
+            Settings.SetDefaultLargeStructThreshold(0);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Settings.SetDefaultLargeStructThreshold(Settings.DefaultLargeStructThreshold);
+        }
+
         [Test]
         public async Task SimpleReadOnlyProperty()
         {
@@ -95,6 +108,22 @@ this = other;
     public int [|Y|] { get => Field = 42;}
     public int [|Z|] {get {Field = 42; return 1;}}
     public int [|K|] {get {Field = 42; return 1;} set {Field = value;}}
+}";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+        
+        [Test]
+        public async Task NoWarnWriteToStaticField()
+        {
+            Settings.SetDefaultLargeStructThreshold(42);
+            string code = @"struct Test {
+    public static int Field;
+    private int x; // Need to have a non-readonly field because otherwise the entire struct can be readonly
+    public int X => Field = 42;
+    public int Y { get => Field = 42;}
+    public int Z {get {Field = 42; return 1;}}
+    public int K {get {Field = 42; return 1;} set {Field = value;}}
 }";
 
             await VerifyCS.VerifyAsync(code);

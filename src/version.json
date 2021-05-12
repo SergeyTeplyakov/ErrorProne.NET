@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/AArnott/Nerdbank.GitVersioning/master/src/NerdBank.GitVersioning/version.schema.json",
-  "version": "0.3.1-beta.{height}",
+  "version": "0.4.0-beta.{height}",
   "assemblyVersion": {
     "precision": "revision"
   },

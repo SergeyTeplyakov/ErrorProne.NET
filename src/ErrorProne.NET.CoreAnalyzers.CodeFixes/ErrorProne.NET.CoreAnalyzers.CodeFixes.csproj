@@ -18,6 +18,9 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.4.0
+        * Performance improvements and bug fixes
+        * Embed pdbs
       0.3.1
       * EPC18: warn for an implicit Task to string conversion.
       * EPC19: warn on non-observed Register calls to a potentially long-lived CancellationToken instances.
@@ -66,12 +69,9 @@
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
       <_File Include="$(OutputPath)$(AssemblyName).dll" />
-      <_File Include="$(OutputPath)$(AssemblyName).pdb" />
       <_File Include="$(OutputPath)ErrorProne.Net.CoreAnalyzers.dll" />
-      <_File Include="$(OutputPath)ErrorProne.Net.CoreAnalyzers.pdb" />
       <_File Include="$(OutputPath)RuntimeContracts.dll" />
       <_File Include="$(OutputPath)ErrorProne.NET.Core.dll" />
-      <_File Include="$(OutputPath)ErrorProne.NET.Core.pdb" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>

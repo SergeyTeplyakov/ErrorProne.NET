@@ -55,6 +55,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 // to avoid incorrect results.
                 !(ma.Expression is MemberAccessExpressionSyntax))
             {
+                // The next call is quite expensive, but not necessarily because of the cost of each individual call, but rather because there are a lot of dotted expressions in any codebase.
                 var targetSymbol = context.SemanticModel.GetSymbolInfo(ma).Symbol;
                 AnalyzeExpressionAndTargetSymbol(context, largeStructThreshold, ma.Expression, ma.Name, targetSymbol);
             }

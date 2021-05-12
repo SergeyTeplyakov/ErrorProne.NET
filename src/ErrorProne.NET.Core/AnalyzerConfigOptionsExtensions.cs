@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ErrorProne.NET.Core
@@ -19,6 +21,18 @@ namespace ErrorProne.NET.Core
                 && locations[0] is { IsInSource: true } location)
             {
                 return context.Options.AnalyzerConfigOptionsProvider.GetOptions(location.SourceTree);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        
+        public static AnalyzerConfigOptions? TryGetAnalyzerConfigOptions(this SyntaxNode syntax, AnalyzerOptions options)
+        {
+            if (syntax.GetLocation().IsInSource)
+            {
+                return options.AnalyzerConfigOptionsProvider.GetOptions(syntax.SyntaxTree);
             }
             else
             {

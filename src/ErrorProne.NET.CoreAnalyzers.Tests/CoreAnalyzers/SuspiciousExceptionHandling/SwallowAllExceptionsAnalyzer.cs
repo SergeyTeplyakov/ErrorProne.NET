@@ -218,6 +218,23 @@ class Test
         }
         
         [Test]
+        public async Task NoWarnIfExceptionWasObservedWithStringConcat()
+        {
+            string code = @"
+using System;
+class Test
+{
+  private readonly Action<string> m_logger;
+  public void Foo()
+  {
+    try { Console.WriteLine(); }
+    catch(Exception e) {m_logger($""Observed: "" + e.ToString()); }
+  }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
         public async Task NoWarnIfExceptionWasObservedInLocalFunction()
         {
             string code = @"

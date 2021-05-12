@@ -29,7 +29,47 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
                 FixedState = { Sources = { expected } },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
-        
+
+        [Test]
+        public async Task MakePropertyWithInheritdocReadOnly()
+        {
+            string code = @"
+interface ITest
+{
+    int Y { get; }
+}
+
+struct Test : ITest {
+    private int x;
+    /// <inheritdoc />
+    public int [|X|] => 42;
+
+    /// <inheritdoc />
+    int ITest.[|Y|] => 42;
+}";
+
+            string expected = @"
+interface ITest
+{
+    int Y { get; }
+}
+
+struct Test : ITest {
+    private int x;
+    /// <inheritdoc />
+    public readonly int X => 42;
+
+    /// <inheritdoc />
+    readonly int ITest.Y => 42;
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } },
+                FixedState = { Sources = { expected } },
+            }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+
         [Test]
         public async Task MakePropertyWithBodyReadOnly()
         {

@@ -68,7 +68,13 @@ namespace ErrorProne.NET.StructAnalyzers
                 modifiers = memberDeclaration.Modifiers.Add(readonlyToken);
             }
 
-            var newType = memberDeclaration.WithModifiers(modifiers);
+            var oldLeadingTrivia = memberDeclaration.GetLeadingTrivia();
+
+            // just adding modifiers can yield to an invalid code.
+            // For instance, for the case like
+            // <inheritdoc />
+            // int IFoo.X => 42;
+            var newType = memberDeclaration.WithoutLeadingTrivia().WithModifiers(modifiers).WithLeadingTrivia(oldLeadingTrivia);
 
             return document.ReplaceSyntaxRoot(root.ReplaceNode(memberDeclaration, newType));
         }
