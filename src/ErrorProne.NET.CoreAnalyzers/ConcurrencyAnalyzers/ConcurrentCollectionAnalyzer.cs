@@ -69,8 +69,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                     invocationOperation.TargetMethod.ContainingType.ToDisplayString() == "System.Linq.Enumerable" &&
                     ConcurrentDictionaryUnsafeLinqOperations.Contains(targetMethodName))
                 {
-                    if (receiverType.ToDisplayString()
-                            .StartsWith("System.Collections.Concurrent.ConcurrentDictionary<") == true)
+                    if (receiverType.ToDisplayString().StartsWith("System.Collections.Concurrent.ConcurrentDictionary<") == true)
                     {
                         string extra =
                             $" Calling '{invocationOperation.TargetMethod.Name}' on a shared ConcurrentDictionary instance is not thread-safe and may fail with ArgumentException.";

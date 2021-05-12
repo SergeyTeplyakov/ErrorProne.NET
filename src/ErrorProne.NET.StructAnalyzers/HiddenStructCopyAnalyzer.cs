@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
