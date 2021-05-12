@@ -18,6 +18,9 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Analyzers that help avoiding struct and readonly reference performance pitfalls</Description>
     <PackageReleaseNotes>
+        0.4.0
+        * Performance improvements and bug fixes
+        * Embed pdbs
         0.3.0
         * EPS07: detects that a struct that does not override `Equals` or `GetHashCode` is used as the key in the dictionary or in a hashset.
         * EPS08: detects that the default `ValueType.Equals` or `ValueType.GetHashCode` are used in the implmentation of the `Equals` or `GetHashCode` for a custom struct.
@@ -66,12 +69,9 @@
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
       <_File Include="$(OutputPath)$(AssemblyName).dll" />
-      <_File Include="$(OutputPath)$(AssemblyName).pdb" />
       <_File Include="$(OutputPath)ErrorProne.Net.StructAnalyzers.dll" />
-      <_File Include="$(OutputPath)ErrorProne.Net.StructAnalyzers.pdb" />
       <_File Include="$(OutputPath)RuntimeContracts.dll" />
       <_File Include="$(OutputPath)ErrorProne.NET.Core.dll" />
-      <_File Include="$(OutputPath)ErrorProne.NET.Core.pdb" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>

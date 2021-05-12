@@ -4,6 +4,7 @@
   <PropertyGroup>
     <LangVersion>8.0</LangVersion>
     <Nullable>Enable</Nullable>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,6 +11,12 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
     [TestFixture]
     public class UseInModifierForReadOnlyStructAnalyzerTests
     {
+        [SetUp]
+        public void Initialize()
+        {
+            Settings.SetDefaultLargeStructThreshold(3 * sizeof(long));
+        }
+
         [Test]
         public async Task CheckDiagnosticDiagnosticMessageForNullableType()
         {

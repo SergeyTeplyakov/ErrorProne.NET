@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.ComponentModel.Design.Serialization;
+using System.Globalization;
+using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,13 +13,16 @@ namespace ErrorProne.NET.StructAnalyzers
     /// <summary>
     /// Emits a diagnostic if a struct member can be readonly.
     /// </summary>
+    /// <remarks>
+    /// Like the other diagnostics that warn about potential hidden copies, this analyzer warns only for members of large structs to avoid too much noise.
+    /// </remarks>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MakeStructMemberReadOnlyAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = DiagnosticIds.MakeStructMemberReadOnly;
 
         private const string Title = "A struct member can be made readonly";
-        private const string MessageFormat = "A {0} can be made readonly";
+        private const string MessageFormat = "A {0} can be made readonly for struct {1} of size {2}";
         private const string Description = "Readonly struct members are more efficient in readonly context by avoiding hidden copies.";
         private const string Category = "Performance";
         
@@ -33,12 +37,12 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-
-            context.RegisterSyntaxNodeAction(AnalyzePropertyDeclaration, SyntaxKind.PropertyDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
+            
+            context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context), SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(context => AnalyzeMethodDeclaration(context), SyntaxKind.MethodDeclaration);
         }
 
-        private void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
         {
             var method = (MethodDeclarationSyntax)context.Node;
             if (method.Identifier.Text == "ToDebuggerDisplay")
@@ -50,19 +54,22 @@ namespace ErrorProne.NET.StructAnalyzers
             if (ReadOnlyAnalyzer.MethodCanBeReadOnly(method, context.SemanticModel))
             {
                 var methodSymbol = context.SemanticModel.GetDeclaredSymbol(method);
-                if (methodSymbol != null &&
-                    ReadOnlyAnalyzer.StructCanBeReadOnly(methodSymbol.ContainingType, context.SemanticModel))
+                if (methodSymbol is null)
+                {
+                    return;
+                }
+                if (ReadOnlyAnalyzer.StructCanBeReadOnly(methodSymbol.ContainingType, context.SemanticModel))
                 {
                     // Do not emit the diagnostic if the entire struct can be made readonly.
                     return;
                 }
 
-                var memberName = $"method '{method.Identifier.Text}'";
-                context.ReportDiagnostic(Diagnostic.Create(Rule, method.Identifier.GetLocation(), memberName));
+                var largeStructThreshold = Settings.GetLargeStructThresholdOrDefault(method.TryGetAnalyzerConfigOptions(context.Options));
+                ReportAnalyzerForLargeStruct(context, largeStructThreshold, methodSymbol, $"method '{method.Identifier.Text}'", method.Identifier.GetLocation());
             }
         }
 
-        private void AnalyzePropertyDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzePropertyDeclaration(SyntaxNodeAnalysisContext context)
         {
             var property = (PropertyDeclarationSyntax)context.Node;
 
@@ -70,15 +77,28 @@ namespace ErrorProne.NET.StructAnalyzers
                 &&ReadOnlyAnalyzer.PropertyCanBeReadOnly(property, context.SemanticModel))
             {
                 var propertySymbol = context.SemanticModel.GetDeclaredSymbol(property);
+                if (propertySymbol is null)
+                {
+                    return;
+                }
 
-                if (propertySymbol != null && ReadOnlyAnalyzer.StructCanBeReadOnly(propertySymbol.ContainingType, context.SemanticModel))
+                if (ReadOnlyAnalyzer.StructCanBeReadOnly(propertySymbol.ContainingType, context.SemanticModel))
                 {
                     // Do not emit the diagnostic if the entire struct can be made readonly.
                     return;
                 }
+                
+                var largeStructThreshold = Settings.GetLargeStructThresholdOrDefault(property.TryGetAnalyzerConfigOptions(context.Options));
+                ReportAnalyzerForLargeStruct(context, largeStructThreshold, propertySymbol, $"property '{property.Identifier.Text}'", property.Identifier.GetLocation());
+            }
+        }
 
-                var memberName = $"property '{property.Identifier.Text}'";
-                context.ReportDiagnostic(Diagnostic.Create(Rule, property.Identifier.GetLocation(), memberName));
+        private static void ReportAnalyzerForLargeStruct(SyntaxNodeAnalysisContext context, int largeStructThreshold, ISymbol memberSymbol, string memberName, Location memberLocation)
+        {
+            if (memberSymbol.ContainingType.IsLargeStruct(context.Compilation, largeStructThreshold, out var structSize))
+            {
+                var typeName = memberSymbol.ContainingType.Name;
+                context.ReportDiagnostic(Diagnostic.Create(Rule, memberLocation, memberName, typeName, structSize));
             }
         }
     }

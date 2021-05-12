@@ -17,8 +17,8 @@ namespace ErrorProne.NET.StructAnalyzers
         private const string MessageFormat = "Use in-modifier for passing a readonly struct '{0}' of estimated size '{1}'";
         private const string Description = "Readonly structs have better performance when passed readonly reference";
         private const string Category = "Performance";
-        // Using warning for visibility purposes
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        
+        private const DiagnosticSeverity Severity = DiagnosticSeverity.Info;
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor Rule = 

@@ -1,7 +1,6 @@
 ﻿using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.HiddenStructCopyAnalyzer,
@@ -12,6 +11,18 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
     [TestFixture]
     public class HiddenStructCopyAnalyzerTests
     {
+        [SetUp]
+        public void SetUp()
+        {
+            Settings.SetDefaultLargeStructThreshold(3 * sizeof(long));
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Settings.SetDefaultLargeStructThreshold(Settings.DefaultLargeStructThreshold);
+        }
+
         [Test]
         public async Task NoWarnOnDispose()
         {
@@ -21,7 +32,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             string code = @"
 struct Struct : System.IDisposable
 {
- private readonly long l1, l2, l3;
+ private readonly long l1, l2, l3, l4;
 
  public void Dispose() {} 
 }
@@ -41,7 +52,7 @@ class Test
             string code = @"
 struct Struct
 {
- private readonly long l1, l2, l3;
+ private readonly long l1, l2, l3, l4;
 
  public void Dispose() {} 
 }
@@ -137,12 +148,12 @@ public struct TestStruct
             string code = @"
 struct Struct1
 {
- private readonly long l1, l2, l3;
+ private readonly long l1, l2, l3, l4;
 }
 
 struct Struct2
 {
-  private readonly long l1, l2, l3;
+  private readonly long l1, l2, l3, l4;
   // get-only properties are implicitly marked with IsReadOnly attribute
   public Struct1 S1 {get;}
 }
