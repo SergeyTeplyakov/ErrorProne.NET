@@ -101,6 +101,13 @@ namespace ErrorProne.NET.CoreAnalyzers
                         return;
                     }
 
+                    // Making an exception for 'Task<Task>' case.
+                    // For instance, the following code is totally fine: await Task.WhenAll(t1, t2);
+                    if (operation.Type.IsTaskLike(context.Compilation))
+                    {
+                        return;
+                    }
+
                     // Need to extract a real method if this one is 'ConfigureAwait'
                     var location = GetLocationForDiagnostic(awaitExpression);
 

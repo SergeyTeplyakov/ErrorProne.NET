@@ -35,5 +35,10 @@ namespace ErrorProne.Samples.CoreAnalyzers
 
             Result bar() => default;
         }
+
+        public static async Task WhenAllShouldBeFine(Task task1, Task task2)
+        {
+            await Task.WhenAny(task1, task2);
+        }
     }
 }

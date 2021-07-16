@@ -53,6 +53,22 @@ class FooBar
         }
 
         [Test]
+        public async Task No_Warn_On_Task_WhenAny()
+        {
+            string code = @"
+using System.Threading.Tasks;
+class FooBar
+{
+    public static async Task WhenAllShouldBeFine(Task task1, Task task2)
+    {
+        await Task.WhenAny(task1, task2);
+    }
+}
+";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+        
+        [Test]
         public async Task Result_That_Flows_Through_Extension_Method_Is_Observed()
         {
             string code = @"
