@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using ErrorProne.NET.Extensions;
 using ErrorProne.NET.StructAnalyzers;
@@ -52,7 +53,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             var type = context.SemanticModel.GetTypeInfo(propertyDeclaration.Type);
             
             var containingType = GetContainingType(propertyDeclaration, context.SemanticModel);
-            if (containingType is null)
+            if (!ShouldBeInspected(containingType))
             {
                 return;
             }
@@ -73,7 +74,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             var type = context.SemanticModel.GetTypeInfo(fieldDeclaration.Declaration.Type);
 
             var containingType = GetContainingType(fieldDeclaration, context.SemanticModel);
-            if (containingType is null)
+            if (!ShouldBeInspected(containingType))
             {
                 return;
             }
@@ -85,6 +86,9 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
                 ReportDiagnosticForTypeIfNeeded(context.Compilation, fieldDeclaration, type.Type, Rule, context.ReportDiagnostic);
             }
         }
+
+        private static bool ShouldBeInspected([NotNullWhen(true)] ITypeSymbol? typeSymbol) =>
+            typeSymbol != null && typeSymbol.TypeKind == TypeKind.Struct;
 
         private static ITypeSymbol? GetContainingType(PropertyDeclarationSyntax property, SemanticModel model)
         {

@@ -257,7 +257,50 @@ public struct S2
 
             await VerifyEmbeddedStruct(code);
         }
-        
+
+        [Test]
+        public async Task No_Warn_If_Embedded_As_Field_Into_Class_with_ctor()
+        {
+            string code = @"
+[NonDefaultableAttribute]
+public struct MyS
+{
+}
+
+public class S2
+{
+  S2(MyS s)
+  {
+    _s = s;
+  }
+
+  private MyS _s;
+}
+";
+
+            await VerifyEmbeddedStruct(code);
+        }
+
+        [Test]
+public async Task No_Warn_If_Embedded_ImmutableArray_Into_Class_with_ctor()
+{
+    string code = @"
+using System.Collections.Immutable;
+
+public class S2
+{
+  S2(ImmutableArray<int> values)
+  {
+    Values = values;
+  }
+
+  public ImmutableArray<int> Values { get; }
+}
+";
+
+    await VerifyEmbeddedStruct(code);
+}
+
         private static async Task VerifySource(string code)
         {
             await new VerifyCS.Test
