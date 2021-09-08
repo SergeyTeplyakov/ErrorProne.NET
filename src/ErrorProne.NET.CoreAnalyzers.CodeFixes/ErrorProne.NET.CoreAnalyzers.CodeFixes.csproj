@@ -18,24 +18,29 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.5.0
+        * Remove runtime dependencies for the prjoect (no RuntimeContracts, and no ErrorProne.Net.Core)
+          to simplify deployment and to allow the customers to reference different versions of 'ErrorProne.Net.CoreAnalyzers'
+          and 'ErrorProne.Net.StructAnalyzers' that was not possible before due to a common dependencies to 'ErrorProne.Net.Core.dll'.
       0.4.0
         * Performance improvements and bug fixes
         * Embed pdbs
+
       0.3.1
-      * EPC18: warn for an implicit Task to string conversion.
-      * EPC19: warn on non-observed Register calls to a potentially long-lived CancellationToken instances.
+        * EPC18: warn for an implicit Task to string conversion.
+        * EPC19: warn on non-observed Register calls to a potentially long-lived CancellationToken instances.
+
       0.3.0
         * EPC17: warns when async void delegate is accidentally created where `Action` should be used.
         * ERP031: warns when some unsafe methods are used for `ConcurrentDictionary` instance like `ToArray`.
-        * 
 
         0.2.0
-        * EPC11: warns when Equals method is potentially implemented incorrectly.
-        * EPC12: warns when generic exception instance is not fully observed (only `Message` was accessed in catch block).
-        * EPC13: warns when possible-like result is not observed.
-        * EPC14: warns when `ConfigureAwait(false)` is used even though a project is configured not to use it.
-        * EPC15: warns when `ConfigureAwait(false)` is not used on an awaited task but a project is configured to always use it.
-        * EPC16: null-conditional operator is used in await expression causing NRE if a task is null.
+          * EPC11: warns when Equals method is potentially implemented incorrectly.
+          * EPC12: warns when generic exception instance is not fully observed (only `Message` was accessed in catch block).
+          * EPC13: warns when possible-like result is not observed.
+          * EPC14: warns when `ConfigureAwait(false)` is used even though a project is configured not to use it.
+          * EPC15: warns when `ConfigureAwait(false)` is not used on an awaited task but a project is configured to always use it.
+          * EPC16: null-conditional operator is used in await expression causing NRE if a task is null.
     </PackageReleaseNotes>
     <Copyright>Copyright Sergey Teplyakov</Copyright>
     <PackageTags>ErrorProne.NET, analyzers</PackageTags>
@@ -46,8 +51,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.5.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -62,16 +65,10 @@
     <None Update="tools\*.ps1" Pack="true" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.3.37" />
-  </ItemGroup>
-
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
       <_File Include="$(OutputPath)$(AssemblyName).dll" />
       <_File Include="$(OutputPath)ErrorProne.Net.CoreAnalyzers.dll" />
-      <_File Include="$(OutputPath)RuntimeContracts.dll" />
-      <_File Include="$(OutputPath)ErrorProne.NET.Core.dll" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>

@@ -4,8 +4,18 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>ErrorProne.Net.CoreAnalyzers</AssemblyName>
     <RootNamespace>ErrorProne.NET</RootNamespace>
-    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
+
+  <!--
+      Instead of splitting the code into a separate dll, just reference it as the source code.
+      This allows referncing multiple analyzer versions at the same time without runtime errors caused by
+      incompatible changes on the "core" level
+   -->
+  <ItemGroup>
+    <Compile Include="..\ErrorProne.NET.Core\**.cs" Label="Core" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.5.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0" PrivateAssets="all" />
+  </ItemGroup>
 
   <PropertyGroup>
     <PackageId>ErrorProne.NET.CoreAnalyzers.RenameToAvoidConflict</PackageId>
@@ -18,13 +28,5 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.3.37" />
-  </ItemGroup>
-
+  
 </Project>

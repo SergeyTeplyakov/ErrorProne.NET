@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <EmbedRuntimeContracts>false</EmbedRuntimeContracts>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,12 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj" />
-    <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
     <ProjectReference Include="..\RoslynNUnitTestRunner\ErrorProne.NET.TestHelpers.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.3.37" />
   </ItemGroup>
 
 </Project>
