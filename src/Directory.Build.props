@@ -22,6 +22,8 @@
   <PropertyGroup>
     <ILRepackTargetsFile>$(MSBuildThisFileDirectory)ILRepack.targets</ILRepackTargetsFile>
     <!-- Embed RuntimeContracts.dll by default. The tests should set it to false because ILRepack fails to 'repack' the test assemblies. -->
-    <EmbedRuntimeContracts>true</EmbedRuntimeContracts> 
+    <EmbedRuntimeContracts>true</EmbedRuntimeContracts>
+    <!-- Disabling the ILRepack target that is on by default once the ILRepack.Lib.MSBuild package is referenced. -->
+    <DoILRepack>false</DoILRepack>
   </PropertyGroup>
 </Project>
