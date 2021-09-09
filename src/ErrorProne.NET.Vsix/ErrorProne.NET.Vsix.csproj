@@ -5,6 +5,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>ErrorProne.NET</AssemblyName>
+    <EmbedRuntimeContracts>false</EmbedRuntimeContracts>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -24,7 +25,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj" />
-    <ProjectReference Include="..\ErrorProne.NET.Core\ErrorProne.NET.Core.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers.CodeFixes\ErrorProne.NET.StructAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers\ErrorProne.NET.StructAnalyzers.csproj" />
   </ItemGroup>

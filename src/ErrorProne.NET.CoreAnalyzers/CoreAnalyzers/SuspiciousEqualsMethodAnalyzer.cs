@@ -180,11 +180,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             }
 
             if (!(
-                symbol is IMethodSymbol ||
-                symbol is IPropertySymbol ||
-                symbol is IFieldSymbol ||
-                symbol is IEventSymbol ||
-                symbol is ILocalSymbol ||
+                symbol is IMethodSymbol or IPropertySymbol or IFieldSymbol or IEventSymbol or ILocalSymbol || 
                 (symbol is IParameterSymbol ps && ps.IsThis)))
             {
                 // If symbol is not one of these, it is definitely not an instance member reference

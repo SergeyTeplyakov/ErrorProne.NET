@@ -1,5 +1,0 @@
-<Project>
-<PropertyGroup>
-  <DefineConstants>$(DefineConstants);CONTRACTS_LIGHT_PRECONDITIONS;CONTRACTS_LIGHT_ASSERTS</DefineConstants>
-</PropertyGroup>
-</Project>

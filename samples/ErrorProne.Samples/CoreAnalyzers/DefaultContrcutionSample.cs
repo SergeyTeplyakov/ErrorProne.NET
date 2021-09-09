@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 
 [System.AttributeUsage(System.AttributeTargets.Struct)]
-public class DoNotUseDefaultConstructionAttribute : System.Attribute { }
+public class NonDefaultableAttribute : System.Attribute { }
 
 
 namespace ErrorProne.Samples.CoreAnalyzers
 {
-    [DoNotUseDefaultConstruction]
+    [NonDefaultable]
     public readonly struct TaskSourceSlim<T>
     {
         private readonly TaskCompletionSource<T> _tcs;
@@ -14,9 +14,9 @@ namespace ErrorProne.Samples.CoreAnalyzers
         // Other members
     }
 
-    public class DefaultContrcutionSample
+    public class DefaultConstructionSample
     {
-        public static void Smple()
+        public static void Sample()
         {
             // Do not use default construction for struct 'TaskSourceSlim' marked with 'DoNotUseDefaultConstruction' attribute
             var tss = new TaskSourceSlim<object>();
@@ -31,7 +31,7 @@ namespace ErrorProne.Samples.CoreAnalyzers
         public static T Create<T>() where T : new() => default;
     }
 
-    public readonly struct S2
+    public struct S2
     {
         // Do not embed struct 'TaskSourceSlim' marked with 'DoNotUseDefaultConstruction' attribute into another struct
         private readonly TaskSourceSlim<object> _tss;
