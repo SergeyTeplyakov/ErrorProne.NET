@@ -52,7 +52,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             var type = context.SemanticModel.GetTypeInfo(propertyDeclaration.Type);
             
             var containingType = GetContainingType(propertyDeclaration, context.SemanticModel);
-            if (containingType is null)
+            if (containingType is null || IsStructLike(containingType))
             {
                 return;
             }
@@ -60,7 +60,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             // It is ok to embed one struct marked with special attribute into another struct
             // marked with the same special attribute.
             
-            if (propertyDeclaration.IsAutoProperty() && !HasDoNotUseDefaultConstructionOrSpecial(context.Compilation, containingType, out _))
+            if (propertyDeclaration.IsAutoProperty() && !containingType.DoNotUseDefaultConstruction(context.Compilation, out _))
             {
                 ReportDiagnosticForTypeIfNeeded(context.Compilation, propertyDeclaration, type.Type, Rule,
                     context.ReportDiagnostic);
@@ -73,17 +73,23 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             var type = context.SemanticModel.GetTypeInfo(fieldDeclaration.Declaration.Type);
 
             var containingType = GetContainingType(fieldDeclaration, context.SemanticModel);
-            if (containingType is null)
+            if (containingType is null || IsStructLike(containingType))
             {
                 return;
             }
             
             // It is ok to embed one struct marked with special attribute into another struct
             // marked with the same special attribute.
-            if (!HasDoNotUseDefaultConstructionOrSpecial(context.Compilation, containingType, out _))
+            if (!containingType.DoNotUseDefaultConstruction(context.Compilation, out _))
             {
                 ReportDiagnosticForTypeIfNeeded(context.Compilation, fieldDeclaration, type.Type, Rule, context.ReportDiagnostic);
             }
+        }
+
+        private static bool IsStructLike(ITypeSymbol typeSymbol)
+        {
+            // Extracting logic because it can became more complicated in the future (for instance, with struct records).
+            return typeSymbol.IsReferenceType;
         }
 
         private static ITypeSymbol? GetContainingType(PropertyDeclarationSyntax property, SemanticModel model)

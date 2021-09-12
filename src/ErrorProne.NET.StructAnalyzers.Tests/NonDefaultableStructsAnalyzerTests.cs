@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.Net.StructAnalyzers.NonDefaultStructs.NonDefaultableStructsConstructionAnalyzer,
+    ErrorProne.Net.StructAnalyzers.NonDefaultStructs.NonDefaultableStructsCreationAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 using VerifyEmbedCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
@@ -14,6 +14,46 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests
     [TestFixture]
     public class NonDefaultableStructsAnalyzerTests
     {
+        // Missing cases:
+        // (MyNonDefaultableStruct ms, int x) tpl = default;
+        // var a = new MyNonDefaultableStruct[42]; // Should we warn here?
+
+        [Test]
+        public async Task Warn_When_Struct_Mutates_Itself()
+        {
+            string code = @"
+[NonDefaultable]
+    public struct NonReadonlyStruct
+    {
+        private int x;
+
+        public NonReadonlyStruct(int x)
+        {
+            this.x = x;
+        }
+
+        public void Mutate()
+        {
+            this = [|default|];
+        }
+    }
+";
+
+            await VerifySource(code);
+        }
+        
+        [Test]
+        public async Task No_Warn_When_Struct_Is_Embedded_Into_Class()
+        {
+            string code = @"
+[NonDefaultableAttribute]
+public struct MyS { }
+public class MyC {private readonly MyS _s;}
+";
+
+            await VerifyEmbeddedStruct(code);
+        }
+        
         [Test]
         public async Task Warn_On_Explicit_Construction()
         {
