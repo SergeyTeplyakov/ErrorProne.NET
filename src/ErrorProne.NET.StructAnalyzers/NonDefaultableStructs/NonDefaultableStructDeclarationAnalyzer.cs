@@ -19,8 +19,6 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     {
         private static readonly DiagnosticDescriptor DiagnosticDescriptor = DiagnosticDescriptors.EPS13;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => new ImmutableArray<DiagnosticDescriptor>().Add(DiagnosticDescriptors.EPS13);
-
         /// <nodoc />
         public NonDefaultableStructDeclarationAnalyzer() : base(DiagnosticDescriptor)
         {
