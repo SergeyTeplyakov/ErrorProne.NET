@@ -10,7 +10,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     /// For instance <code>ImmutableArray&lt;int&gt; a = default; int x = a.Count; will fail with NRE.</code>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class NonDefaultableStructsConstructionAnalyzer : NonDefaultableStructAnalyzerBase
+    public sealed class NonDefaultableStructsCreationAnalyzer : NonDefaultableStructAnalyzerBase
     {
         /// <nodoc />
         public const string DiagnosticId = DiagnosticIds.DoNotUseDefaultConstructionForStruct;
@@ -30,7 +30,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             new DiagnosticDescriptor(DiagnosticId, Title, Message, Category, Severity, isEnabledByDefault: true, description: Description);
 
         /// <nodoc />
-        public NonDefaultableStructsConstructionAnalyzer()
+        public NonDefaultableStructsCreationAnalyzer()
             : base(Rule)
         {
         }

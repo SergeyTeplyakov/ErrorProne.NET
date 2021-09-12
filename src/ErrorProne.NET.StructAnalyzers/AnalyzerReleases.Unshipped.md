@@ -13,3 +13,4 @@ EPS09 | Usage | Info | ExplicitInParameterAnalyzer
 EPS10 | CodeSmell | Warning | DoNotCreateStructWithNoDefaultStructConstructionAttributeAnalyzer
 EPS11 | CodeSmell | Warning | DoNotEmbedStructsWithNoDefaultStructConstructionAttributeAnalyzer
 EPS12 | Performance | Warning | MakeStructMemberReadOnlyAnalyzer
+EPS13 | Usage | Warning | NonDefaultableStructDeclarationAnalyzer
