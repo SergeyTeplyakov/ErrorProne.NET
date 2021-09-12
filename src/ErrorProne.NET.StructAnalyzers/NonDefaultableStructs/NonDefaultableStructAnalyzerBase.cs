@@ -13,13 +13,6 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     /// </summary>
     public abstract class NonDefaultableStructAnalyzerBase : DiagnosticAnalyzerBase
     {
-        public const string NonDefaultableAttributeName = "NonDefaultableAttribute";
-
-        protected static readonly List<Type> SpecialTypes = new List<Type>
-        {
-            typeof(ImmutableArray<>)
-        };
-
         protected NonDefaultableStructAnalyzerBase(DiagnosticDescriptor descriptor,
             params DiagnosticDescriptor[] diagnostics) : base(descriptor, diagnostics)
         {
@@ -38,7 +31,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
             }
 
             // NonDefaultableAttribute attribute can take a custom error message in the constructor.
-            if (HasDoNotUseDefaultConstructionOrSpecial(compilation, type, out var message))
+            if (type.DoNotUseDefaultConstruction(compilation, out var message))
             {
                 message ??= string.Empty;
                 
@@ -47,32 +40,8 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
                     message = " " + message;
                 }
                 
-                reportDiagnostic(
-                    Diagnostic.Create(rule, syntax.GetLocation(), type.Name, message));
+                reportDiagnostic(Diagnostic.Create(rule, syntax.GetLocation(), type.Name, message));
             }
-        }
-
-        protected static bool HasDoNotUseDefaultConstructionOrSpecial(Compilation compilation, ITypeSymbol type, out string? message)
-        {
-            message = null;
-            
-            var attributes = type.GetAttributes();
-            var doNotUseDefaultAttribute = attributes.FirstOrDefault(a =>
-                a.AttributeClass.Name.StartsWith(NonDefaultableAttributeName));
-            
-            if (doNotUseDefaultAttribute != null)
-            {
-                var constructorArg = doNotUseDefaultAttribute.ConstructorArguments.FirstOrDefault();
-                message = !constructorArg.IsNull ? constructorArg.Value?.ToString() : null;
-                return true;
-            }
-
-            if (SpecialTypes.Any(t => type.IsClrType(compilation, t)))
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }
