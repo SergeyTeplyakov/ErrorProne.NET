@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
 {
     /// <summary>
-    /// A base class for analyzing structs marked with <see cref="NonDefaultableAttributeName"/>.
+    /// A base class for analyzing structs marked with <see cref="NonDefaultableStructAnalysis.NonDefaultableAttributeName"/>.
     /// </summary>
     public abstract class NonDefaultableStructAnalyzerBase : DiagnosticAnalyzerBase
     {

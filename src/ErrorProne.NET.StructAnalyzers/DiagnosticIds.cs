@@ -3,7 +3,7 @@
 namespace ErrorProne.NET.StructAnalyzers
 {
     /// <summary>
-    /// Diagnostics produced by this project.
+    /// DiagnosticDescriptors produced by this project.
     /// </summary>
     public static class DiagnosticIds
     {
@@ -35,11 +35,11 @@ namespace ErrorProne.NET.StructAnalyzers
         public const string MakeStructMemberReadOnly = "EPS12";
     }
 
-    public static class Diagnostics
+    internal static class DiagnosticDescriptors
     {
         public const string UsageCategory = "Usage";
 
-        public static DiagnosticDescriptor EPS13 { get; } = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor EPS13 = new DiagnosticDescriptor(
             nameof(EPS13),
             "A non-defaultable struct must declare a constructor.",
             "A non-defaultable struct {0} must declare a constructor.",

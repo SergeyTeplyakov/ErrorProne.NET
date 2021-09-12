@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
 using ErrorProne.NET.CoreAnalyzers;
@@ -16,7 +17,10 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NonDefaultableStructDeclarationAnalyzer : DiagnosticAnalyzerBase
     {
-        private static readonly DiagnosticDescriptor DiagnosticDescriptor = Diagnostics.EPS13;
+        private static readonly DiagnosticDescriptor DiagnosticDescriptor = DiagnosticDescriptors.EPS13;
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => new ImmutableArray<DiagnosticDescriptor>().Add(DiagnosticDescriptors.EPS13);
+
         /// <nodoc />
         public NonDefaultableStructDeclarationAnalyzer() : base(DiagnosticDescriptor)
         {
