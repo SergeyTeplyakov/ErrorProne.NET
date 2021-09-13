@@ -18,24 +18,13 @@ namespace ErrorProne.NET.AsyncAnalyzers
     public sealed class ConcurrentCollectionAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.UsageIsNotThreadSafe;
-
-        private const string Title = "The API is not thread-safe.{0}";
-
-        private const string Description = "The API is not thread safe and can cause runtime failures.";
-        private const string Category = "Concurrency";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
-
-        /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.ERP031;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         /// <nodoc />
         public ConcurrentCollectionAnalyzer()
-            : base(supportFading: true, Rule)
+            : base(Rule)
         {
         }
 
@@ -112,7 +101,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 // It means that this is a real argument like Enumerable.ToList(arg)
                 // and not something like arg.ToList();
 
-                if (!(firstArg.Syntax.ChildNodes().FirstOrDefault() is IdentifierNameSyntax argumentIdentifier))
+                if (firstArg.Syntax.ChildNodes().FirstOrDefault() is not IdentifierNameSyntax argumentIdentifier)
                 {
                     // TODO: is it actually possible?
                     return null;

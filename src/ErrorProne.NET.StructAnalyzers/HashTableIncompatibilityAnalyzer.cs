@@ -29,25 +29,13 @@ namespace ErrorProne.NET.StructAnalyzers
             typeof(ImmutableDictionary<,>)
         };
 
-        /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.HashTableIncompatibilityDiagnosticId;
-
-        private const string Title = "A hash table \"unfriendly\" type is used as the key in a hash table";
-        private const string MessageFormat = "A struct '{0}' with a default {1} implementation is used as a key in a hash table.";
-        private const string Description = "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.";
-        private const string Category = "Performance";
-        
-        // Using warning for visibility purposes
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
-
         private static readonly Dictionary<string, int> WellKnownHashTableTypes = new Dictionary<string, int>(WellKnownHashTables().ToDictionary(t => t.name.Remove(t.name.LastIndexOf("`")), t => t.arity));
         
         private static readonly SymbolDisplayFormat SymbolDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule = 
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPS07;
         
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
@@ -70,7 +58,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private void AnalyzeField(SymbolAnalysisContext context)
         {
-            if (context.Symbol is IFieldSymbol fs && fs.Type != null && fs.TryGetDeclarationSyntax() is var syntax && syntax != null)
+            if (context.Symbol is IFieldSymbol fs && fs.TryGetDeclarationSyntax() is var syntax && syntax != null)
             {
                 DoAnalyzeType(fs.Type, syntax.Type.GetLocation(), d => context.ReportDiagnostic(d));
             }

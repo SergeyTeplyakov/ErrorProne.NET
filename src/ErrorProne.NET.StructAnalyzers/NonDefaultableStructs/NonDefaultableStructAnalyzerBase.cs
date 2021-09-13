@@ -13,8 +13,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     /// </summary>
     public abstract class NonDefaultableStructAnalyzerBase : DiagnosticAnalyzerBase
     {
-        protected NonDefaultableStructAnalyzerBase(DiagnosticDescriptor descriptor,
-            params DiagnosticDescriptor[] diagnostics) : base(descriptor, diagnostics)
+        protected NonDefaultableStructAnalyzerBase(DiagnosticDescriptor descriptor) : base(descriptor)
         {
         }
 

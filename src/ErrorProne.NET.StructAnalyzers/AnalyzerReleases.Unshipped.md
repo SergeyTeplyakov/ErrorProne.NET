@@ -5,7 +5,7 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 EPS01 | Performance | Warning | MakeStructReadOnlyAnalyzer
-EPS05 | Performance | Warning | UseInModifierForReadOnlyStructAnalyzer
+EPS05 | Performance | Info | UseInModifierForReadOnlyStructAnalyzer
 EPS06 | Performance | Warning | HiddenStructCopyAnalyzer
 EPS07 | Performance | Warning | HashTableIncompatibilityAnalyzer
 EPS08 | Performance | Warning | DefaultEqualsOrHashCodeIsUsedInStructAnalyzer

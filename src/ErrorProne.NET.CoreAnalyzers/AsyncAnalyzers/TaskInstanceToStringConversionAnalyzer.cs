@@ -16,18 +16,10 @@ namespace ErrorProne.NET.AsyncAnalyzers
     public sealed class TaskInstanceToStringConversionAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.TaskInstanceToStringConversion;
-
-        private const string Title = "A task instance is implictly converted to a string.";
-
-        private const string Description = "An implicit conversion of a task instance to a string potentially indicates an lack of 'await'.";
-        private const string Category = "CodeSmell";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
-
+        public static string DiagnosticId => Rule.Id;
+        
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC18;
 
         /// <nodoc />
         public TaskInstanceToStringConversionAnalyzer()

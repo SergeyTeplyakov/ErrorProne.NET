@@ -36,7 +36,7 @@ namespace ErrorProne.NET.StructAnalyzers
         }
 
         /// <inheritdoc />
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeStructReadOnlyAnalyzer.DiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeStructReadOnlyAnalyzer.Rule.Id);
 
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -57,16 +57,10 @@ namespace ErrorProne.NET.StructAnalyzers
             }
 
             var readonlyToken = SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword);
-            SyntaxTokenList modifiers;
             int partialIndex = typeDecl.Modifiers.IndexOf(SyntaxKind.PartialKeyword);
-            if (partialIndex != -1)
-            {
-                modifiers = typeDecl.Modifiers.Insert(partialIndex, readonlyToken);
-            }
-            else
-            {
-                modifiers = typeDecl.Modifiers.Add(readonlyToken);
-            }
+            var modifiers = partialIndex == -1
+                ? typeDecl.Modifiers.Add(readonlyToken)
+                : typeDecl.Modifiers.Insert(partialIndex, readonlyToken);
 
             var newType = typeDecl.WithModifiers(modifiers);
 

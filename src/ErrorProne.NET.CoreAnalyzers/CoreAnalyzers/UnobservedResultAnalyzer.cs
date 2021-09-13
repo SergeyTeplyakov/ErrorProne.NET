@@ -19,21 +19,7 @@ namespace ErrorProne.NET.CoreAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class UnobservedResultAnalyzer : DiagnosticAnalyzer
     {
-        /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.UnobservedResult;
-
-        private const string Title = "Suspiciously unobserved result.";
-        private const string Message = "The result of type '{0}' should be observed.";
-
-        private const string Description = "Return values of some methods should always be observed.";
-        private const string Category = "CodeSmell";
-
-        // Using warning for visibility purposes
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
-
-        /// <nodoc />
-        private static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Message, Category, Severity, isEnabledByDefault: true, description: Description);
+        private static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC13;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

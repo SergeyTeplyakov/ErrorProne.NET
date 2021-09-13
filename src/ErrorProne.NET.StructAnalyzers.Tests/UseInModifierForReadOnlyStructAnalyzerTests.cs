@@ -22,7 +22,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         {
             string code = @"readonly struct S {readonly long l, l2,l3;} class FooBar { public void Foo(S? n) {} }";
             var expected = VerifyCS.Diagnostic(UseInModifierForReadOnlyStructAnalyzer.DiagnosticId)
-                .WithMessage("Use in-modifier for passing a readonly struct 'S?' of estimated size '32'")
+                .WithMessage("Use in-modifier for passing a readonly struct 'S?' of estimated size '32'.")
                 .WithSpan(1, 76, 1, 80);
 
             await new VerifyCS.Test

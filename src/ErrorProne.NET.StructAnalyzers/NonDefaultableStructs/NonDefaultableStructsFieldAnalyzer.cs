@@ -15,23 +15,10 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     public sealed class NonDefaultableStructsFieldAnalyzer : NonDefaultableStructAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.DoNotEmbedStructsMarkedWithDoUseDefaultConstructionForStruct;
-
-        private const string Title = "Do not embed non-defaultable structs into another structs.";
-
-        private const string Message =
-            "Do not embed a non-defaultable struct '{0}' into another struct.";
-        private const string Description = "Non-defaultable structs should be " +
-                                                     "constructed using a non-default constructor and can not be embedded " +
-                                                     "in other defaultable structs .";
-        
-        private const string Category = "CodeSmell";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static string DiagnosticId => Rule.Id;
 
         /// <nodoc />
-        private static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Message, Category, Severity, isEnabledByDefault: true, description: Description);
+        private static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPS11;
 
         /// <nodoc />
         public NonDefaultableStructsFieldAnalyzer()

@@ -15,19 +15,10 @@ namespace ErrorProne.NET.StructAnalyzers
     public sealed class HiddenStructCopyAnalyzer : DiagnosticAnalyzer
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.HiddenStructCopyDiagnosticId;
-
-        private const string Title = "Hidden struct copy operation";
-        private const string MessageFormat = "An expression '{0}' causes a hidden copy of a {2}struct '{1}' of estimated size '{3}'";
-        private const string Description = "The compiler emits a defensive copy to make sure a struct instance remains unchanged";
-        private const string Category = "Performance";
-        
-        // Using warning for visibility purposes
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPS06;
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule = 
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static string DiagnosticId => DiagnosticDescriptors.EPS06.Id;
         
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);

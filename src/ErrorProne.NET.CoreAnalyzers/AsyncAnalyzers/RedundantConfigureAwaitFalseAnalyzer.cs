@@ -10,25 +10,17 @@ using Microsoft.CodeAnalysis.Text;
 namespace ErrorProne.NET.AsyncAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class RemoveConfigureAwaitAnalyzer : DiagnosticAnalyzerBase
+    public sealed class RedundantConfigureAwaitFalseAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.RedundantConfigureAwait;
-
-        private const string Title = "ConfigureAwait(false) call is redundant.";
-
-        private const string Description = "The assembly is configured not to use .ConfigureAwait(false)";
-        private const string Category = "CodeSmell";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static string DiagnosticId => Rule.Id;
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC14;
 
         /// <nodoc />
-        public RemoveConfigureAwaitAnalyzer()
-            : base(supportFading: true, Rule)
+        public RedundantConfigureAwaitFalseAnalyzer()
+            : base(Rule)
         {
         }
 
@@ -72,7 +64,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                                 TextSpan.FromBounds(nameLocation.Start, argsLocation.SourceSpan.End));
                         }
 
-                        var diagnostic = Diagnostic.Create(UnnecessaryWithSuggestionDescriptor!, location);
+                        var diagnostic = Diagnostic.Create(Rule, location);
                         context.ReportDiagnostic(diagnostic);
                     }
                 }

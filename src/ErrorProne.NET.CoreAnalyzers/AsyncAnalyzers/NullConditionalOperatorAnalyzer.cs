@@ -10,18 +10,10 @@ namespace ErrorProne.NET.AsyncAnalyzers
     public sealed class NullConditionalOperatorAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.NullCoalescingOperatorForAsyncMethods;
-
-        private const string Title = "Awaiting the result of a null-conditional expression will cause NullReferenceException.";
-
-        private const string Description = "Null-conditional operator returns null when 'lhs' is null, causing NRE when a task is awaited.";
-        private const string Category = "CodeSmell";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static string DiagnosticId => Rule.Id;
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC16;
 
         /// <nodoc />
         public NullConditionalOperatorAnalyzer()

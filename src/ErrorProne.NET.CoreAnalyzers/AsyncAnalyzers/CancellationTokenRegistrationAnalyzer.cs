@@ -22,18 +22,10 @@ namespace ErrorProne.NET.AsyncAnalyzers
     public sealed class CancellationTokenRegistrationAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.CancellationTokenRegistrationIssue;
-
-        private const string Title = "Observe and Dispose a 'CancellationTokenRegistration' to avoid memory leaks.";
-
-        private const string Description = "Failure to dispose 'CancellationTokenRegistration' may cause a memory leak if obtained from a non-local token.";
-        private const string Category = "Performance";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static string DiagnosticId => Rule.Id;
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC19;
 
         /// <nodoc />
         public CancellationTokenRegistrationAnalyzer()

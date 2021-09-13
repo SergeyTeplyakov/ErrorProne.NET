@@ -45,7 +45,7 @@ class Foo {
 }";
 
             var expected = VerifyCS.Diagnostic(UseInModifierForReadOnlyStructAnalyzer.DiagnosticId)
-                .WithMessage("Use in-modifier for passing a readonly struct 'S' of estimated size '24'")
+                .WithMessage("Use in-modifier for passing a readonly struct 'S' of estimated size '24'.")
                 .WithSpan(9, 27, 9, 30).WithArguments("S", "24");
 
             await new VerifyCS.Test
@@ -78,7 +78,7 @@ class Foo {
 }";
 
             var expected = VerifyCS.Diagnostic(UseInModifierForReadOnlyStructAnalyzer.DiagnosticId)
-                .WithMessage("Use in-modifier for passing a readonly struct 'S2' of estimated size '32'")
+                .WithMessage("Use in-modifier for passing a readonly struct 'S2' of estimated size '32'.")
                 .WithSpan(14, 27, 14, 31);
 
             await new VerifyCS.Test
@@ -106,7 +106,7 @@ class Foo {
 }";
 
             var expected = VerifyCS.Diagnostic(UseInModifierForReadOnlyStructAnalyzer.DiagnosticId)
-                .WithMessage("Use in-modifier for passing a readonly struct 'S' of estimated size '24'")
+                .WithMessage("Use in-modifier for passing a readonly struct 'S' of estimated size '24'.")
                 .WithSpan(9, 27, 9, 30);
 
             await new VerifyCS.Test

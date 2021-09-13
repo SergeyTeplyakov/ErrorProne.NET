@@ -12,18 +12,10 @@ namespace ErrorProne.NET.AsyncAnalyzers
     public sealed class AsyncVoidDelegateAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.AsyncVoidDelegate;
-
-        private const string Title = "Avoid async-void delegates";
-
-        private const string Description = "Async-void delegates can cause application to crash.";
-        private const string Category = "CodeSmell";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static string DiagnosticId => Rule.Id;
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC17;
 
         /// <nodoc />
         public AsyncVoidDelegateAnalyzer()
@@ -42,7 +34,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             var anonymousFunction = (IAnonymousFunctionOperation) context.Operation;
             if (anonymousFunction.Symbol.IsAsync && anonymousFunction.Symbol.ReturnsVoid)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, anonymousFunction.Syntax.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(Rule, anonymousFunction.Syntax.GetLocation()));
             }
         }
     }

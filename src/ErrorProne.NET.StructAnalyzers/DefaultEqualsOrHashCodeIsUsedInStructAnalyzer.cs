@@ -17,18 +17,10 @@ namespace ErrorProne.NET.StructAnalyzers
     public sealed class DefaultEqualsOrHashCodeIsUsedInStructAnalyzer : DiagnosticAnalyzer
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.DefaultEqualsOrHashCodeIsUsedInStructDiagnosticId;
-
-        private const string Title = "Default 'ValueType.Equals' or 'HashCode' is used for struct equality";
-        private const string MessageFormat = "The default 'ValueType.{0}' is used in {1}.";
-        private const string Description = "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.";
-        private const string Category = "Performance";
-        
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static string DiagnosticId => Rule.Id;
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule = 
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPS08;
         
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);

@@ -3,7 +3,7 @@ using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.NET.AsyncAnalyzers.AddConfigureAwaitAnalyzer,
+    ErrorProne.NET.AsyncAnalyzers.ConfigureAwaitRequiredAnalyzer,
     ErrorProne.NET.AsyncAnalyzers.AddConfigureAwaitCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
@@ -41,7 +41,7 @@ public class MyClass
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(AddConfigureAwaitAnalyzer.Rule).WithSpan(7, 8, 7, 51),
+                        VerifyCS.Diagnostic(ConfigureAwaitRequiredAnalyzer.Rule).WithSpan(7, 8, 7, 51),
                     },
                 },
                 FixedState =
