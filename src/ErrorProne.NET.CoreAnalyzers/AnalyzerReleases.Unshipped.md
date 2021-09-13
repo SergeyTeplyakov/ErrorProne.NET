@@ -7,12 +7,12 @@ Rule ID | Category | Severity | Notes
 EPC11 | CodeSmell | Warning | SuspiciousEqualsMethodAnalyzer
 EPC12 | CodeSmell | Warning | SuspiciousExceptionHandlingAnalyzer
 EPC13 | CodeSmell | Warning | UnobservedResultAnalyzer
-EPC14 | CodeSmell | Warning | RemoveConfigureAwaitAnalyzer
+EPC14 | CodeSmell | Info | RemoveConfigureAwaitAnalyzer
 EPC15 | CodeSmell | Warning | AddConfigureAwaitAnalyzer
 EPC16 | CodeSmell | Warning | NullConditionalOperatorAnalyzer
 EPC17 | CodeSmell | Warning | AsyncVoidLambdaAnalyzer
 EPC18 | CodeSmell | Warning | TaskInstanceToStringConversionAnalyzer
-EPC19 | Performance | Warning | CancellationTokenRegistrationAnalyzer
+EPC19 | CodeSmell | Warning | CancellationTokenRegistrationAnalyzer
 ERP021 | CodeSmell | Warning | ThrowExAnalyzer
 ERP022 | CodeSmell | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer

@@ -29,8 +29,7 @@ class FooBar {
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.DiagnosticDescriptor).WithSpan(5, 57, 5, 58).WithArguments("e"),
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.DiagnosticDescriptor).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(5, 59, 5, 66).WithMessage("bar"),
+                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(5, 59, 5, 66).WithArguments("e"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
@@ -54,8 +53,7 @@ class FooBar {
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.DiagnosticDescriptor).WithSpan(5, 66, 5, 67).WithArguments("e"),
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.DiagnosticDescriptor).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(5, 68, 5, 75).WithMessage("bar"),
+                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(5, 68, 5, 75).WithArguments("e"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
@@ -79,8 +77,7 @@ class FooBar {
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.DiagnosticDescriptor).WithSpan(5, 84, 5, 85).WithArguments("e"),
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.DiagnosticDescriptor).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(5, 86, 5, 93).WithMessage("bar"),
+                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(5, 86, 5, 93).WithArguments("e"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
@@ -104,8 +101,7 @@ class FooBar {
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.DiagnosticDescriptor).WithSpan(5, 65, 5, 66).WithArguments("e"),
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.DiagnosticDescriptor).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(5, 67, 5, 74).WithMessage("bar"),
+                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(5, 67, 5, 74).WithArguments("e"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();

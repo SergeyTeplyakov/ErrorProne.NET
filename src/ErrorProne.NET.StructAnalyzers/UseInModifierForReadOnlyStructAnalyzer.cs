@@ -11,22 +11,14 @@ namespace ErrorProne.NET.StructAnalyzers
     public class UseInModifierForReadOnlyStructAnalyzer : DiagnosticAnalyzer
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.UseInModifierForReadOnlyStructDiagnosticId;
-
-        private const string Title = "Use in-modifier for a readonly struct";
-        private const string MessageFormat = "Use in-modifier for passing a readonly struct '{0}' of estimated size '{1}'";
-        private const string Description = "Readonly structs have better performance when passed readonly reference";
-        private const string Category = "Performance";
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPS05;
         
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Info;
-
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule = 
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static string DiagnosticId => Rule.Id;
 
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
-        
+
         /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
@@ -74,15 +66,15 @@ namespace ErrorProne.NET.StructAnalyzers
             var largeStructThreshold = Settings.GetLargeStructThresholdOrDefault(context.TryGetAnalyzerConfigOptions());
 
             // Should analyze only subset of methods, not all of them.
-            if (method.MethodKind == MethodKind.Ordinary || method.MethodKind == MethodKind.AnonymousFunction ||
-                method.MethodKind == MethodKind.LambdaMethod || method.MethodKind == MethodKind.LocalFunction ||
-                method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.UserDefinedOperator)
+            if (method.MethodKind is MethodKind.Ordinary or MethodKind.AnonymousFunction or MethodKind.LambdaMethod or
+                MethodKind.LocalFunction or MethodKind.PropertyGet or MethodKind.UserDefinedOperator)
             {
                 foreach (var p in method.Parameters)
                 {
                     if (!ParameterIsCapturedByAnonymousMethod(p, method, semanticModel))
                     {
-                        WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, p, diagnostic => context.ReportDiagnostic(diagnostic));
+                        WarnIfParameterIsReadOnly(context.Compilation, largeStructThreshold, p,
+                            diagnostic => context.ReportDiagnostic(diagnostic));
                     }
                 }
             }

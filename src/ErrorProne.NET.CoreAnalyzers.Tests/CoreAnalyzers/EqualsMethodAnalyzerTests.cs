@@ -12,8 +12,10 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests
     [TestFixture]
     public class EqualsMethodAnalyzerTests
     {
+        private static string DiagnosticId => SuspiciousEqualsMethodAnalyzer.Rule.Id;
+
         [Test]
-        public async Task Warn_For_Strongly_Typed_Equalsl()
+        public async Task Warn_For_Strongly_Typed_Equals()
         {
             string code = @"
 public class MyS : System.IEquatable<MyS>
@@ -29,7 +31,7 @@ public class MyS : System.IEquatable<MyS>
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.InstanceMembersAreNotUsedRule).WithSpan(5, 17, 5, 23),
+                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(5, 17, 5, 23).WithArguments("Instance members are not used"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
@@ -110,7 +112,7 @@ class FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.InstanceMembersAreNotUsedRule).WithSpan(9, 26, 9, 32),
+                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(9, 26, 9, 32).WithArguments("Instance members are not used"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
@@ -140,7 +142,7 @@ class FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.InstanceMembersAreNotUsedRule).WithSpan(9, 26, 9, 32),
+                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(9, 26, 9, 32).WithArguments("Instance members are not used"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
@@ -167,7 +169,7 @@ class FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.InstanceMembersAreNotUsedRule).WithSpan(6, 26, 6, 32),
+                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(6, 26, 6, 32).WithArguments("Instance members are not used"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
@@ -216,7 +218,7 @@ struct FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.InstanceMembersAreNotUsedRule).WithSpan(9, 26, 9, 32),
+                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(9, 26, 9, 32).WithArguments("Instance members are not used"),
                         DiagnosticResult.CompilerError("CS0077").WithSpan(12, 80, 12, 93).WithMessage("The as operator must be used with a reference type or nullable type ('FooBar' is a non-nullable value type)"),
                     },
                 },
@@ -304,8 +306,7 @@ class FooBar
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.RightHandSideIsNotUsedRule).WithSpan(9, 40, 9, 43).WithArguments("obj"),
-                        VerifyCS.Diagnostic(SuspiciousEqualsMethodAnalyzer.RightHandSideIsNotUsedRule).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(9, 40, 9, 43).WithMessage("bar"),
+                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(9, 40, 9, 43).WithArguments("right hand side parameter 'obj' is never used"),
                     },
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();

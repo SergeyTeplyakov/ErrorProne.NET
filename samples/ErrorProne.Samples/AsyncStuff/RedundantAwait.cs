@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+[assembly: DoNotUseConfigureAwaitFalse]
+
 namespace ErrorProne.Samples.AsyncStuff
 {
     public class RedundantAwait
@@ -8,6 +10,7 @@ namespace ErrorProne.Samples.AsyncStuff
         public async Task<int> FooAsync(string s)
         {
             ConfiguredTaskAwaitable<int> tsk = Task.FromResult(1).ConfigureAwait(false);
+
             var x = tsk.GetAwaiter().GetResult();
             if (s == null) return await Task.FromResult(1).ConfigureAwait(false);
 

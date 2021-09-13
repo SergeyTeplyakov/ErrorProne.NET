@@ -10,25 +10,17 @@ using CompilationExtensions = ErrorProne.NET.Core.CompilationExtensions;
 namespace ErrorProne.NET.AsyncAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class AddConfigureAwaitAnalyzer : DiagnosticAnalyzerBase
+    public sealed class ConfigureAwaitRequiredAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.ConfigureAwaitFalseMustBeUsed;
-
-        private const string Title = "ConfigureAwait(false) must be used.";
-
-        private const string Description = "The assembly is configured to use .ConfigureAwait(false)";
-        private const string Category = "CodeSmell";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static string DiagnosticId => Rule.Id;
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC15;
 
         /// <nodoc />
-        public AddConfigureAwaitAnalyzer()
-            : base(supportFading: true, Rule)
+        public ConfigureAwaitRequiredAnalyzer()
+            : base(Rule)
         {
         }
 

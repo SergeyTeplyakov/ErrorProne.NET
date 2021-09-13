@@ -13,21 +13,10 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
     public sealed class NonDefaultableStructsCreationAnalyzer : NonDefaultableStructAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.DoNotUseDefaultConstructionForStruct;
-
-        private const string Title = "Do not construct non-defaultable struct with 'default' expression.";
-
-        private const string Message =
-            "Do not construct non-defaultable struct '{0}' with 'deault' expression.{1}";
-        private const string Description = "Non-defaultable structs can not be constructed using the default constructor or default(T) expression.";
-        
-        private const string Category = "CodeSmell";
-
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+        public static string DiagnosticId => Rule.Id;
 
         /// <nodoc />
-        private static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Message, Category, Severity, isEnabledByDefault: true, description: Description);
+        private static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPS10;
 
         /// <nodoc />
         public NonDefaultableStructsCreationAnalyzer()

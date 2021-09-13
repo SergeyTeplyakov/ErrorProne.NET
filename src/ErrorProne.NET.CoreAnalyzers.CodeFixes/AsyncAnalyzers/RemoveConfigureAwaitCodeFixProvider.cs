@@ -13,15 +13,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace ErrorProne.NET.AsyncAnalyzers
 {
     /// <summary>
-    /// A fixer for <see cref="RemoveConfigureAwaitAnalyzer"/>.
+    /// A fixer for <see cref="RedundantConfigureAwaitFalseAnalyzer"/>.
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RemoveConfigureAwaitAnalyzer)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RedundantConfigureAwaitFalseAnalyzer)), Shared]
     public class RemoveConfigureAwaitCodeFixProvider : CodeFixProvider
     {
         public const string RemoveConfigureAwaitTitle = "Remove redundant ConfigureAwait(false).";
 
         /// <inheritdoc />
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RemoveConfigureAwaitAnalyzer.DiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RedundantConfigureAwaitFalseAnalyzer.DiagnosticId);
 
         /// <inheritdoc />
         public override Task RegisterCodeFixesAsync(CodeFixContext context)

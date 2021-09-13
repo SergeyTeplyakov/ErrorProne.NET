@@ -18,30 +18,11 @@ namespace ErrorProne.NET.CoreAnalyzers
     public sealed class SuspiciousEqualsMethodAnalyzer : DiagnosticAnalyzerBase
     {
         /// <nodoc />
-        public const string DiagnosticId = DiagnosticIds.SuspiciousEqualsMethodImplementation;
-
-        private const string RhsTitle = "Suspicious equality implementation: Equals method does not use rhs-parameter.";
-        private const string RhsMessageFormat = "Suspicious equality implementation: parameter '{0}' is never used.";
-        private const string RhsDescription = "Equals method implementation that does not uses another instance is suspicious.";
-
-        private const string Title = "Suspicious equality implementation: no instance members are used.";
-        private const string Description = "Equals method implementation that does not uses any instance members is suspicious.";
-        private const string Category = "CodeSmell";
-
-        // Using warning for visibility purposes
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
-
-        /// <nodoc />
-        internal static readonly DiagnosticDescriptor InstanceMembersAreNotUsedRule =
-            new DiagnosticDescriptor(DiagnosticId, Title, Title, Category, Severity, isEnabledByDefault: true, description: Description);
-
-        /// <nodoc />
-        internal static readonly DiagnosticDescriptor RightHandSideIsNotUsedRule =
-            new DiagnosticDescriptor(DiagnosticId, RhsTitle, RhsMessageFormat, Category, Severity, isEnabledByDefault: true, description: RhsDescription);
+        internal static readonly DiagnosticDescriptor Rule = DiagnosticDescriptors.EPC11;
 
         /// <nodoc />
         public SuspiciousEqualsMethodAnalyzer()
-            : base(supportFading: true, InstanceMembersAreNotUsedRule, RightHandSideIsNotUsedRule)
+            : base(Rule)
         {
         }
 
@@ -75,8 +56,9 @@ namespace ErrorProne.NET.CoreAnalyzers
                                 if (!isInstanceReferenced)
                                 {
                                     var diagnostic = Diagnostic.Create(
-                                        InstanceMembersAreNotUsedRule,
-                                        ms.Locations[0]);
+                                        Rule,
+                                        ms.Locations[0],
+                                        "Instance members are not used");
 
                                     context.ReportDiagnostic(diagnostic);
                                 }
@@ -98,18 +80,11 @@ namespace ErrorProne.NET.CoreAnalyzers
 
                                     // 'obj' is not used
                                     var diagnostic = Diagnostic.Create(
-                                        RightHandSideIsNotUsedRule,
+                                        Rule,
                                         location,
-                                        ms.Parameters[0].Name);
+                                        $"right hand side parameter '{ms.Parameters[0].Name}' is never used");
 
                                     context.ReportDiagnostic(diagnostic);
-
-                                    // Fading 'obj' away
-
-                                    context.ReportDiagnostic(
-                                        Diagnostic.Create(
-                                            UnnecessaryWithSuggestionDescriptor!,
-                                            location));
                                 }
                             });
                         }
@@ -120,8 +95,7 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         private static bool OverridesEquals(IMethodSymbol method, Compilation compilation)
             => method.IsOverride &&
-               method.OverriddenMethod != null &&
-               method.OverriddenMethod.Name == "Equals" &&
+               method.OverriddenMethod?.Name == "Equals" &&
                (method.OverriddenMethod.ContainingType.IsSystemObject() ||
                 method.OverriddenMethod.ContainingType.IsSystemValueType(compilation));
 

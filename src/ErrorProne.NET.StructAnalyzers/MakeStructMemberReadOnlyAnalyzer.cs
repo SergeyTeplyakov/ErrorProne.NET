@@ -19,7 +19,7 @@ namespace ErrorProne.NET.StructAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MakeStructMemberReadOnlyAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = DiagnosticIds.MakeStructMemberReadOnly;
+        public const string DiagnosticId = "EPS12";
 
         private const string Title = "A struct member can be made readonly";
         private const string MessageFormat = "A {0} can be made readonly for struct {1} of size {2}";

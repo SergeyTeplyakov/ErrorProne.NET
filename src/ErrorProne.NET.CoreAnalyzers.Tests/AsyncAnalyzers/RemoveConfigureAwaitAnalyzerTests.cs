@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.NET.AsyncAnalyzers.RemoveConfigureAwaitAnalyzer,
+    ErrorProne.NET.AsyncAnalyzers.RedundantConfigureAwaitFalseAnalyzer,
     ErrorProne.NET.AsyncAnalyzers.RemoveConfigureAwaitCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
@@ -33,7 +33,7 @@ public class MyClass
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(RemoveConfigureAwaitAnalyzer.Rule).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(8, 52, 8, 73).WithMessage("bar"),
+                        VerifyCS.Diagnostic(RedundantConfigureAwaitFalseAnalyzer.Rule).WithSpan(8, 52, 8, 73),
                     },
                 },
             }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
@@ -61,7 +61,7 @@ public class MyClass
                     Sources = { code },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(RemoveConfigureAwaitAnalyzer.Rule).WithSeverity(DiagnosticSeverity.Hidden).WithSpan(9, 21, 9, 42).WithMessage("bar"),
+                        VerifyCS.Diagnostic(RedundantConfigureAwaitFalseAnalyzer.Rule).WithSpan(9, 21, 9, 42),
                     },
                 },
             }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();

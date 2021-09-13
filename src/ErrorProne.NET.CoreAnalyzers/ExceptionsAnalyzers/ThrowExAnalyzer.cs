@@ -12,14 +12,8 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ThrowExAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = DiagnosticIds.IncorrectExceptionPropagation;
-
-        internal const string Title = "Incorrect exception propagation";
-        public const string MessageFormat = "Incorrect exception propagation. Use 'throw;' instead.";
-        internal const string Category = "CodeSmell";
-
-        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        public static string DiagnosticId => Rule.Id;
+        internal static DiagnosticDescriptor Rule => DiagnosticDescriptors.ERP021;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -51,7 +45,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
             foreach (var throwStatement in catchClause.DescendantNodes().OfType<ThrowStatementSyntax>())
             {
-                if (!(throwStatement.Expression is IdentifierNameSyntax identifier))
+                if (throwStatement.Expression is not IdentifierNameSyntax identifier)
                 {
                     continue;
                 }

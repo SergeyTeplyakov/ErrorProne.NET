@@ -1,6 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics.ContractsLight;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -11,78 +9,22 @@ namespace ErrorProne.NET.CoreAnalyzers
     /// </summary>
     public abstract class DiagnosticAnalyzerBase : DiagnosticAnalyzer
     {
-        /// <nodoc />
-        protected readonly string DescriptorId;
-
-        /// <nodoc />
-        protected readonly DiagnosticDescriptor Descriptor;
-
-        /// <summary>
-        /// Diagnostic descriptor for fading code.
-        /// </summary>
-        protected readonly DiagnosticDescriptor? UnnecessaryWithSuggestionDescriptor;
-
-        /// <nodoc />
-        protected readonly DiagnosticDescriptor? UnnecessaryWithoutSuggestionDescriptor;
-
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         /// <nodoc />
-        protected DiagnosticAnalyzerBase(
-            DiagnosticDescriptor descriptor, params DiagnosticDescriptor[] diagnostics)
-        : this(supportFading: false, new []{descriptor}.Concat(diagnostics).ToArray())
+        protected DiagnosticAnalyzerBase(DiagnosticDescriptor descriptor)
         {
+            SupportedDiagnostics = ImmutableArray.Create(descriptor);
         }
         
         /// <nodoc />
-        protected DiagnosticAnalyzerBase(
-            bool supportFading,
-            params DiagnosticDescriptor[] diagnostics)
+        protected DiagnosticAnalyzerBase(params DiagnosticDescriptor[] diagnostics)
         {
-            Contract.Requires(diagnostics.Length != 0);
-
-            Descriptor = diagnostics[0];
-            DescriptorId = Descriptor.Id;
-            var supportedDiagnostics = diagnostics.ToImmutableArray();
-            if (supportFading)
-            {
-                UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor();
-                UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(DescriptorId + "WithoutSuggestion");
-                supportedDiagnostics = supportedDiagnostics.Add(UnnecessaryWithoutSuggestionDescriptor).Add(UnnecessaryWithSuggestionDescriptor);
-            }
-
-            SupportedDiagnostics = supportedDiagnostics;
+            SupportedDiagnostics = ImmutableArray.Create(diagnostics);
         }
 
-        /// <nodoc />
-        protected static DiagnosticDescriptor CreateDescriptorWithId(
-            string id,
-            LocalizableString title,
-            LocalizableString messageFormat,
-            params string[] customTags)
-        {
-            return new DiagnosticDescriptor(
-                id, 
-                title, 
-                messageFormat,
-                "Style",
-                DiagnosticSeverity.Hidden,
-                isEnabledByDefault: true,
-                customTags: customTags);
-        }
-
-        /// <nodoc />
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor()
-            => CreateUnnecessaryDescriptor(DescriptorId);
-
-        /// <nodoc />
-        protected static DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
-            => CreateDescriptorWithId(
-                descriptorId, "foo", "bar",
-                //descriptorId, _localizableTitle, _localizableMessageFormat,
-                WellKnownDiagnosticTags.Unnecessary);
-
+        /// <inheritdoc />
         public sealed override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
@@ -92,6 +34,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             InitializeCore(context);
         }
 
+        /// <nodoc />
         protected abstract void InitializeCore(AnalysisContext context);
     }
 }

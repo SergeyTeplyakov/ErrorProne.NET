@@ -10,17 +10,10 @@ namespace ErrorProne.NET.StructAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ExplicitInParameterAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = DiagnosticIds.ExplicitInParameterDiagnosticId;
-
-        private const string Title = "Pass an argument for an 'in' parameter explicitly";
-        private const string MessageFormat = "An argument for a parameter '{0}' may be passed explicitly";
-        private const string Description = "Pass an argument for an 'in' parameters explicitly";
-        private const string Category = "Usage";
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Info;
-
         /// <nodoc />
-        public static readonly DiagnosticDescriptor Rule =
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static string DiagnosticId => Rule.Id;
+        /// <nodoc />
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPS09;
 
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
