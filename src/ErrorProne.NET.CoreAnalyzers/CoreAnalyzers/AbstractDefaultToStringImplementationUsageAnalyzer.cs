@@ -67,13 +67,13 @@ namespace ErrorProne.NET.AsyncAnalyzers
         {
             // This method checks for "something" + taskLikeThing;
             // or string.Format("{0}", taskLikeThing);
-            if (context.Operation is IConversionOperation conversion)
+            if (context.Operation is IConversionOperation conversion && conversion.Type?.SpecialType is SpecialType.System_String or SpecialType.System_Object)
             {
                 // A dangerous conversion is happening when the type of the type of the parent operation is string,
                 // like in "FooBar: " + FooBarAsync()
                 // Or the type of the grand parent operation is string,
                 // like in string.Format("{0}", FooBarAsync())
-                if ((isString(conversion.Parent) || isString(conversion.Parent?.Parent)))
+                if ((isToStringConversion(conversion.Parent)) && conversion.Operand.Type is not null)
                 {
                     if (TryCreateDiagnostic(
                             context.Compilation,
@@ -102,7 +102,23 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 }
             }
 
-            static bool isString(IOperation? operation) => operation?.Type?.SpecialType == SpecialType.System_String;
+            static bool isToStringConversion(IOperation? operation)
+            {
+                if (operation?.Type?.SpecialType == SpecialType.System_String)
+                {
+                    return true;
+                }
+
+                if (operation?.Parent is IInvocationOperation invocation &&
+                    invocation.TargetMethod.Name == nameof(string.Format) &&
+                    invocation.TargetMethod.ReceiverType?.SpecialType == SpecialType.System_String)
+                {
+                    // Special casing 'string.Format'.
+                    return true;
+                }
+
+                return false;
+            }
         }
     }
 }

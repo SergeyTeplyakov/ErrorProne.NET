@@ -20,6 +20,9 @@ namespace ErrorProne.NET.AsyncAnalyzers
         /// <nodoc />
         public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC20;
 
+        /// <inheritdoc />
+        public override bool ReportDiagnosticsOnGeneratedCode { get; } = true;
+
         /// <nodoc />
         public DefaultToStringImplementationUsageAnalyzer()
             : base(Rule)
@@ -30,7 +33,25 @@ namespace ErrorProne.NET.AsyncAnalyzers
         protected override bool TryCreateDiagnostic(Compilation compilation, ITypeSymbol type, Location location, [NotNullWhen(true)]out Diagnostic? diagnostic)
         {
             diagnostic = null;
-            
+
+            if (type.SpecialType == SpecialType.System_Object)
+            {
+                // Its fine to call 'ToString' or do the conversion from 'object'.
+                return false;
+            }
+
+            if (type.IsAbstract)
+            {
+                // We can't emit a warning for abstract types or interfaces, because we don't know if the derive type would have a custom ToString impl or not.
+                return false;
+            }
+
+            if (type.TypeKind == TypeKind.TypeParameter)
+            {
+                // Can't assume anything about the generic types as well.
+                return false;
+            }
+
             if (NoToStringOverride(type, out var typeWithNoToString))
             {
                 diagnostic = Diagnostic.Create(Rule, location, typeWithNoToString);

@@ -10,6 +10,115 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
     public class DefaultToStringConversionAnalyzerTests
     {
         [Test]
+        public async Task NoWarnOnEnum()
+        {
+            var test = @"
+enum Task {}
+class Test {
+    public static string Foo(Task tsk) => tsk.ToString();
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarnOnLast()
+        {
+            var test = @"
+using System.Linq;
+class Test {
+    private readonly string _s;
+    public Test(string[] s)
+    {
+        _s = s.Last();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarnOnEquality()
+        {
+            var test = @"
+public class Task {}
+class Test {
+    public string Foo(Task tsk) => tsk == null ? 1.ToString() : 2.ToString();
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarnOnCastFromObject()
+        {
+            var test = @"
+using System.Linq;
+class Test {
+    private readonly string _s;
+    public Test(object s)
+    {
+        _s = (string)s;
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarnOnInterfaceOrAbstractClass()
+        {
+            var test = @"
+interface IFoo {}
+abstract class Foo {}
+class Test {
+    private readonly string _s;
+    public Test(IFoo foo, Foo foo2)
+    {
+        _s = foo.ToString();
+        _s = foo2.ToString();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarnOnGenerics()
+        {
+            var test = @"
+class Test<T> {
+    private readonly string _s;
+    public Test(T foo)
+    {
+        _s = foo.ToString();
+    }
+
+    public string Foo<U>(U foo)
+    {
+        return foo.ToString();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NullFieldAssignment()
+        {
+            var test = @"
+class Test {
+    private readonly string _s;
+    public Test()
+    {
+        _s = null;
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
         public async Task InterpolatedStringConversionWithMethodCall()
         {
             var test = @"
@@ -103,7 +212,7 @@ class Test {
         }
 
         [Test]
-        public async Task InterpolatedStringConversionReturn()
+        public async Task StringFormatConversion()
         {
             var test = @"
 public class Task {}
