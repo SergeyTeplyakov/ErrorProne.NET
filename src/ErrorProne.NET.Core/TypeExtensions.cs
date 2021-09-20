@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using ErrorProne.NET.Utils;
 using Microsoft.CodeAnalysis;
 
@@ -173,5 +174,33 @@ namespace ErrorProne.NET.Core
             var original = type.OriginalDefinition;
             return original != null && original.SpecialType == SpecialType.System_Nullable_T;
         }
+
+        public static IEnumerable<ITypeSymbol> EnumerateBaseTypesAndSelf(this ITypeSymbol type)
+        {
+            var t = type;
+            while (t != null)
+            {
+                yield return t;
+                t = t.BaseType;
+            }
+        }
+
+        /// <summary>
+        /// Method returns true if a given <paramref name="type"/> overrides <see cref="object.ToString"/> method.
+        /// </summary>
+        /// <remarks>
+        /// This method will return <code>false</code> if <paramref name="type"/> has a derived type that overrides <see cref="object.ToString"/>.
+        /// </remarks>
+        public static bool OverridesToString(this ITypeSymbol type)
+        {
+            if (type.IsStruct())
+            {
+                return type.GetMembers(nameof(ToString)).Any(m => m.IsOverride);
+            }
+            
+            return EnumerateBaseTypesAndSelf(type)
+                .Any(t => t.GetMembers(nameof(ToString)).Any(m => m.IsOverride));
+        }
+
     }
 }

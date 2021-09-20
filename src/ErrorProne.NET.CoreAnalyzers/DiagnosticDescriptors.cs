@@ -87,6 +87,14 @@ namespace ErrorProne.NET
             messageFormat: "Observe and Dispose a 'CancellationTokenRegistration' to avoid memory leaks.", 
             CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
             description: "Failure to dispose 'CancellationTokenRegistration' may cause a memory leak if obtained from a non-local token.");
+        
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC20 = new DiagnosticDescriptor(
+            nameof(EPC20), 
+            title: "Avoid using default ToString implementation.", 
+            messageFormat: "A default ToString implementation is used for type {0}.", 
+            CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
+            description: "A default ToString implementation is rarely gives the result you need.");
 
         /// <nodoc />
         internal static readonly DiagnosticDescriptor ERP021 = new DiagnosticDescriptor(

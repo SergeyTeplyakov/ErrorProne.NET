@@ -1,8 +1,7 @@
-﻿using ErrorProne.NET.Core;
-using ErrorProne.NET.CoreAnalyzers;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
+using ErrorProne.NET.Core;
 
 namespace ErrorProne.NET.AsyncAnalyzers
 {
@@ -13,11 +12,8 @@ namespace ErrorProne.NET.AsyncAnalyzers
     /// Here is an example: <code>var r = FooAsync(); Console.WriteLine($"r: {r}");</code>
     /// </remarks>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class TaskInstanceToStringConversionAnalyzer : DiagnosticAnalyzerBase
+    public sealed class TaskInstanceToStringConversionAnalyzer : AbstractDefaultToStringImplementationUsageAnalyzer
     {
-        /// <nodoc />
-        public static string DiagnosticId => Rule.Id;
-        
         /// <nodoc />
         public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC18;
 
@@ -27,45 +23,16 @@ namespace ErrorProne.NET.AsyncAnalyzers
         {
         }
 
-        /// <inheritdoc />
-        protected override void InitializeCore(AnalysisContext context)
+        protected override bool TryCreateDiagnostic(Compilation compilation, ITypeSymbol type, Location location, [NotNullWhen(true)]out Diagnostic? diagnostic)
         {
-            context.RegisterOperationAction(AnalyzeConversion, OperationKind.Conversion);
-            context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
-        }
+            diagnostic = null;
 
-        private void AnalyzeInterpolation(OperationAnalysisContext context)
-        {
-            // This method checks for $"foobar: {taskLikeThing}";
-            if (context.Operation is IInterpolationOperation interpolationOperation)
+            if (type.IsTaskLike(compilation))
             {
-                if (interpolationOperation.Expression.Type.IsTaskLike(context.Compilation))
-                {
-                    var diagnostic = Diagnostic.Create(Rule, interpolationOperation.Expression.Syntax.GetLocation());
-                    context.ReportDiagnostic(diagnostic);
-                }
-            }
-        }
-
-        private void AnalyzeConversion(OperationAnalysisContext context)
-        {
-            // This method checks for "something" + taskLikeThing;
-            // or string.Format("{0}", taskLikeThing);
-            if (context.Operation is IConversionOperation conversion)
-            {
-                // A dangerous conversion is happening when the type of the type of the parent operation is string,
-                // like in "FooBar: " + FooBarAsync()
-                // Or the type of the grand parent operation is string,
-                // like in string.Format("{0}", FooBarAsync())
-                if (conversion.Operand.Type.IsTaskLike(context.Compilation) && 
-                    (isString(conversion.Parent) || isString(conversion.Parent?.Parent)))
-                {
-                    var diagnostic = Diagnostic.Create(Rule, context.Operation.Syntax.GetLocation());
-                    context.ReportDiagnostic(diagnostic);
-                }
+                diagnostic = Diagnostic.Create(Rule, location);
             }
 
-            static bool isString(IOperation? operation) => operation?.Type?.SpecialType == SpecialType.System_String;
+            return diagnostic != null;
         }
     }
 }

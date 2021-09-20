@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Threading.Tasks;
 using ErrorProne.NET.Core;
@@ -151,7 +149,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                 return false;
             }
 
-            return EnumerateBaseTypesAndSelf(type).Any(t => IsObservableType(t, method, compilation));
+            return type.EnumerateBaseTypesAndSelf().Any(t => IsObservableType(t, method, compilation));
         }
 
         private static bool IsObservableType(ITypeSymbol type, IMethodSymbol? method, Compilation compilation)
@@ -190,17 +188,7 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         private static bool IsException(ITypeSymbol type, Compilation compilation)
         {
-            return EnumerateBaseTypesAndSelf(type).Any(t => t.IsClrType(compilation, typeof(Exception)));
-        }
-
-        public static IEnumerable<ITypeSymbol> EnumerateBaseTypesAndSelf(ITypeSymbol type)
-        {
-            ITypeSymbol? t = type;
-            while (t != null)
-            {
-                yield return t;
-                t = t.BaseType;
-            }
+            return type.EnumerateBaseTypesAndSelf().Any(t => t.IsClrType(compilation, typeof(Exception)));
         }
     }
 
@@ -208,7 +196,6 @@ namespace ErrorProne.NET.CoreAnalyzers
     {
         public static Location GetNodeLocationForDiagnostic(this InvocationExpressionSyntax invocationExpression)
         {
-            Contract.Requires(invocationExpression != null);
             var simpleMemberAccess = invocationExpression.Expression as MemberAccessExpressionSyntax;
             return (simpleMemberAccess?.Name ?? invocationExpression.Expression).GetLocation();
         }

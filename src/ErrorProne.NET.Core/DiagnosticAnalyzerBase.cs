@@ -12,6 +12,11 @@ namespace ErrorProne.NET.CoreAnalyzers
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
+        /// <summary>
+        /// True if the analyzer should be used for generated code as well.
+        /// </summary>
+        public virtual bool ReportDiagnosticsOnGeneratedCode { get; } = true;
+
         /// <nodoc />
         protected DiagnosticAnalyzerBase(DiagnosticDescriptor descriptor)
         {
@@ -28,8 +33,11 @@ namespace ErrorProne.NET.CoreAnalyzers
         public sealed override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
-
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            
+            if (ReportDiagnosticsOnGeneratedCode)
+            {
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            }
 
             InitializeCore(context);
         }
