@@ -115,8 +115,9 @@ namespace ErrorProne.NET.StructAnalyzers
 
             // So we use a mixture of syntax-based and the dataflow-based approaches.
             var mutations = syntax
-                .DescendantNodesAndSelf()
-                // Looking for all expressions but for invocations.
+                .DescendantNodesAndSelf(
+                    descendIntoChildren: n => !(n is AttributeListSyntax))
+                // Looking for all expressions but not for invocations.
                 // All the invocations and the arguments covered separately.
                 .Where(n => n is ExpressionSyntax && !(n is InvocationExpressionSyntax))
                 .ToList();
