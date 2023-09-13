@@ -23,7 +23,7 @@ namespace ErrorProne.NET.Core
 
         public static INamedTypeSymbol? TaskOfTType(this Compilation compilation)
             => compilation.GetTypeByFullName(typeof(Task<>).FullName);
-
+        
         public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByFullName("System.Threading.Tasks.ValueTask`1");
 

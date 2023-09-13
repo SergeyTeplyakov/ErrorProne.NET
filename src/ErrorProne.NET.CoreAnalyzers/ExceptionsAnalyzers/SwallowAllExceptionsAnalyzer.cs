@@ -47,6 +47,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
 
                 StatementSyntax syntax = catchBlock.Block;
                 var controlFlow = context.SemanticModel.AnalyzeControlFlow(syntax);
+                
                 if (controlFlow == null)
                 {
                     return;

@@ -1,10 +1,4 @@
-﻿// --------------------------------------------------------------------
-//  
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-//  
-// --------------------------------------------------------------------
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 

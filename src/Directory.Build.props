@@ -2,7 +2,7 @@
 <Project>
 
   <PropertyGroup>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <Nullable>Enable</Nullable>
     <DebugType>embedded</DebugType>
   </PropertyGroup>

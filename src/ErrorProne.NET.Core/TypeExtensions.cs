@@ -202,5 +202,87 @@ namespace ErrorProne.NET.Core
                 .Any(t => t.GetMembers(nameof(ToString)).Any(m => m.IsOverride));
         }
 
+        /// <summary>
+        /// Return true if a given <paramref name="symbol"/> derives from <paramref name="candidateBaseType"/>.
+        /// </summary>
+        public static bool DerivesFrom([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol, [NotNullWhen(returnValue: true)] ITypeSymbol? candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
+        {
+            if (candidateBaseType == null || symbol == null)
+            {
+                return false;
+            }
+
+            if (!baseTypesOnly && candidateBaseType.TypeKind == TypeKind.Interface)
+            {
+                var allInterfaces = symbol.AllInterfaces.OfType<ITypeSymbol>();
+                if (SymbolEqualityComparer.Default.Equals(candidateBaseType.OriginalDefinition, candidateBaseType))
+                {
+                    // Candidate base type is not a constructed generic type, so use original definition for interfaces.
+                    allInterfaces = allInterfaces.Select(i => i.OriginalDefinition);
+                }
+
+                if (allInterfaces.Contains(candidateBaseType))
+                {
+                    return true;
+                }
+            }
+
+            if (checkTypeParameterConstraints && symbol.TypeKind == TypeKind.TypeParameter)
+            {
+                var typeParameterSymbol = (ITypeParameterSymbol)symbol;
+                foreach (var constraintType in typeParameterSymbol.ConstraintTypes)
+                {
+                    if (constraintType.DerivesFrom(candidateBaseType, baseTypesOnly, checkTypeParameterConstraints))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            while (symbol != null)
+            {
+                if (SymbolEqualityComparer.Default.Equals(symbol, candidateBaseType))
+                {
+                    return true;
+                }
+
+                symbol = symbol.BaseType;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Indicates if the given <paramref name="type"/> is disposable,
+        /// and thus can be used in a <code>using</code> or <code>await using</code> statement.
+        /// </summary>
+        public static bool IsDisposable(this ITypeSymbol type,
+            INamedTypeSymbol? iDisposable,
+            INamedTypeSymbol? iAsyncDisposable,
+            INamedTypeSymbol? configuredAsyncDisposable)
+        {
+            if (type.IsReferenceType)
+            {
+                return IsInterfaceOrImplementsInterface(type, iDisposable)
+                       || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
+            }
+            else if (SymbolEqualityComparer.Default.Equals(type, configuredAsyncDisposable))
+            {
+                return true;
+            }
+
+            if (type.IsRefLikeType)
+            {
+                return type.GetMembers("Dispose").OfType<IMethodSymbol>()
+                    .Any(method => method.HasDisposeSignatureByConvention());
+            }
+
+            return false;
+
+            static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
+                => interfaceType != null &&
+                   (SymbolEqualityComparer.Default.Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
+        }
+
     }
 }

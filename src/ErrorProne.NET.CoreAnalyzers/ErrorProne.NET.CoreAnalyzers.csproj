@@ -12,7 +12,23 @@
       incompatible changes on the "core" level
    -->
   <ItemGroup>
-    <Compile Include="..\ErrorProne.NET.Core\**.cs" Label="Core" />
+    <Compile Include="..\ErrorProne.NET.Core\AnalyzerConfigOptionsExtensions.cs" Link="Core\AnalyzerConfigOptionsExtensions.cs" Label="Core" />
+    <Compile Include="..\ErrorProne.NET.Core\BodySyntaxExtensions.cs" Link="Core\BodySyntaxExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\CastUtilities.cs" Link="Core\CastUtilities.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\CompilationExtensions.cs" Link="Core\CompilationExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\DiagnosticAnalyzerBase.cs" Link="Core\DiagnosticAnalyzerBase.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\ErrorProneAttributes.cs" Link="Core\ErrorProneAttributes.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\FlowAnalysisExtensions.cs" Link="Core\FlowAnalysisExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\MethodDeclarationSyntaxExtensions.cs" Link="Core\MethodDeclarationSyntaxExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\NamedSymbolExtensions.cs" Link="Core\NamedSymbolExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\StructSizeCalculator.cs" Link="Core\StructSizeCalculator.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\SymbolAnalysisContextExtensions.cs" Link="Core\SymbolAnalysisContextExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\SymbolExtensions.cs" Link="Core\SymbolExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\SyntaxFactoryExtensions.cs" Link="Core\SyntaxFactoryExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\SyntaxNodeExtensions.cs" Link="Core\SyntaxNodeExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\TypeExtensions.cs" Link="Core\TypeExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\ValueTypeEqualityImplementations.cs" Link="Core\ValueTypeEqualityImplementations.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\WellKnownTypesProvider.cs" Link="Core\WellKnownTypesProvider.cs" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.5.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0" PrivateAssets="all" />
   </ItemGroup>

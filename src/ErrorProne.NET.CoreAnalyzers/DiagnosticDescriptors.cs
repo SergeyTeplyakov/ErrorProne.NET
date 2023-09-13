@@ -9,6 +9,7 @@ namespace ErrorProne.NET
     {
         private const string CodeSmellCategory = "CodeSmell";
         private const string ConcurrencyCategory = "Concurrency";
+        private const string ReliabilityCategory = "Reliability";
         private static readonly string[] UnnecessaryTag = new [] { WellKnownDiagnosticTags.Unnecessary };
 
         /// <nodoc />
@@ -119,5 +120,16 @@ namespace ErrorProne.NET
             messageFormat: "The API is not thread-safe.{0}", 
             ConcurrencyCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
             description: "The API is not thread safe and can cause runtime failures.");
+
+        /// <summary>
+        /// A <see cref="DiagnosticDescriptor"/> CA2000-like rule.
+        /// </summary>
+        public static readonly DiagnosticDescriptor ERP041 = new DiagnosticDescriptor(
+            nameof(ERP041),
+            title: "Dispose objects before losing scope",
+            messageFormat: "A local variable {0} must be disposed before losing scope",
+            ReliabilityCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "If a disposable object is not explicitly disposed before all references to it are out of scope, " +
+                         "the object will be disposed at some indeterminate time when the garbage collector runs the finalizer of the object.");
     }
 }
