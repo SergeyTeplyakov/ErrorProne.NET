@@ -12,11 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.5.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.5.0" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.5.5" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.6.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.6.0" />
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.0.3" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.5" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +24,12 @@
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers.CodeFixes\ErrorProne.NET.StructAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.StructAnalyzers\ErrorProne.NET.StructAnalyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="ILRepack.Lib.MSBuild" Version="2.1.18" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
+    <PackageReference Update="RuntimeContracts" Version="0.5.0" />
   </ItemGroup>
 
 </Project>

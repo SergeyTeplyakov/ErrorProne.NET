@@ -14,7 +14,7 @@
       <!--<InternalizeExcludeAssemblies Include="RuntimeContracts" />-->
     </ItemGroup>
     <Message Text="MERGING: @(InputAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
-    <ILRepack 
+    <!--<ILRepack 
       Parallel="true"
       DebugInfo="true"
       InputAssemblies="@(InputAssemblies)"
@@ -22,7 +22,7 @@
       OutputFile="$(TargetDir)$(AssemblyName).dll"
       Verbose="true"
       LogFile="$(TargetDir)replacklog.txt"
-      internalize="true" />
+      internalize="true" />-->
 
   </Target>
 

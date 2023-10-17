@@ -76,6 +76,8 @@ Correct exception handling is a very complex topic, but one case that is very co
 
 To avoid this anti-pattern, the analyzer will warn you if the code only traces the `Exception` property without "looking inside":
 
+**EPC12  - Suspicious exception handling: only '' is observed in the catch block.**
+
 ```csharp
 try
 {
@@ -87,7 +89,9 @@ catch (Exception e)
     Console.WriteLine(e.Message);
     //                  ~~~~~~~
 }
-
+```
+**ERP022 - swallows an unobserved exception.**
+```csharp
 try
 {
     Console.WriteLine();
@@ -98,7 +102,9 @@ catch (Exception e)
     return;
 //  ~~~~~~
 }
-
+```
+**ERP021 - incorrect exception propagation. Use 'throw;' instead**
+```csharp
 try
 {
     Console.WriteLine();

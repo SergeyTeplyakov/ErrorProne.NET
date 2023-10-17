@@ -106,7 +106,35 @@ class FooBar {
                 },
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
-
+        [Test]
+        public async Task Warn_On_Anonymous_Usage_Of_ExceptionMessage()
+        {
+            string code = @"
+using System.Collections;
+using System;
+class Test
+{
+    public ArrayList LoadList(string key, string subKey = """") {
+      var errors=new ArrayList();
+      try { new object();
+      } catch (Exception exception) {
+        errors.Add($""{new { key, subKey, exception.Message }}"");
+      }
+    return errors;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(10, 52, 10, 59).WithArguments("exception"),
+                    },
+                },
+            }.WithoutGeneratedCodeVerification().RunAsync();
+        }
         [Test]
         public async Task NoWarn_When_Only_Message_Is_Used_But_Exception_Is_Not_Generic()
         {

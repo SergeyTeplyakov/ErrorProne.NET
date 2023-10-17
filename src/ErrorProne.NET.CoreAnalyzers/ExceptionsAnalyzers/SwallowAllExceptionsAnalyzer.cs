@@ -94,6 +94,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
                 var u = usage.Identifier;
                 if (
                     u.Parent is ArgumentSyntax || // Exception object was used directly
+                    u.Parent is AnonymousObjectMemberDeclaratorSyntax || // Was used as an anonymous object member
                     u.Parent is AssignmentExpressionSyntax || // Was saved to field or local
                     // For instance in Console.WriteLine($"e = {e}");
                     u.Parent is InterpolationSyntax ||
