@@ -34,6 +34,29 @@ class Test
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
+
+
+
+        [Test]
+        public async Task DoNotWarnOnAnonymousUsageOfException()
+        {
+            string code = @"
+using System.Collections;
+using System;
+class Test
+{
+    public ArrayList LoadList(string key, string subKey = """") {
+      var errors=new ArrayList();
+      try { new object();
+      } catch (Exception exception) {
+        errors.Add($""{new { key, subKey, exception }}"");
+      }
+    return errors;
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
         [Test]
         public async Task NoWarnOnCatchWithFilter()
         {

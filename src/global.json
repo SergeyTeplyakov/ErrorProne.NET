@@ -1,9 +1,6 @@
 {
-  "sdk": {
-<<<<<<< Updated upstream
-    "version": "3.1.200"
-=======
-    "version": "5.0.202"
->>>>>>> Stashed changes
-  }
+    "sdk": {
+        "version": "6.0.317",
+        "rollForward": "latestFeature"
+    }
 }
