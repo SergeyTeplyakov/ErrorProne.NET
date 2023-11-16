@@ -1,5 +1,7 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 
@@ -127,9 +129,29 @@ namespace ErrorProne.NET
         public static readonly DiagnosticDescriptor ERP041 = new DiagnosticDescriptor(
             nameof(ERP041),
             title: "Dispose objects before losing scope",
-            messageFormat: "A local variable {0} must be disposed before losing scope",
+            messageFormat: "A local variable '{0}' of type '{1}' must be disposed before losing scope",
             ReliabilityCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
             description: "If a disposable object is not explicitly disposed before all references to it are out of scope, " +
                          "the object will be disposed at some indeterminate time when the garbage collector runs the finalizer of the object.");
+        
+        /// <summary>
+        /// A rule that warns when a <see cref="Task{TResult}"/> instance is disposed.
+        /// </summary>
+        public static readonly DiagnosticDescriptor ERP042 = new DiagnosticDescriptor(
+            nameof(ERP042),
+            title: "Do not dispose a Task instance",
+            messageFormat: "Task instances should not be disposed{0}",
+            ReliabilityCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "Task class implements IDisposable but the instances should not be disposed since they don't have actual managed resources");
+        
+        /// <summary>
+        /// A rule that warns when a <see cref="Task{TResult}"/> instance is disposed for <code>Task&lt;T&gt;</code> where <code>T</code> is <see cref="IDisposable"/>.
+        /// </summary>
+        public static readonly DiagnosticDescriptor ERP043 = new DiagnosticDescriptor(
+            nameof(ERP043),
+            title: "Do not dispose a Task<T> instance",
+            messageFormat: "Do not dispose a Task<{0}> instance. Do you want to dispose the result of the task instead?",
+            ReliabilityCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "It is possible that the intend is to dispose the result of a task but not the task itself.");
     }
 }

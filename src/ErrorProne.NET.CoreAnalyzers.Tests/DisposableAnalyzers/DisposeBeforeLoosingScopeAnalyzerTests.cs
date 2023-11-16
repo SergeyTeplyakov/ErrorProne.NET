@@ -131,7 +131,7 @@ public class Test
     {
         public void Dispose() { }
 
-        [ReleasesOwnership]
+        [ReturnsOwnership]
         public static Disposable Instance => new Disposable();
     }
 
@@ -326,6 +326,110 @@ public class Test
     public static void ShouldDispose()
     {
         using (var d = new Disposable())
+        using (var d2 = new Disposable())
+        using (var d3 = Disposable.Create())
+        {
+        }
+
+    }
+
+    public class Disposable : System.IDisposable
+    {
+        public void Dispose() { }
+        public static Disposable Create() => new Disposable();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_UsingStatement_In_Local()
+        {
+            var test = @"
+public class Test
+{
+    public static void ShouldDispose()
+    {
+        void useInHelper()
+        {
+            using (var d4 = Disposable.Create())
+            {
+            }
+        }
+
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            using (var d5 = Disposable.Create())
+            {
+            }
+        });
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_NullableDispose()
+        {
+            var test = @"
+public class Test
+{
+    public static void ShouldDispose(bool shouldCreate)
+    {
+        Disposable d = null;
+        try
+        {
+            if (shouldCreate)
+            {
+                d = new Disposable();
+            }
+        }
+        finally
+        {
+            d?.Dispose();   
+        }
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_On_Nullable_Factory()
+        {
+            var test = @"
+public class Test
+{
+    public static Disposable TryCreate(bool shouldCreate)
+    {
+        
+        try
+        {
+            Disposable d = new Disposable();
+            return d;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_On_StreamReader()
+        {
+            var test = @"
+public class Test
+{
+    public static void ShouldDispose()
+    {
+        using (var fs = new System.IO.FileStream(string.Empty, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite))
+        using (var sr = new System.IO.StreamReader(fs))
         {
         }
     }
@@ -333,6 +437,27 @@ public class Test
     public class Disposable : System.IDisposable
     {
         public void Dispose() { }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Activity()
+        {
+            var test = @"
+public class Test
+{
+    public class Activity : System.IDisposable
+    {
+        public Activity SetTag(string key, object value) => this;
+        public void Dispose() { }
+    }
+
+    public static void ActivityCase(Activity a)
+    {
+        a.SetTag(""42"", 42);
     }
 }
 ";
@@ -367,6 +492,130 @@ public class Test
         }
         
         [Test]
+        public async Task NoWarn_On_Close_In_Finally()
+        {
+            var test = @"
+public class Test
+{
+    public static void ShouldDispose(bool create)
+    {
+        Disposable d = null;
+
+        try        
+        {
+            if (create)
+            {
+                d = new Disposable();
+            }
+        }
+        finally
+        {
+            if (d != null)
+                d.Close();
+        }
+        
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Nested_Using()
+        {
+            var test = @"
+public class Test
+{
+    public static void ShouldDispose(bool create)
+    {
+        Disposable d = null;
+
+        if (create)
+        {
+            d = new Disposable();
+        }
+
+        using(d)
+        {
+        }
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Assigning_To_Field()
+        {
+            var test = @"
+public class Test
+{
+    private Disposable _d;
+    public void ShouldDispose(bool create)
+    {
+        Disposable d = null;
+
+        if (create)
+        {
+            d = new Disposable();
+        }
+
+        _d = d;
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Assigning_To_Field_With_Interlocked()
+        {
+            var test = @"
+public class Test
+{
+    private Disposable _d;
+    public void ShouldDispose(bool create)
+    {
+        Disposable d = null;
+
+        if (create)
+        {
+            d = new Disposable();
+        }
+
+        System.Threading.Interlocked.Exchange(ref _d, d);
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Assigning_To_Field_In_Constructor()
+        {
+            var test = @"
+public class Test
+{
+    private Disposable _d;
+    private Disposable _d2;
+    public Test(bool create)
+    {
+        Disposable d = null;
+
+        if (create)
+        {
+            d = new Disposable();
+        }
+
+        _d = d;
+        _d2 = new Disposable();
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
         public async Task NoWarn_On_Dispose_In_Try_And_Catch()
         {
             var test = @"
@@ -392,6 +641,69 @@ public class Test
 }
 ";
             await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Disposable_Returned_In_Func()
+        {
+            var test = @"
+public class Test
+{
+    internal static System.Func<Disposable> CreateInstance = () => new Disposable();
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        // await using (var buildCoordinator = new BuildCoordinator(
+        
+        [Test]
+        public async Task NoWarn_On_Disposable_Returned_In_Func_InTask()
+        {
+            var test = @"
+public class Test
+{
+    public static void TestTask()
+    {
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            var d = new Disposable();
+            return d;
+        });
+    }
+}";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Type_Erasure()
+        {
+            // This should be covered by another rule.
+            var test = @"
+public interface IFoo { }
+
+public class Foo : IFoo, System.IDisposable
+{
+    public void Dispose() { }
+    public static IFoo Create() => new Foo();
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Yield_Return()
+        {
+            var test = @"
+public class Test
+{
+    public static System.Collections.Generic.IEnumerable<Disposable> Get()
+    {
+        yield return new Disposable();
+    }
+}
+";
+            await VerifyAsync(test);
         }
         
         // [Test] Not supported yet.

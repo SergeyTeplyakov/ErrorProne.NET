@@ -16,7 +16,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.DisposableAnalyzers
 public class AcquiresOwnershipAttribute : System.Attribute { }
 
 [System.AttributeUsage(System.AttributeTargets.All)]
-public class ReleasesOwnershipAttribute : System.Attribute { }
+public class ReturnsOwnershipAttribute : System.Attribute { }
 
 [System.AttributeUsage(System.AttributeTargets.Method)]
 public class KeepsOwnershipAttribute : System.Attribute { }
@@ -31,6 +31,8 @@ public static class DisposableExtensions
     {
         return disposable;
     }
+
+    public static T ThrowIfNull<T>(this T t) => t;
 }";
 
         private const string Disposable =
@@ -38,6 +40,8 @@ public static class DisposableExtensions
 public class Disposable : System.IDisposable
     {
         public void Dispose() { }
+        public void Close() {}
+        public static Disposable Create() => new Disposable();
     }";
 
         [Test]
@@ -53,6 +57,36 @@ public class Test
     }
 
     private static void TakesOwnership([AcquiresOwnership] Disposable d2) { d2.Dispose(); }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_Out_Variable()
+        {
+            var test = @"
+public class Test
+{
+    public void Moves(out Disposable d)
+    {
+        d = new Disposable();
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_ActivitySource_StartActivity()
+        {
+            var test = @"
+public class Test
+{
+    public static void StartActivityCase()
+    {
+        new System.Diagnostics.ActivitySource(""name"").StartActivity();
+    }
 }
 ";
             await VerifyAsync(test);
@@ -83,6 +117,21 @@ public class Test
     public static void Moves()
     {
         var d = new Disposable().ReleaseOwnership();
+    }
+}
+";
+            await VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_On_ThrowIf()
+        {
+            var test = @"
+public class Test
+{
+    public static void Moves(Disposable d)
+    {
+        d.ThrowIfNull();
     }
 }
 ";

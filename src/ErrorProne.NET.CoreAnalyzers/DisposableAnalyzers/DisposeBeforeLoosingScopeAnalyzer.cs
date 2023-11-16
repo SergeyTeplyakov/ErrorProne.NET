@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Data.Common;
+using System.Runtime.CompilerServices;
 using ErrorProne.NET.Extensions;
 
 namespace ErrorProne.NET.DisposableAnalyzers;
@@ -53,7 +54,7 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
     {
         if (context.ContainingSymbol is not IMethodSymbol method 
             || !HasAcquiresOwnershipParameters(method, out var parameter) 
-            // Skipping methods marked with 'KeepOwnership' attribute.
+            // Skipping methods marked with 'KeepsOwnership' attribute.
             || method.HasAttributeWithName(DisposableAttributes.KeepsOwnershipAttribute))
         {
             return;
@@ -63,7 +64,7 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
 
         if (!context.Operation.HasAnyOperationDescendant(o => o.Kind == OperationKind.ParameterReference, out var operation))
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, syntax.Identifier.GetLocation(), parameter.Name));
+            context.ReportDiagnostic(Diagnostic.Create(Rule, syntax.Identifier.GetLocation(), parameter.Name, parameter.Type.Name));
             return;
         }
 
@@ -88,7 +89,7 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        context.ReportDiagnostic(Diagnostic.Create(Rule, syntax.Identifier.GetLocation(), parameter.Name));
+        context.ReportDiagnostic(Diagnostic.Create(Rule, syntax.Identifier.GetLocation(), parameter.Name, parameter.Type.Name));
     }
 
     private static bool HasAcquiresOwnershipParameters(IMethodSymbol method, [NotNullWhen(true)]out IParameterSymbol? result)
@@ -111,7 +112,7 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
         var propertyReference = (IPropertyReferenceOperation)context.Operation;
 
         var helper = new DisposeAnalysisHelper(context.Compilation);
-        if (!ReleasesOwnership(propertyReference.Property, helper))
+        if (!ReturnsOwnership(propertyReference.Property, helper))
         {
             // We're not calling a factory method, so we're not taking an ownership of the object.
             return;
@@ -125,7 +126,7 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
         var invocation = (IInvocationOperation)context.Operation;
 
         var helper = new DisposeAnalysisHelper(context.Compilation);
-        if (!ReleasesOwnership(invocation.TargetMethod, helper))
+        if (!ReturnsOwnership(invocation.TargetMethod, helper))
         {
             // We're not calling a factory method, so we're not taking an ownership of the object.
             return;
@@ -140,9 +141,40 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
         AnalyzeCore(context, objectCreation.Type, objectCreation);
     }
 
+    private static (ILocalSymbol? local, ISymbol? member) TryFindAssignmentTarget(IOperation operation)
+    {
+        foreach (var p in EnumerateParents(operation))
+        {
+            if (p is IVariableDeclaratorOperation vdo)
+            {
+                return (local: vdo.Symbol, member: null);
+            }
+
+            // TODO: can we support parameters as well?
+            //if (p is IParameterReferenceOperation pro)
+            //{
+            //    return p.par
+            //}
+
+            if (p is IAssignmentOperation ao)
+            {
+                if (ao.Target is ILocalReferenceOperation lro)
+                {
+                    return (local: lro.Local, member: null);
+                }
+                else if (ao.Target is IMemberReferenceOperation mro)
+                {
+                    return (local: null, member: mro.Member);
+                }
+            }
+        }
+
+        return (local: null, member: null);
+    }
+
     private void AnalyzeCore(OperationAnalysisContext context, ITypeSymbol expressionType, IOperation operation)
     {
-        if (operation.Parent is IFieldInitializerOperation or IPropertyInitializerOperation)
+        if (EnumerateParents(operation).Any(o => o is IFieldInitializerOperation or IPropertyInitializerOperation))
         {
             return;
         }
@@ -156,81 +188,137 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
             
             // The operation might be a variable declaration.
             // Trying to figure it out since we have a ton of logic relying on that.
-            var variableDeclaration = EnumerateParents(operation).OfType<IVariableDeclaratorOperation>().FirstOrDefault();
 
-            var controlFlowGraph = context.GetControlFlowGraph();
-            if (IsDisposedOrOwnershipIsMoved(variableDeclaration, operation, controlFlowGraph))
+            var (localSymbol, member) = TryFindAssignmentTarget(operation);
+            
+            if (member is not null)
+            {
+                // Assigning this to a member. Don't need to dispose it.
+                return;
+            }
+
+            // Checking for stuff like 'Activity.SetTag' that returns the same instance.
+            if (IsFluentApi(operation))
             {
                 return;
             }
 
+            // TODO BUG: it seems that for the following case we're getting the wrong control flow graph:
+            // public static void TestTask()
+            // {
+            //    System.Threading.Tasks.Task.Run(() =>
+            //    {
+            //        var d = new Disposable();
+            //        return d;
+            //    });
+            // }
+            // In this case for 'new Disposable' operation we're getting the control graph for the entire 'TestTask'.
+            // So skipping this case for now.
+            if (HasParent<IAnonymousFunctionOperation>(operation))
+            {
+                return;
+            }
+
+            var controlFlowGraph = context.GetControlFlowGraph();
+            if (IsDisposedOrOwnershipIsMoved(localSymbol, operation, controlFlowGraph))
+            {
+                return;
+            }
             
             // Analyzing body of the method to see if all the arguments are disposed.
-            if (IsFactoryMethodLikeSignature(context.ContainingSymbol, helper) && IsFactoryMethodImpl(operation, variableDeclaration, controlFlowGraph))
+            if (
+                // Ignoring the signature for now, since we could have this: object FooBar() => new Disposable();
+                // IsFactoryMethodLikeSignature(context.ContainingSymbol, helper) && 
+                IsFactoryMethodImpl(operation, localSymbol, controlFlowGraph))
             {
                 // This is factory method/property so we can't dispose an argument since we're returning it.
                 return;
             }
 
-            if (variableDeclaration != null)
+            if (DisposedInUsingOperation(localSymbol, controlFlowGraph)
+                || HasParent<IUsingOperation>(operation))
             {
-                // Checking if the parent is 'using' declaration or 'using' statement, then we're good
-
-                if (HasParent<IUsingDeclarationOperation>(variableDeclaration) ||
-                    HasParent<IUsingOperation>(variableDeclaration))
-                {
-                    // Current object creation is a part of 'using' declaration.
-                    return;
-                }
-
-                if (variableDeclaration.Syntax is VariableDeclaratorSyntax vds)
-                {
-                    var identifierLocation = vds.Identifier.GetLocation();
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, identifierLocation, variableDeclaration.Symbol.Name));
-                    return;
-                }
-
-                Contract.Assert(false, "Should not get here!");
-            }
-
-            // Variable declaration is null
-            if (HasParent<IUsingOperation>(operation))
-            {
-                // We're good, this is 'using(new Disposable())' statement
+                // We're good, this is 'using(new Disposable())' statement (this is the HasParent case)
+                // or 'using(disposable) {}'
                 return;
             }
 
-            var location = operation.Syntax.GetLocation();
-            context.ReportDiagnostic(Diagnostic.Create(Rule, location, operation.Syntax.ToString()));
+            Location? location = null;
+
+            var variableDeclaration = EnumerateParents(operation).OfType<IVariableDeclaratorOperation>().FirstOrDefault();
+            if (variableDeclaration != null)
+            {
+                if (variableDeclaration.Syntax is VariableDeclaratorSyntax vds)
+                {
+                    location = vds.Identifier.GetLocation();
+                }
+            }
+
+            location ??= localSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation()
+                                ?? operation.Syntax.GetLocation();
+            context.ReportDiagnostic(Diagnostic.Create(Rule, location, localSymbol?.Name ?? operation.Syntax.ToString(), expressionType.Name));
         }
     }
+
+    private bool DisposedInUsingOperation(ILocalSymbol? localSymbol, ControlFlowGraph cfg)
+    {
+        if (localSymbol is null)
+        {
+            return false;
+        }
+
+        foreach (var usingOperation in cfg.DescendantOperations().OfType<IUsingOperation>())
+        {
+            if (usingOperation.Locals.Any(lro => lro.Equals(localSymbol, SymbolEqualityComparer.Default)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }   
 
     /// <summary>
     /// Method returns true if a variable's ownership is moved to another place (method).
     /// </summary>
     private bool OwnershipIsMoved(LocalOrParameterReference localOrParam, ControlFlowGraph cfg)
     {
-        return OwnershipIsMoved(cfg, argumentMatches: a => localOrParam.IsReferenced(a.Value));
+        return OwnershipIsMoved(cfg, 
+            argumentMatches: a => localOrParam.IsReferenced(a.Value, cfg),
+            assignmentMatches: a => localOrParam.IsReferenced(a.Value, cfg));
     }
     
     /// <summary>
     /// Method returns true if a variable's ownership is moved to another place (method).
     /// </summary>
-    private bool OwnershipIsMoved(ControlFlowGraph cfg, Func<IArgumentOperation, bool> argumentMatches)
+    private bool OwnershipIsMoved(ControlFlowGraph cfg, 
+        // Callback to handle invocations
+        Func<IArgumentOperation, bool> argumentMatches,
+        Func<IAssignmentOperation, bool> assignmentMatches)
     {
-        foreach (var invocation in cfg.DescendantOperations().OfType<IInvocationOperation>())
+        foreach (var descendant in cfg.DescendantOperations())
         {
-            for (int i = 0; i < invocation.Arguments.Length; i++)
+            if (descendant is IInvocationOperation invocation)
             {
-                var a = invocation.Arguments[i];
-
-                if (argumentMatches(a))
+                for (int i = 0; i < invocation.Arguments.Length; i++)
                 {
-                    var p = invocation.TargetMethod.Parameters[i];
-                    if (p.HasAttributeWithName(DisposableAttributes.AcquiresOwnershipAttribute))
+                    var a = invocation.Arguments[i];
+
+                    if (argumentMatches(a))
                     {
-                        return true;
+                        var p = invocation.TargetMethod.Parameters[i];
+                        if (p.HasAttributeWithName(DisposableAttributes.AcquiresOwnershipAttribute))
+                        {
+                            return true;
+                        }
                     }
+                }
+            }
+            else if (descendant is IAssignmentOperation ao)
+            {
+                if (assignmentMatches(ao))
+                {
+                    return true;
                 }
             }
         }
@@ -252,12 +340,12 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
     // 
     public readonly record struct LocalOrParameterReference
     {
-        private readonly IVariableDeclaratorOperation? _variableDeclaration;
+        private readonly ILocalSymbol? _local;
         private readonly IParameterSymbol? _parameter;
 
-        public LocalOrParameterReference(IVariableDeclaratorOperation variableDeclaration)
+        public LocalOrParameterReference(ILocalSymbol local)
         {
-            _variableDeclaration = variableDeclaration;
+            _local = local;
         }
 
         public LocalOrParameterReference(IParameterSymbol parameter)
@@ -265,18 +353,49 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
             _parameter = parameter;
         }
 
-        public static LocalOrParameterReference Create(IVariableDeclaratorOperation variableDeclaration) => new (variableDeclaration);
+        public static LocalOrParameterReference Create(ILocalSymbol variableDeclaration) => new (variableDeclaration);
         public static LocalOrParameterReference Create(IParameterSymbol parameter) => new (parameter);
 
-        public bool IsReferenced(IOperation operation)
+        public static LocalOrParameterReference Create(ISymbol symbol)
         {
-            if (operation is ILocalReferenceOperation lro && _variableDeclaration is not null)
+            return symbol switch
             {
-                return lro.Local.Equals(_variableDeclaration.Symbol, SymbolEqualityComparer.Default);
+                ILocalSymbol ls => new LocalOrParameterReference(ls),
+                IParameterSymbol ps => new LocalOrParameterReference(ps),
+                _ => default,
+            };
+        }
+
+        public bool IsReferenced(IOperation operation, ControlFlowGraph cfg)
+        {
+            if (operation is ILocalReferenceOperation lro && _local is not null)
+            {
+                return lro.Local.Equals(_local, SymbolEqualityComparer.Default);
             }
             else if (operation is IParameterReferenceOperation pro && _parameter is not null)
             {
                 return pro.Parameter.Equals(_parameter, SymbolEqualityComparer.Default);
+            }
+            else if (operation is IFlowCaptureReferenceOperation fcro)
+            {
+                var id = fcro.Id;
+                // Now we need to find FLowCaptureOperation with the same id.
+                foreach (var flowCaptureOperation in cfg.DescendantOperations<IFlowCaptureOperation>(OperationKind
+                             .FlowCapture))
+                {
+                    if (flowCaptureOperation.Id.Equals(id))
+                    {
+                        if (IsReferenced(flowCaptureOperation.Value, cfg))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            if (operation is IConversionOperation c)
+            {
+                return IsReferenced(c.Operand, cfg);
             }
 
             return false;
@@ -288,7 +407,10 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
     /// </summary>
     private bool IsFactoryMethodLikeSignature(ISymbol methodOrProperty, DisposeAnalysisHelper helper)
     {
-        if (!helper.IsDisposable(TryFindReturnType(methodOrProperty)))
+        var returnType = TryFindReturnType(methodOrProperty);
+
+        if (!helper.IsDisposable(returnType) &&
+            returnType?.Name != "IEnumerable") // TODO: do this properly
         {
             return false;
         }
@@ -310,9 +432,26 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
     }
     
     /// <summary>
+    /// Returns true when a given <paramref name="operation"/> looks like a fluent API, like Activity.SetTag that returns an existing activity.
+    /// </summary>
+    private bool IsFluentApi(IOperation operation)
+    {
+        (ISymbol? Symbol, bool IsStatic) methodOrProperty = operation switch
+        {
+            IInvocationOperation invocation => (invocation.TargetMethod, invocation.TargetMethod.IsStatic),
+            IPropertyReferenceOperation propertyReference => (propertyReference.Property, propertyReference.Property.IsStatic),
+            _ => default,
+        };
+
+        var returnType = TryFindReturnType(methodOrProperty.Symbol);
+
+        return !methodOrProperty.IsStatic && returnType?.Equals(methodOrProperty.Symbol?.ContainingType, SymbolEqualityComparer.Default) == true;
+    }
+    
+    /// <summary>
     /// Returns true when a given <paramref name="methodOrProperty"/> looks like a factory method and probably returns an ownership.
     /// </summary>
-    private bool ReleasesOwnership(ISymbol methodOrProperty, DisposeAnalysisHelper helper)
+    private bool ReturnsOwnership(ISymbol methodOrProperty, DisposeAnalysisHelper helper)
     {
         if (!helper.IsDisposable(TryFindReturnType(methodOrProperty)))
         {
@@ -324,74 +463,91 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
             return false;
         }
         
-        if (methodOrProperty.HasAttributeWithName(DisposableAttributes.ReleasesOwnershipAttribute))
+        if (methodOrProperty.HasAttributeWithName(DisposableAttributes.ReturnsOwnershipAttribute))
         {
             return true;
         }
 
-        // By default properties do not release ownership unless they are marked with `ReleasesOwnershipAttribute`.
+        // By default properties do not release ownership unless they are marked with `ReturnsOwnershipAttribute`.
         if (methodOrProperty is IPropertySymbol)
         {
             return false;
         }
 
-        // Special case for methods
+        // Special cases for methods
+        
         // If there is an argument, marked with `AcquiresOwnershipAttribute`, then it's not a factory method.
-        if (methodOrProperty is IMethodSymbol ms && HasAcquiresOwnershipParameters(ms, out _))
+        
+        // Ignore generic methods without IDisposable constraint.
+        // Like x.ThrowIfNull() or something like that.
+        // Its not possible that such a generic method can actually return an ownership to call site.
+        if (methodOrProperty is IMethodSymbol ms)
         {
-            return false;
+            if (HasAcquiresOwnershipParameters(ms, out _))
+            {
+                return false;
+            }
+
+            var od = ms.OriginalDefinition;
+            if (od.IsGenericMethod && od.ReturnType is ITypeParameterSymbol tps &&
+                !tps.ConstraintTypes.Any(helper.IsDisposable))
+            {
+                // This is a generic method without IDisposable constraint.
+                return false;
+            }
         }
 
         return true;
     }
 
-    private bool IsFactoryMethodImpl(IOperation operation, IVariableDeclaratorOperation? variableDeclaration, ControlFlowGraph cfg)
+    private bool IsFactoryMethodImpl(IOperation operation, ILocalSymbol? localVariable, ControlFlowGraph cfg)
     {
-        if (variableDeclaration is null && HasParent<IReturnOperation>(operation))
+        if (localVariable is null && HasParent<IReturnOperation>(operation))
         {
             return true;
         }
 
-        if (variableDeclaration is null)
+        if (localVariable is null)
         {
             return false;
         }
 
-        var localVariable = variableDeclaration.Symbol;
         var branches = cfg.GetExit().Predecessors.Select(b => new BranchWithInfo(b)).ToArray();
         
-        // We're fine if all the branches are returns and the return value is the local variable.
-        if (branches.All(b =>
-                b.Kind == ControlFlowBranchSemantics.Return && b.BranchValue is ILocalReferenceOperation lro &&
-                lro.Local.Equals(localVariable, SymbolEqualityComparer.Default)))
+        // OLD: We're fine if all the branches are returns and the return value is the local variable.
+        // Simplifying logic for now: If we hae any returns, then we're good!
+        // Since we have a ton of cases here!
+        if (branches.Any(b =>
+                b.Kind == ControlFlowBranchSemantics.Return && isLocalReference(b.BranchValue) ))
         {
             return true;
         }
 
-
         return false;
+
+        bool isLocalReference(IOperation? branch)
+        {
+            return branch is ILocalReferenceOperation lro && lro.Local.Equals(localVariable, SymbolEqualityComparer.Default);
+        }
     }
 
     // TODO: move this to helpers
-    private static ITypeSymbol? TryFindReturnType(ISymbol operation)
+    private static ITypeSymbol? TryFindReturnType(ISymbol? operation)
     {
-        if (operation is IMethodSymbol ms && ms.MethodKind != MethodKind.Constructor)
+        return operation switch
         {
-            return ms.ReturnType;
-        }
-        else if (operation is IPropertySymbol ps)
-        {
-            return ps.Type;
-        }
-
-        return null;
+            IMethodSymbol ms when ms.MethodKind != MethodKind.Constructor => ms.ReturnType,
+            IPropertySymbol ps => ps.Type,
+            IFieldSymbol fs => fs.Type,
+            _ => null
+        };
     }
 
-    private bool IsDisposedOrOwnershipIsMoved(IVariableDeclaratorOperation? variableDeclaration, IOperation operation, ControlFlowGraph cfg)
+    private bool IsDisposedOrOwnershipIsMoved(ILocalSymbol? variableDeclaration, IOperation operation, ControlFlowGraph cfg)
     {
         if (variableDeclaration != null)
         {
-            if (IsDisposed(variableDeclaration.Symbol, cfg) ||
+            if (IsDisposed(variableDeclaration, cfg) ||
                 OwnershipIsMoved(LocalOrParameterReference.Create(variableDeclaration), cfg))
             {
                 return true;
@@ -403,7 +559,8 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
         if (OwnershipIsMoved(cfg,
                 // Using syntax node for comparison. Which is weird, since we'll get here
                 // two different object creation operations.
-                a => { return operation.Syntax.IsEquivalentTo(a.Value.Syntax); }))
+                argumentMatches: a => { return operation.Syntax.IsEquivalentTo(a.Value.Syntax); },
+                assignmentMatches: a => false))
         {
             return true;
         }
@@ -411,51 +568,88 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
         // Checking if the ownership is moved.
         return false;
     }
-    
+
     private bool IsDisposed(ISymbol localVariable, ControlFlowGraph cfg)
     {
-        var branches = cfg.GetExit().Predecessors.Select(b => new BranchWithInfo(b)).ToArray();
+        // Relatively naive approach that checks if 'Dispose' or 'Close' was ever called.
+        // There are no checks on whether the calls happened in all branches.
 
-        // Using a naive approach for now: if the variable is disposed in finally
-        // or in both: try and catch blocks, then we're good.
-        bool disposedInTry = false;
-        bool disposedInCatch = false;
-        foreach (var block in cfg.Blocks)
+        foreach (var invocation in cfg.DescendantOperations<IInvocationOperation>(OperationKind.Invocation))
         {
-            if (block.IsReachable && block.Kind == BasicBlockKind.Block &&
-                block.ConditionKind == ControlFlowConditionKind.None && DisposedUnconditionallyIn(block, localVariable))
+            if (invocation.TargetMethod.Name is "Dispose" or "Close")
             {
-                // We have an unconditional Dispose in one of the blocks.
-                return true;
-            }
-
-            if (block.IsFinallyBlock() && DisposedUnconditionallyIn(block, localVariable))
-            {
-                return true;
-            }
-
-            if (block.IsTryBlock() && DisposedUnconditionallyIn(block, localVariable))
-            {
-                disposedInTry = true;
-
-                if (disposedInCatch)
+                if (LocalOrParameterReference.Create(localVariable).IsReferenced(invocation.Instance, cfg))
                 {
                     return true;
                 }
-            }
 
-            if (block.IsCatchBlock() && DisposedUnconditionallyIn(block, localVariable))
-            {
-                disposedInCatch = true;
-
-                if (disposedInTry)
+                // This looks overly complicated to but here me out.
+                // Disposable d = null;
+                // using (d) {}
+                // Is lowered to something an IInvocationOperation with some special stuff around it like conversion.
+                // And such lowered 'IInvocationOperation' doesn't reference a local variable directly,
+                // instead it goes through IFlowCaptureOperation and 
+                if (invocation.Instance is IConversionOperation co && co.Operand is IFlowCaptureReferenceOperation fcro)
                 {
-                    return true;
+                    var id = fcro.Id;
+                    // Now we need to find FLowCaptureOperation with the same id.
+                    foreach (var flowCaptureOperation in cfg.DescendantOperations<IFlowCaptureOperation>(OperationKind.FlowCapture))
+                    {
+                        if (flowCaptureOperation.Id.Equals(id))
+                        {
+                            if (LocalOrParameterReference.Create(localVariable).IsReferenced(flowCaptureOperation.Value, cfg))
+                            {
+                                return true;
+                            }
+                        }
+                    }
                 }
             }
         }
-        
+
         return false;
+        //var branches = cfg.GetExit().Predecessors.Select(b => new BranchWithInfo(b)).ToArray();
+
+        //// Using a naive approach for now: if the variable is disposed in finally
+        //// or in both: try and catch blocks, then we're good.
+        //bool disposedInTry = false;
+        //bool disposedInCatch = false;
+        //foreach (var block in cfg.Blocks)
+        //{
+        //    if (block.IsReachable && block.Kind == BasicBlockKind.Block &&
+        //        block.ConditionKind == ControlFlowConditionKind.None && DisposedUnconditionallyIn(block, localVariable))
+        //    {
+        //        // We have an unconditional Dispose in one of the blocks.
+        //        return true;
+        //    }
+
+        //    if (block.IsFinallyBlock() && DisposedUnconditionallyIn(block, localVariable))
+        //    {
+        //        return true;
+        //    }
+
+        //    if (block.IsTryBlock() && DisposedUnconditionallyIn(block, localVariable))
+        //    {
+        //        disposedInTry = true;
+
+        //        if (disposedInCatch)
+        //        {
+        //            return true;
+        //        }
+        //    }
+
+        //    if (block.IsCatchBlock() && DisposedUnconditionallyIn(block, localVariable))
+        //    {
+        //        disposedInCatch = true;
+
+        //        if (disposedInTry)
+        //        {
+        //            return true;
+        //        }
+        //    }
+        //}
+        
+        //return false;
     }
 
     private bool DisposedUnconditionallyIn(BasicBlock block, ISymbol localVariable)
@@ -467,7 +661,7 @@ public class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
                 (invocation.Instance is IParameterReferenceOperation pro && pro.Parameter.Equals(localVariable, SymbolEqualityComparer.Default)))
             {
                 // TODO: cover if blocks.
-                if (invocation.TargetMethod.Name == "Dispose")
+                if (invocation.TargetMethod.Name is "Dispose" or "Close")
                 {
                     return true;
                 }

@@ -15,7 +15,8 @@ namespace ErrorProne.NET.TestHelpers
         {
             return new Test
             {
-                TestState = { Sources = { code } }
+                TestState = { Sources = { code } },
+                LanguageVersion = LanguageVersion.Latest
                 
             }.WithoutGeneratedCodeVerification().RunAsync();
         }

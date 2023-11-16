@@ -9,7 +9,7 @@ public static class DisposableAttributes
     public const string KeepsOwnershipAttribute = "KeepsOwnershipAttribute";
 
     // For properties to emphasize that the ownership is transferred.
-    public const string ReleasesOwnershipAttribute = "ReleasesOwnershipAttribute";
+    public const string ReturnsOwnershipAttribute = "ReturnsOwnershipAttribute";
 
 
     // For fields/properties, whe the ownership belongs to another type.
