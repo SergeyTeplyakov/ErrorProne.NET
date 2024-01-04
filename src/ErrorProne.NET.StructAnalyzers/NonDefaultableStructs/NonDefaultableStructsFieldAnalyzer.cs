@@ -76,7 +76,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
         private static bool IsStructLike(ITypeSymbol typeSymbol)
         {
             // Extracting logic because it can became more complicated in the future (for instance, with struct records).
-            return typeSymbol.IsReferenceType;
+            return typeSymbol.IsValueType;
         }
 
         private static ITypeSymbol? GetContainingType(PropertyDeclarationSyntax property, SemanticModel model)
