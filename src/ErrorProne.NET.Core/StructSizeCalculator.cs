@@ -66,7 +66,7 @@ namespace ErrorProne.NET.Core
         private static int? TryGetStructLayoutSize(ITypeSymbol type)
         {
             var structLayoutAttribute = type.GetAttributes()
-                .FirstOrDefault(a => a.AttributeClass.Name == nameof(StructLayoutAttribute));
+                .FirstOrDefault(a => a?.AttributeClass?.Name == nameof(StructLayoutAttribute));
             if (structLayoutAttribute == null)
             {
                 return null;

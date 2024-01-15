@@ -17,8 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.StructAnalyzers.Tests", "ErrorProne.NET.StructAnalyzers.Tests\ErrorProne.NET.StructAnalyzers.Tests.csproj", "{4BBFAA2E-0FD9-4472-AD71-79096F417D7B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.Vsix", "ErrorProne.NET.Vsix\ErrorProne.NET.Vsix.csproj", "{8DB525D3-010C-4D6B-A85E-04B3FEC74AB1}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers.CodeFixes", "ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj", "{1E47DB73-DAF6-4EB6-B3F2-966FDF8E7179}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.StructAnalyzers.CodeFixes", "ErrorProne.NET.StructAnalyzers.CodeFixes\ErrorProne.NET.StructAnalyzers.CodeFixes.csproj", "{512492B2-61F5-4CEC-901A-908688D3B49F}"

@@ -41,7 +41,7 @@ namespace ErrorProne.NET.StructAnalyzers
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var argument = root?.FindNode(location.SourceSpan, getInnermostNodeForTie: true)?.FirstAncestorOrSelf<ArgumentSyntax>();
-            if (argument is null)
+            if (root is null || argument is null)
             {
                 return document;
             }

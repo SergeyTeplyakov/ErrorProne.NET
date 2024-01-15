@@ -33,8 +33,8 @@ namespace ErrorProne.NET.Core
         public static bool IsClrType(this ISymbol type, Compilation compilation, Type clrType)
             => type is ITypeSymbol ts && ts.OriginalDefinition.Equals(compilation.GetTypeByFullName(clrType.FullName), SymbolEqualityComparer.Default);
         
-        public static bool IsClrType(this ITypeSymbol ts, Compilation compilation, Type clrType)
-            => ts.OriginalDefinition.Equals(compilation.GetTypeByFullName(clrType.FullName), SymbolEqualityComparer.Default);
+        public static bool IsClrType(this ITypeSymbol? ts, Compilation compilation, Type clrType)
+            => ts?.OriginalDefinition.Equals(compilation.GetTypeByFullName(clrType.FullName), SymbolEqualityComparer.Default) == true;
 
         public static bool IsSystemValueType(this INamedTypeSymbol type, Compilation compilation)
             => type.Equals(compilation.GetTypeByFullName("System.ValueType"), SymbolEqualityComparer.Default);

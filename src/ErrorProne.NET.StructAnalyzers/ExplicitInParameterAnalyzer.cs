@@ -31,7 +31,7 @@ namespace ErrorProne.NET.StructAnalyzers
             var invocation = (IInvocationOperation)context.Operation;
             foreach (var argument in invocation.Arguments)
             {
-                if (argument.Parameter.RefKind != RefKind.In)
+                if (argument.Parameter != null && argument.Parameter.RefKind != RefKind.In)
                 {
                     continue;
                 }
@@ -64,7 +64,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
                 if (argument.Value is IInstanceReferenceOperation instanceReference
                     && instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance
-                    && argument.Value.Type.IsReferenceType)
+                    && argument.Value.Type?.IsReferenceType == true)
                 {
                     continue;
                 }
@@ -97,7 +97,7 @@ namespace ErrorProne.NET.StructAnalyzers
                     continue;
                 }
 
-                context.ReportDiagnostic(Diagnostic.Create(Rule, argument.Syntax.GetLocation(), argument.Parameter.Name));
+                context.ReportDiagnostic(Diagnostic.Create(Rule, argument.Syntax.GetLocation(), argument.Parameter?.Name));
             }
         }
     }

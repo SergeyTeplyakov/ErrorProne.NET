@@ -91,7 +91,8 @@ struct MyStruct { }";
             // Base type with interface
             yield return @"
 struct MyStruct {}
-abstract class Ex : {|CS0246:IBar|} {|CS1003::|} {|CS1721:[|{|CS1003:System|}.Collections.Generic.HashSet<MyStruct>|]|} {
+public interface IBar {}
+abstract class Ex : [|System.Collections.Generic.HashSet<MyStruct>|], IBar {
 }";
             
             // Base type

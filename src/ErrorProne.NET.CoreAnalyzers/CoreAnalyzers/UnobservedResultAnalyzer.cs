@@ -122,7 +122,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                  methodSymbol.ReturnType.Equals(methodSymbol.Parameters.FirstOrDefault()?.Type, SymbolEqualityComparer.Default)))
             {
                 // operation.Type returns a type for 'Foo()'.
-                return operation.Type.Equals(methodSymbol.ReturnType, SymbolEqualityComparer.Default);
+                return operation.Type?.Equals(methodSymbol.ReturnType, SymbolEqualityComparer.Default) == true;
             }
 
             return false;
@@ -186,7 +186,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             return false;
         }
 
-        private static bool IsException(ITypeSymbol type, Compilation compilation)
+        private static bool IsException(ITypeSymbol? type, Compilation compilation)
         {
             return type.EnumerateBaseTypesAndSelf().Any(t => t.IsClrType(compilation, typeof(Exception)));
         }

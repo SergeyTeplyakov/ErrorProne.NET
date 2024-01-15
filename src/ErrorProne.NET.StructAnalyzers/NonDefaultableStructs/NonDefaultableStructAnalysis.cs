@@ -31,7 +31,7 @@ namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
 
             var attributes = type.GetAttributes();
             var doNotUseDefaultAttribute = attributes.FirstOrDefault(a =>
-                a.AttributeClass.Name.StartsWith(NonDefaultableAttributeName));
+                a.AttributeClass?.Name.StartsWith(NonDefaultableAttributeName) == true);
 
             if (doNotUseDefaultAttribute != null)
             {

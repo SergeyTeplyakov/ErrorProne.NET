@@ -95,6 +95,11 @@ namespace ErrorProne.NET.Cli
             WriteInfo($"Running analysis for '{project.Name}'...");
 
             var compilation = await project.GetCompilationAsync();
+            if (compilation is null)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var result = await compilationWithAnalyzers.GetAllDiagnosticsAsync();
 

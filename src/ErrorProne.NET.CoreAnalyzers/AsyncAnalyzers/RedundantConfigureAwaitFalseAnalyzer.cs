@@ -44,8 +44,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 {
                     if (configureAwaitOperation.Arguments.Length != 0 &&
                         configureAwaitOperation.Arguments[0].Value is ILiteralOperation literal &&
-                        literal.ConstantValue.HasValue &&
-                        literal.ConstantValue.Value.Equals(false))
+                        literal.ConstantValue.Value?.Equals(false) == true)
                     {
                         var location = configureAwaitOperation.Syntax.GetLocation();
 

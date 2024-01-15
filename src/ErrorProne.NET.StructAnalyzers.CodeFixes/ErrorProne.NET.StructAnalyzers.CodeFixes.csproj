@@ -17,6 +17,8 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Analyzers that help avoiding the pitfalls working with C# structs.</Description>
     <PackageReleaseNotes>
+      0.6.0
+        * Update all the dependencies.
       0.5.0
         * Remove runtime dependencies for the prjoect (no RuntimeContracts, and no ErrorProne.Net.Core)
           to simplify deployment and to allow the customers to reference different versions of 'ErrorProne.Net.CoreAnalyzers'
@@ -52,10 +54,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.6.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

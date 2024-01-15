@@ -86,7 +86,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             // We have (at least) two cases here:
             // instance.ToList() and
             // Enumerable.ToList(instance).
-            if (invocationOperation.Arguments.Length == 0)
+            if (invocationOperation.Arguments.Length == 0 || invocationOperation.SemanticModel is null)
             {
                 return null;
             }

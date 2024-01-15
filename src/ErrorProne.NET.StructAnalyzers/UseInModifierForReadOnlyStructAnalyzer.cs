@@ -107,8 +107,7 @@ namespace ErrorProne.NET.StructAnalyzers
             if (p.RefKind == RefKind.None && p.Type.IsReadOnlyStruct() && p.Type.IsLargeStruct(compilation, largeStructThreshold, out var estimatedSize))
             {
                 Location location = p.GetParameterLocation();
-
-                var diagnostic = Diagnostic.Create(Rule, location, p.Type.ToDisplayString(), estimatedSize);
+                var diagnostic = Diagnostic.Create(Rule, location, p.Type.ToDisplayString(), estimatedSize, largeStructThreshold);
 
                 diagnosticReporter(diagnostic);
             }

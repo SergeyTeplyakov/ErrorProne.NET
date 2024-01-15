@@ -22,3 +22,6 @@ dotnet_diagnostic.CA1819.severity = none
 
 # CA1724: The type name Options conflicts in whole or in part with the namespace name 'Microsoft.CodeAnalysis.Options'. Change either name to eliminate the conflict.
 dotnet_diagnostic.CA1724.severity = none
+
+# RS1035: We can use any api here since this is not a real analyzer project!
+dotnet_diagnostic.RS1035.severity = none

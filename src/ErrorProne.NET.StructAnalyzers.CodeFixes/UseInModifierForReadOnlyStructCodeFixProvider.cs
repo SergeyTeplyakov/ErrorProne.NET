@@ -51,7 +51,12 @@ namespace ErrorProne.NET.StructAnalyzers
             }
 
             var semanticModel = await document.GetSemanticModelAsync(token).ConfigureAwait(false);
-            var paramSymbol = semanticModel.GetDeclaredSymbol(parameter);
+            var paramSymbol = semanticModel.GetDeclaredSymbol(parameter, cancellationToken: token);
+            if (paramSymbol == null)
+            {
+                return true;
+            }
+
             var references = await SymbolFinder.FindReferencesAsync(paramSymbol, document.Project.Solution, token).ConfigureAwait(false);
 
             var syntaxRoot = await document.GetSyntaxRootAsync(token).ConfigureAwait(false);
@@ -78,8 +83,8 @@ namespace ErrorProne.NET.StructAnalyzers
                     var node = syntaxRoot.FindNode(location.Location.SourceSpan);
 
                     if (node.Parent is ArgumentSyntax arg &&
-                        (arg.RefKindKeyword.Kind() == SyntaxKind.OutKeyword ||
-                         arg.RefKindKeyword.Kind() == SyntaxKind.RefKeyword))
+                        (arg.RefKindKeyword.IsKind(SyntaxKind.OutKeyword) ||
+                         arg.RefKindKeyword.IsKind(SyntaxKind.RefKeyword)))
                     {
                         // Parameter used as out/ref argument and can not be changed to 'in'.
                         return true;
@@ -116,13 +121,13 @@ namespace ErrorProne.NET.StructAnalyzers
                 .Parent?.AncestorsAndSelf()
                 .OfType<ParameterSyntax>()
                 .FirstOrDefault();
-            if (paramSyntax is null || await ParameterIsUsedInNonInFriendlyMannerAsync(paramSyntax, document, cancellationToken).ConfigureAwait(false))
+            if (root is null || paramSyntax is null || await ParameterIsUsedInNonInFriendlyMannerAsync(paramSyntax, document, cancellationToken).ConfigureAwait(false))
             {
                 // It is possible for some weird cases to not have 'ParameterSyntax'. See 'WarnIfParameterIsReadOnly' in UseInModifierAnalyzer.
                 return document;
             }
 
-            SyntaxTriviaList trivia = paramSyntax.GetLeadingTrivia(); ;
+            var trivia = paramSyntax.GetLeadingTrivia();
 
             var newType = paramSyntax
                 .WithModifiers(paramSyntax.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.InKeyword)))

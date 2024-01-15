@@ -40,7 +40,7 @@ namespace ErrorProne.NET.Extensions
 
         public static bool MarkedWithReadOnlyModifier(this BasePropertyDeclarationSyntax syntax)
         {
-            return syntax.Modifiers.Any(m => m.Kind() == SyntaxKind.ReadOnlyKeyword);
+            return syntax.Modifiers.Any(m => m.IsKind(SyntaxKind.ReadOnlyKeyword));
         }
         
         public static bool MarkedWithReadOnlyModifier(this IPropertySymbol property)

@@ -86,7 +86,7 @@ namespace ErrorProne.NET.Core
 
         public static IEnumerable<ISymbol> GetAllUsedSymbols(Compilation compilation, SyntaxNode root)
         {
-            var noDuplicates = new HashSet<ISymbol>();
+            var noDuplicates = new HashSet<ISymbol>(SymbolEqualityComparer.IncludeNullability);
 
             var model = compilation.GetSemanticModel(root.SyntaxTree);
 
