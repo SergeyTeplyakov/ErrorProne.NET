@@ -4,7 +4,7 @@ namespace ErrorProne.NET.StructAnalyzers
 {
     public static class Settings
     {
-        public static int DefaultLargeStructThreshold { get; private set; } = 5 * sizeof(long);
+        public static int DefaultLargeStructThreshold { get; private set; } = 10 * sizeof(long);
         private const int MaxLargeStructThreshold = 1_000_000;
 
         public static void SetDefaultLargeStructThreshold(int newThreshold) =>

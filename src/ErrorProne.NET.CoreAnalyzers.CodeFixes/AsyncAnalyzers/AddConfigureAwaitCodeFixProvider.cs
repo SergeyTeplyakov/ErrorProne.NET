@@ -44,7 +44,12 @@ namespace ErrorProne.NET.AsyncAnalyzers
         private static async Task<Document> AddConfigureAwaitAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var parent = root?.FindToken(location.SourceSpan.Start).Parent;
+            if (root is null)
+            {
+                return document;
+            }
+
+            var parent = root.FindToken(location.SourceSpan.Start).Parent;
             if (parent == null)
             {
                 return document;
@@ -65,12 +70,6 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
             var newAwaitExpression = awaitExpression.WithExpression(newExpr);
             var newRoot = root.ReplaceNode(awaitExpression, newAwaitExpression);
-
-            if (newRoot == null)
-            {
-                return document;
-            }
-
             return document.WithSyntaxRoot(newRoot);
         }
     }

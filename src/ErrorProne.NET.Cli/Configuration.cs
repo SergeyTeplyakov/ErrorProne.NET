@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics.ContractsLight;
-using System.IO;
 using System.Reflection;
 
 namespace ErrorProne.NET.Cli
@@ -14,7 +13,6 @@ namespace ErrorProne.NET.Cli
         public Configuration(Options options, ImmutableList<Assembly> analyzers)
         {
             Contract.Requires(options.Solution != null);
-            Contract.Requires(File.Exists(options.Solution));
             Contract.Requires(options.LogFile!= null && !string.IsNullOrEmpty(options.LogFile));
             Contract.Requires(analyzers.Count != 0);
 

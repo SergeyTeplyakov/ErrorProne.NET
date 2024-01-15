@@ -51,7 +51,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 .Parent?.AncestorsAndSelf()
                 .OfType<StructDeclarationSyntax>()
                 .FirstOrDefault();
-            if (typeDecl is null)
+            if (root is null || typeDecl is null)
             {
                 return document;
             }

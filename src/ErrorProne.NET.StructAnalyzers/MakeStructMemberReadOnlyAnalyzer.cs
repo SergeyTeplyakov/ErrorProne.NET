@@ -19,17 +19,7 @@ namespace ErrorProne.NET.StructAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MakeStructMemberReadOnlyAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "EPS12";
-
-        private const string Title = "A struct member can be made readonly";
-        private const string MessageFormat = "A {0} can be made readonly for struct {1} of size {2}";
-        private const string Description = "Readonly struct members are more efficient in readonly context by avoiding hidden copies.";
-        private const string Category = "Performance";
-        
-        private const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
-
-        public static readonly DiagnosticDescriptor Rule = 
-            new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, Severity, isEnabledByDefault: true, description: Description);
+        public static readonly DiagnosticDescriptor Rule = DiagnosticDescriptors.EPS12;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

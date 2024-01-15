@@ -81,7 +81,6 @@ namespace ErrorProne.NET.StructAnalyzers
             return !HasAssignmentToThis(propertyInfo, semanticModel);
         }
 
-
         public static bool MethodCanBeReadOnly(MethodDeclarationSyntax method, SemanticModel semanticModel)
         {
             var methodSymbol = semanticModel.GetDeclaredSymbol(method);
@@ -158,6 +157,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
                 // this is ArgumentSyntax
                 if (model.GetOperation(expression) is IArgumentOperation argument &&
+                    argument.Parameter != null &&
                     argument.Parameter.RefKind == RefKind.Ref)
                 {
                     // this is 'FooBar(ref this)' case.

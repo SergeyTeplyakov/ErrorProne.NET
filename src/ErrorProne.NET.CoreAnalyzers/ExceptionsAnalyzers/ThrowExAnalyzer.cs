@@ -38,7 +38,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
             var exceptionDeclarationIdentifier = catchClause.Declaration.Identifier;
 
             // Exception identifier is optional in catch clause. It could be "catch(Exception)"
-            if (exceptionDeclarationIdentifier.Kind() == SyntaxKind.None)
+            if (exceptionDeclarationIdentifier.IsKind(SyntaxKind.None))
             {
                 return;
             }

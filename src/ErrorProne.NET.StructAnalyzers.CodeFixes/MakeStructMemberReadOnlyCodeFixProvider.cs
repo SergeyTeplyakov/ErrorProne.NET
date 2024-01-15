@@ -36,7 +36,7 @@ namespace ErrorProne.NET.StructAnalyzers
         }
 
         /// <inheritdoc />
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeStructMemberReadOnlyAnalyzer.DiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeStructMemberReadOnlyAnalyzer.Rule.Id);
 
         /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -51,7 +51,7 @@ namespace ErrorProne.NET.StructAnalyzers
                 .Parent?.AncestorsAndSelf()
                 .OfType<MemberDeclarationSyntax>()
                 .FirstOrDefault();
-            if (memberDeclaration is null)
+            if (root is null || memberDeclaration is null)
             {
                 return document;
             }

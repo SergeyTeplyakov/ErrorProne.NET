@@ -49,13 +49,10 @@ namespace ErrorProne.NET.CoreAnalyzers
                 ?.FindToken(location.SourceSpan.Start).Parent
                 ?.AncestorsAndSelf()
                 .OfType<IdentifierNameSyntax>().FirstOrDefault();
-            if (identifier is { Parent: MemberAccessExpressionSyntax mae })
+            if (root is not null && identifier is { Parent: MemberAccessExpressionSyntax mae })
             {
                 var newRoot = root.ReplaceNode(mae, mae.Expression);
-                if (newRoot != null)
-                {
-                    return document.WithSyntaxRoot(newRoot);
-                }
+                return document.WithSyntaxRoot(newRoot);
             }
 
             return document;

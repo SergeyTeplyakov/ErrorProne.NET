@@ -175,7 +175,7 @@ namespace ErrorProne.NET.Core
             return original != null && original.SpecialType == SpecialType.System_Nullable_T;
         }
 
-        public static IEnumerable<ITypeSymbol> EnumerateBaseTypesAndSelf(this ITypeSymbol type)
+        public static IEnumerable<ITypeSymbol> EnumerateBaseTypesAndSelf(this ITypeSymbol? type)
         {
             var t = type;
             while (t != null)

@@ -10,6 +10,8 @@
   <PropertyGroup>
     <!-- Using preconditions and Assersions from RuntimeContracts -->
     <DefineConstants>$(DefineConstants);CONTRACTS_LIGHT_PRECONDITIONS;CONTRACTS_LIGHT_ASSERTS</DefineConstants>
+    <TreatWarningsAsErrors Condition=" '$(Configuration)' == 'Debug' ">false</TreatWarningsAsErrors>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
   <ItemGroup>

@@ -18,6 +18,8 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.6.0
+        * Update all the dependendencies.
       0.5.0
         * Remove runtime dependencies for the prjoect (no RuntimeContracts, and no ErrorProne.Net.Core)
           to simplify deployment and to allow the customers to reference different versions of 'ErrorProne.Net.CoreAnalyzers'
@@ -51,10 +53,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

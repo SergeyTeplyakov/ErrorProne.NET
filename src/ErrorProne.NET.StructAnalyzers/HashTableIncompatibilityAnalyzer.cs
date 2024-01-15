@@ -108,9 +108,9 @@ namespace ErrorProne.NET.StructAnalyzers
         private void AnalyzeUsingDirective(SyntaxNodeAnalysisContext context)
         {
             var usingDirective = (UsingDirectiveSyntax) context.Node;
-            if (context.SemanticModel.GetDeclaredSymbol(usingDirective) is IAliasSymbol alias)
+            if (context.SemanticModel.GetDeclaredSymbol(usingDirective) is { } alias)
             {
-                if (alias.Target is ITypeSymbol ts)
+                if (alias.Target is ITypeSymbol ts && usingDirective.Name is not null)
                 {
                     DoAnalyzeType(ts, usingDirective.Name.GetLocation(), d => context.ReportDiagnostic(d));
                 }
