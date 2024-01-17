@@ -1,12 +1,12 @@
-﻿using ErrorProne.NET.TestHelpers;
-using NUnit.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using ErrorProne.NET.TestHelpers;
+using NUnit.Framework;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.NET.StructAnalyzers.HashTableIncompatibilityAnalyzer,
+    ErrorProne.NET.CoreAnalyzers.HashTableIncompatibilityAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
-namespace ErrorProne.NET.StructAnalyzers.Tests
+namespace ErrorProne.NET.CoreAnalyzers.Tests.CoreAnalyzers
 {
     [TestFixture]
     public class HashTableIncompatibilityAnalyzerTests

@@ -122,6 +122,22 @@ namespace ErrorProne.NET
             description: "Enumerable.Contains is less efficient since it scans all the entries in the hashset and allocates an iterator.");
 
         /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC24 = new DiagnosticDescriptor(
+            nameof(EPC24),
+            "A hash table \"unfriendly\" type is used as the key in a hash table",
+            "A struct '{0}' with a default {1} implementation is used as a key in a hash table",
+            category: PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.");
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC25 =
+            new DiagnosticDescriptor(nameof(EPC25),
+                title: "Avoid using default Equals or HashCode implementation from structs",
+                messageFormat: "The default 'ValueType.{0}' is used in {1}",
+                category: PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+                description: "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.");
+
+        /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
             nameof(ERP031), 
             title: "The API is not thread-safe", 

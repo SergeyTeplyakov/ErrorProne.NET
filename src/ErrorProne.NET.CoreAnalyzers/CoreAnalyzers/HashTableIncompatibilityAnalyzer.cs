@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-    
-namespace ErrorProne.NET.StructAnalyzers
+
+namespace ErrorProne.NET.CoreAnalyzers
 {
     /// <summary>
     /// An analyzer that warns when a struct with default implementation of <see cref="object.Equals(object)"/> or <see cref="object.GetHashCode()"/> are used as a key in a hash table.
@@ -29,13 +29,15 @@ namespace ErrorProne.NET.StructAnalyzers
             typeof(ImmutableDictionary<,>)
         };
 
-        private static readonly Dictionary<string, int> WellKnownHashTableTypes = new Dictionary<string, int>(WellKnownHashTables().ToDictionary(t => t.name.Remove(t.name.LastIndexOf("`")), t => t.arity));
+        private static readonly Dictionary<string, int> WellKnownHashTableTypes = new(
+            WellKnownHashTables()
+                .ToDictionary(t => t.name.Remove(t.name.LastIndexOf("`")), t => t.arity));
         
         private static readonly SymbolDisplayFormat SymbolDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         /// <nodoc />
-        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPS07;
+        public static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC24;
         
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
@@ -204,8 +206,7 @@ namespace ErrorProne.NET.StructAnalyzers
 
         private static bool IsWellKnownHashTableType(INamedTypeSymbol type)
         {
-            if (type.ConstructedFrom != null &&
-                type.ConstructedFrom.ToDisplayString(SymbolDisplayFormat) is var name &&
+            if (type.ConstructedFrom.ToDisplayString(SymbolDisplayFormat) is var name &&
                 WellKnownHashTableTypes.ContainsKey(name))
             {
                 return true;

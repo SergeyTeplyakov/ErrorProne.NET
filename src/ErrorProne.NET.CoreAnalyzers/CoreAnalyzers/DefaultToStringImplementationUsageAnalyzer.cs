@@ -1,10 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using ErrorProne.NET.Core;
-using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace ErrorProne.NET.AsyncAnalyzers
 {

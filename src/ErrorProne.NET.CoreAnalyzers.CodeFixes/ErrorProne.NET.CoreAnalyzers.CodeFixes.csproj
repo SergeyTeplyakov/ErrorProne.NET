@@ -18,6 +18,10 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.6.1
+        * Add Enumerable.Contains(HashSet{T}) analyzer.
+        * Move DefaultEqualsOrHashCodeUsageAnalyzer and HashTableIncompatibilityAnalyzer moved from structs analyzers to core analyzers.
+        * Changed DefaultEqualsOrHashCodeUsageAnalyzer to warn on any usages of ValueType.Equals/ValueType.GetHashCode in any place.
       0.6.0
         * Update all the dependendencies.
       0.5.0
