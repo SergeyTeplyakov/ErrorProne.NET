@@ -29,20 +29,7 @@ namespace ErrorProne.NET.StructAnalyzers
             category: PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
             description: "The compiler emits a defensive copy to make sure a struct instance remains unchanged.");
 
-        public static readonly DiagnosticDescriptor EPS07 = new DiagnosticDescriptor(
-            nameof(EPS07), 
-            "A hash table \"unfriendly\" type is used as the key in a hash table", 
-            "A struct '{0}' with a default {1} implementation is used as a key in a hash table",
-            category: PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
-            description: "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.");
-
-        public static readonly DiagnosticDescriptor EPS08 =
-            new DiagnosticDescriptor(nameof(EPS08), 
-                title: "Default 'ValueType.Equals' or 'HashCode' is used for struct equality", 
-                messageFormat: "The default 'ValueType.{0}' is used in {1}", 
-                category: PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
-                description: "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.");
-
+        // EPS07 and EPS08 was moved to the core analyzers.
         public static readonly DiagnosticDescriptor EPS09 = new DiagnosticDescriptor(
             nameof(EPS09), 
             title: "Pass an argument for an 'in' parameter explicitly", 

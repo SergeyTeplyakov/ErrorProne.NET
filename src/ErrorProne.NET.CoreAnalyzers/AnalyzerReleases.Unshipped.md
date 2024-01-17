@@ -15,6 +15,8 @@ EPC18 | CodeSmell | Warning | TaskInstanceToStringConversionAnalyzer
 EPC19 | CodeSmell | Warning | CancellationTokenRegistrationAnalyzer
 EPC20 | CodeSmell | Warning | DefaultToStringImplementationUsageAnalyzer
 EPC23 | Performance | Warning | HashSetContainsAnalyzer
+EPC24 | Performance | Warning | HashTableIncompatibilityAnalyzer
+EPC25 | Performance | Warning | DefaultEqualsOrHashCodeUsageAnalyzer
 ERP021 | CodeSmell | Warning | ThrowExAnalyzer
 ERP022 | CodeSmell | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
