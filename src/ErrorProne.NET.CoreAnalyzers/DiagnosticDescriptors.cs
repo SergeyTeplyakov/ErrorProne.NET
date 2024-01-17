@@ -116,7 +116,7 @@ namespace ErrorProne.NET
         /// <nodoc />
         internal static readonly DiagnosticDescriptor EPC23 = new DiagnosticDescriptor(
             nameof(EPC23), 
-            title: "Avoid using Enumerable.Contains on HashSet<string>", 
+            title: "Avoid using Enumerable.Contains on HashSet<T>", 
             messageFormat: "Linear search via Enumerable.Contains is used instead of an instance Contains method", 
             PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
             description: "Enumerable.Contains is less efficient since it scans all the entries in the hashset and allocates an iterator.");

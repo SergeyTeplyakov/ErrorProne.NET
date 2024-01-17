@@ -56,6 +56,28 @@ public class MyClass
         }
         
         [Test]
+        public async Task Warn_On_Enumerable_Contains_For_HashSet_Of_int()
+        {
+            string code = @"
+using System.Collections.Generic;
+using System.Linq;
+public class MyClass
+{
+    public static void Foo(HashSet<int> cd, int str)
+    {
+        bool fine = cd.Contains(str);
+        bool notFine = [|cd.Contains(str, EqualityComparer<int>.Default)|];
+    }
+
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { code } }
+            }.WithoutGeneratedCodeVerification().RunAsync();
+        }
+        
+        [Test]
         public async Task Warn_On_Enumerable_Contains_With_Local()
         {
             string code = @"

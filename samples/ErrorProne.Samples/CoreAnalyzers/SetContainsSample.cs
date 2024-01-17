@@ -135,5 +135,8 @@ public class SetContainsSample
 
         // Not OK: O(N) search!
         r = set.Contains("12", StringComparer.Ordinal);
+
+        var setOfInts = new HashSet<int>();
+        r = setOfInts.Contains(42, EqualityComparer<int>.Default);
     }
 }

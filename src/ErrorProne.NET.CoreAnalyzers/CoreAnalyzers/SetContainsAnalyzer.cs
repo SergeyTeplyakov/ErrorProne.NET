@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
@@ -10,7 +9,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace ErrorProne.NET.CoreAnalyzers
 {
     /// <summary>
-    /// An analyzer that warns about incorrect usage of concurrent collection types.
+    /// An analyzer that warns about <see cref="Enumerable.Contains{TSource}(IEnumerable{TSource},TSource, IEqualityComparer{TSource})"/> usage with sets.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class SetContainsAnalyzer : DiagnosticAnalyzerBase
@@ -34,27 +33,17 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         private void AnalyzeInvocationOperation(OperationAnalysisContext context)
         {
-            try
-            {
-                // Detecting the calls to concurrentDictionaryInstance.OrderBy because
-                // it may fail with ArgumentException if the collection is being mutated concurrently at the same time.
-                var invocationOperation = (IInvocationOperation)context.Operation;
+            // Looking for 'Enumerable.Contains' call that passes an extra argument of type 'StringComparer'.
+            var invocationOperation = (IInvocationOperation)context.Operation;
 
-                var receiverType = invocationOperation.GetReceiverType(includeLocal: true);
-                
-                if (
-                    IsEnumerableContains(invocationOperation.TargetMethod, context.Compilation) &&
-                    IsSet(receiverType, context.Compilation))
-                {
-                    var diagnostic = Diagnostic.Create(Rule, invocationOperation.Syntax.GetLocation());
-                    context.ReportDiagnostic(diagnostic);
-                }
-            }
-            catch (Exception)
+            var receiverType = invocationOperation.GetReceiverType(includeLocal: true);
+
+            if (
+                IsEnumerableContains(invocationOperation.TargetMethod, context.Compilation) &&
+                IsSet(receiverType, context.Compilation))
             {
-                throw;
-                //Debugger.Launch();
-                //throw new Exception(e.StackTrace);
+                var diagnostic = Diagnostic.Create(Rule, invocationOperation.Syntax.GetLocation());
+                context.ReportDiagnostic(diagnostic);
             }
 
             static bool IsEnumerableContains(IMethodSymbol methodSymbol, Compilation compilation)
@@ -76,10 +65,9 @@ namespace ErrorProne.NET.CoreAnalyzers
 
                 return typeSymbol.IsGenericType(compilation, typeof(HashSet<>)) ||
                        typeSymbol.IsGenericType(compilation, typeof(ISet<>)) ||
-                       (typeSymbol as INamedTypeSymbol)
-                           ?.ConstructedFrom
+                       nt.ConstructedFrom
                            .AllInterfaces
-                           .Any(i => i.IsGenericType(compilation, typeof(ISet<>))) == true;
+                           .Any(i => i.IsGenericType(compilation, typeof(ISet<>)));
             }
         }
     }
