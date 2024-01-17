@@ -3,7 +3,6 @@
 [System.AttributeUsage(System.AttributeTargets.Struct)]
 public class NonDefaultableAttribute : System.Attribute { }
 
-
 namespace ErrorProne.Samples.CoreAnalyzers
 {
     [NonDefaultable]

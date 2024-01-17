@@ -7,23 +7,21 @@
     <ItemGroup>
       <InputAssemblies Include="$(TargetPath)"/>
       <InputAssemblies Include="$(PkgRuntimeContracts)\lib\netstandard1.1\RuntimeContracts.dll" />
-      <!-- <InputAssemblies Include="$(TargetDir)\ErrorProne.NET.Core.dll" Condition="$(AssemblyName) != 'ErrorProne.NET.Core'" /> -->
     </ItemGroup>
     <ItemGroup>
       <!-- Dot not internalize any types inside this assembly -->
       <!--<InternalizeExcludeAssemblies Include="RuntimeContracts" />-->
     </ItemGroup>
     <Message Text="MERGING: @(InputAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
-    <!--<ILRepack 
-      Parallel="true"
-      DebugInfo="true"
-      InputAssemblies="@(InputAssemblies)"
-      TargetKind="SameAsPrimaryAssembly"
-      OutputFile="$(TargetDir)$(AssemblyName).dll"
-      Verbose="true"
-      LogFile="$(TargetDir)replacklog.txt"
-      internalize="true" />-->
-
+<ILRepack
+    AllowDuplicateResources="false"
+    DebugInfo="true"
+    Internalize="true"
+    InputAssemblies="@(InputAssemblies)"
+    OutputFile="$(TargetPath)"
+    Parallel="true"
+    LogFile="$(TargetDir)replacklog.txt"
+    TargetKind="SameAsPrimaryAssembly" />
   </Target>
 
 </Project>

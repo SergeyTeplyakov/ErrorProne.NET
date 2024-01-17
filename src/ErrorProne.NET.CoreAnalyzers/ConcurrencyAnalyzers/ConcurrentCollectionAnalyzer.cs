@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using ErrorProne.NET.Core;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -51,7 +52,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 // it may fail with ArgumentException if the collection is being mutated concurrently at the same time.
                 var invocationOperation = (IInvocationOperation)context.Operation;
 
-                var receiverType = GetReceiverType(invocationOperation);
+                var receiverType = invocationOperation.GetReceiverType();
 
                 var targetMethodName = invocationOperation.TargetMethod.Name;
                 if (receiverType != null &&
@@ -79,51 +80,6 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 //Debugger.Launch();
                 throw new Exception(e.StackTrace);
             }
-        }
-
-        private static ITypeSymbol? GetReceiverType(IInvocationOperation invocationOperation)
-        {
-            // We have (at least) two cases here:
-            // instance.ToList() and
-            // Enumerable.ToList(instance).
-            if (invocationOperation.Arguments.Length == 0 || invocationOperation.SemanticModel is null)
-            {
-                return null;
-            }
-
-            var firstArg = invocationOperation.Arguments[0];
-            var semanticModel = invocationOperation.SemanticModel;
-            var argumentOperation = semanticModel.GetOperation(firstArg.Syntax);
-
-            if (argumentOperation is IArgumentOperation)
-            {
-                // This is the same argument operation that we obtained before.
-                // It means that this is a real argument like Enumerable.ToList(arg)
-                // and not something like arg.ToList();
-
-                if (firstArg.Syntax.ChildNodes().FirstOrDefault() is not IdentifierNameSyntax argumentIdentifier)
-                {
-                    // TODO: is it actually possible?
-                    return null;
-                }
-
-                return semanticModel.GetTypeInfo(argumentIdentifier).Type;
-            }
-
-            // This is 'foo.ToList()' case.
-            // Just getting a type of an operation but we need to exclude locals.
-
-            if (argumentOperation is ILocalReferenceOperation)
-            {
-                // Important NOTE: excluding local variables, because it is way likely that the local is used in a shared context.
-                // In most cases the locals are used in some kind of fork-join scenario, when the local is created,
-                // populated in parallel via Parallel.For or something similar and then processed after that.
-                // It is still possible that this code may cause issues, but because this pattern is relatively popular
-                // its better to avoid false positives here.
-                return null;
-            }
-
-            return argumentOperation?.Type;
         }
     }
 }

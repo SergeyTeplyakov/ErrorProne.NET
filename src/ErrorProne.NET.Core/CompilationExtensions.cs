@@ -1,9 +1,66 @@
 ﻿using System;
+using System.Diagnostics.ContractsLight;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace ErrorProne.NET.Core
 {
+    public static class OperationExtensions
+    {
+        public static ITypeSymbol? GetReceiverType(this IInvocationOperation invocationOperation, bool includeLocal = false)
+        {
+            // We have (at least) two cases here:
+            // instance.ToList() and
+            // Enumerable.ToList(instance).
+            if (invocationOperation.Arguments.Length == 0 || invocationOperation.SemanticModel is null)
+            {
+                return null;
+            }
+
+            var firstArg = invocationOperation.Arguments[0];
+            var semanticModel = invocationOperation.SemanticModel;
+            var argumentOperation = semanticModel.GetOperation(firstArg.Syntax);
+
+            if (argumentOperation is IArgumentOperation)
+            {
+                // This is the same argument operation that we obtained before.
+                // It means that this is a real argument like Enumerable.ToList(arg)
+                // and not something like arg.ToList();
+
+                if (firstArg.Syntax.ChildNodes().FirstOrDefault() is not IdentifierNameSyntax argumentIdentifier)
+                {
+                    // TODO: is it actually possible?
+                    return null;
+                }
+
+                return semanticModel.GetTypeInfo(argumentIdentifier).Type;
+            }
+
+            // This is 'foo.ToList()' case.
+            // Just getting a type of an operation but we need to exclude locals.
+
+            if (argumentOperation is ILocalReferenceOperation ao)
+            {
+                if (includeLocal)
+                {
+                    return ao.Type;
+                }
+
+                // Important NOTE: excluding local variables, because it is way likely that the local is used in a shared context.
+                // In most cases the locals are used in some kind of fork-join scenario, when the local is created,
+                // populated in parallel via Parallel.For or something similar and then processed after that.
+                // It is still possible that this code may cause issues, but because this pattern is relatively popular
+                // its better to avoid false positives here.
+                return null;
+            }
+
+            return argumentOperation?.Type;
+        }
+    }
+
     // Copied from internal ICompilationExtensions class from the roslyn codebase
     public static class CompilationExtensions
     {
@@ -16,6 +73,12 @@ namespace ErrorProne.NET.Core
             
             var provider = WellKnownTypeProvider.GetOrCreate(compilation);
             return provider.GetTypeByFullName(fullName!);
+        }
+        
+        
+        public static INamedTypeSymbol? GetTypeByClrType(this Compilation compilation, Type type)
+        {
+            return compilation.GetTypeByFullName(type.FullName);
         }
         
         public static INamedTypeSymbol? TaskType(this Compilation compilation)
@@ -35,6 +98,19 @@ namespace ErrorProne.NET.Core
         
         public static bool IsClrType(this ITypeSymbol? ts, Compilation compilation, Type clrType)
             => ts?.OriginalDefinition.Equals(compilation.GetTypeByFullName(clrType.FullName), SymbolEqualityComparer.Default) == true;
+
+        public static bool IsGenericType(this ITypeSymbol? type, Compilation compilation, Type clrType)
+        {
+            Contract.Requires(clrType.IsGenericType);
+            
+            var otherType = compilation.GetTypeByClrType(clrType);
+            if (type is INamedTypeSymbol nts)
+            {
+                return nts.ConstructedFrom.Equals(otherType, SymbolEqualityComparer.Default);
+            }
+
+            return false;
+        }
 
         public static bool IsSystemValueType(this INamedTypeSymbol type, Compilation compilation)
             => type.Equals(compilation.GetTypeByFullName("System.ValueType"), SymbolEqualityComparer.Default);

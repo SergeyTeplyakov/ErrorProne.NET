@@ -73,6 +73,7 @@
     <ItemGroup>
       <_File Include="$(OutputPath)$(AssemblyName).dll" />
       <_File Include="$(OutputPath)ErrorProne.Net.CoreAnalyzers.dll" />
+      <_File Include="$(OutputPath)RuntimeContracts.dll" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
