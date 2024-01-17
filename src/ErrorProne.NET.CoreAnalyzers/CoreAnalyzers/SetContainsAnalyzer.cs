@@ -69,7 +69,7 @@ namespace ErrorProne.NET.CoreAnalyzers
 
             static bool IsSet(ITypeSymbol? typeSymbol, Compilation compilation)
             {
-                if (typeSymbol == null || typeSymbol is not INamedTypeSymbol nt || !nt.IsGenericType)
+                if (typeSymbol is not INamedTypeSymbol { IsGenericType: true } nt)
                 {
                     return false;
                 }
