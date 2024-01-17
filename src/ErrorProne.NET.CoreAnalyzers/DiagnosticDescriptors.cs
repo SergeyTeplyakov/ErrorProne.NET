@@ -8,6 +8,7 @@ namespace ErrorProne.NET
     internal static class DiagnosticDescriptors
     {
         private const string CodeSmellCategory = "CodeSmell";
+        private const string PerformanceCategory = "Performance";
         private const string ConcurrencyCategory = "Concurrency";
         private static readonly string[] UnnecessaryTag = new [] { WellKnownDiagnosticTags.Unnecessary };
 
@@ -111,6 +112,14 @@ namespace ErrorProne.NET
             messageFormat: "An exit point '{0}' swallows an unobserved exception", 
             CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
             description: "A generic catch block swallows an exception that was not observed.");
+        
+        /// <nodoc />
+        internal static readonly DiagnosticDescriptor EPC23 = new DiagnosticDescriptor(
+            nameof(EPC23), 
+            title: "Avoid using Enumerable.Contains on HashSet<T>", 
+            messageFormat: "Linear search via Enumerable.Contains is used instead of an instance Contains method", 
+            PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
+            description: "Enumerable.Contains is less efficient since it scans all the entries in the hashset and allocates an iterator.");
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
