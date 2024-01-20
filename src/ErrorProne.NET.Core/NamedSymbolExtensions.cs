@@ -84,37 +84,5 @@ namespace ErrorProne.NET.Extensions
 
             return $"{symbolType}, {new AssemblyName(assemblySymbol.Identity.GetDisplayName(true))}";
         }
-
-        public static bool IsDerivedFromInterface(this INamedTypeSymbol namedType, Type type)
-        {
-            Contract.Requires(namedType != null);
-            Contract.Requires(type != null);
-
-            return Enumerable.Any(namedType.AllInterfaces, symbol => symbol.IsType(type));
-        }
-
-        public static bool IsExceptionType(this ISymbol? symbol, SemanticModel model)
-        {
-            if (!(symbol is INamedTypeSymbol namedSymbol))
-            {
-                return false;
-            }
-
-            var exceptionType = model.Compilation.GetTypeByFullName(typeof(Exception).FullName);
-
-            return TraverseTypeAndItsBaseTypes(namedSymbol).Any(x => x.Equals(exceptionType, SymbolEqualityComparer.Default));
-        }
-
-        public static bool IsArgumentExceptionType(this ISymbol? symbol, SemanticModel model)
-        {
-            if (!(symbol is INamedTypeSymbol namedSymbol))
-            {
-                return false;
-            }
-
-            var exceptionType = model.Compilation.GetTypeByFullName(typeof(ArgumentException).FullName);
-
-            return TraverseTypeAndItsBaseTypes(namedSymbol).Any(x => x.Equals(exceptionType, SymbolEqualityComparer.Default));
-        }
     }
 }

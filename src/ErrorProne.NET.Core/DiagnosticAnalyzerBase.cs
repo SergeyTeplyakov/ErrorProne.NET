@@ -33,11 +33,10 @@ namespace ErrorProne.NET.CoreAnalyzers
         public sealed override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
-            
-            if (ReportDiagnosticsOnGeneratedCode)
-            {
-                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-            }
+
+            var flags = ReportDiagnosticsOnGeneratedCode ? GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics : GeneratedCodeAnalysisFlags.None;
+
+            context.ConfigureGeneratedCodeAnalysis(flags);
 
             InitializeCore(context);
         }
