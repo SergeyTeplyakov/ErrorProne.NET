@@ -45,7 +45,7 @@ namespace ErrorProne.NET.Extensions
         
         public static bool MarkedWithReadOnlyModifier(this IPropertySymbol property)
         {
-            return property
+            return property.IsReadOnly && property
                 .DeclaringSyntaxReferences
                 .Select(p => (BasePropertyDeclarationSyntax)p.GetSyntax())
                 .Any(p => MarkedWithReadOnlyModifier(p));
