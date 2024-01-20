@@ -19,17 +19,21 @@ namespace ErrorProne.NET.AsyncAnalyzers
         {
         }
 
-        protected abstract bool TryCreateDiagnostic(Compilation compilation, ITypeSymbol type, Location location, [NotNullWhen(true)]out Diagnostic? diagnostic);
+        protected abstract bool TryCreateDiagnostic(TaskTypesInfo info, ITypeSymbol type, Location location, [NotNullWhen(true)]out Diagnostic? diagnostic);
 
         /// <inheritdoc />
         protected override void InitializeCore(AnalysisContext context)
         {
-            context.RegisterOperationAction(AnalyzeConversion, OperationKind.Conversion);
-            context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
-            context.RegisterOperationAction(AnalyzeMethodInvocation, OperationKind.Invocation);
+            context.RegisterCompilationStartAction(context =>
+            {
+                var taskTypesInfo = new TaskTypesInfo(context.Compilation);
+                context.RegisterOperationAction(context => AnalyzeConversion(context, taskTypesInfo), OperationKind.Conversion);
+                context.RegisterOperationAction(context => AnalyzeInterpolation(context, taskTypesInfo), OperationKind.Interpolation);
+                context.RegisterOperationAction(context => AnalyzeMethodInvocation(context, taskTypesInfo), OperationKind.Invocation);
+            });
         }
 
-        private void AnalyzeMethodInvocation(OperationAnalysisContext context)
+        private void AnalyzeMethodInvocation(OperationAnalysisContext context, TaskTypesInfo info)
         {
             var methodCall = (IInvocationOperation)context.Operation;
             if (methodCall.Instance?.Type is not null &&
@@ -38,7 +42,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                     .System_ValueType)
             {
                 if (TryCreateDiagnostic(
-                    context.Compilation,
+                    info,
                     methodCall.Instance.Type,
                     methodCall.Syntax.GetLocation(),
                     out var diagnostic))
@@ -48,14 +52,14 @@ namespace ErrorProne.NET.AsyncAnalyzers
             }
         }
 
-        private void AnalyzeInterpolation(OperationAnalysisContext context)
+        private void AnalyzeInterpolation(OperationAnalysisContext context, TaskTypesInfo info)
         {
             // This method checks for $"foobar: {taskLikeThing}";
             if (context.Operation is IInterpolationOperation interpolationOperation)
             {
                 if (interpolationOperation.Expression.Type is not null &&
                     TryCreateDiagnostic(
-                        context.Compilation,
+                        info,
                         interpolationOperation.Expression.Type,
                         interpolationOperation.Expression.Syntax.GetLocation(),
                         out var diagnostic))
@@ -65,7 +69,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             }
         }
 
-        private void AnalyzeConversion(OperationAnalysisContext context)
+        private void AnalyzeConversion(OperationAnalysisContext context, TaskTypesInfo info)
         {
             // This method checks for "something" + taskLikeThing;
             // or string.Format("{0}", taskLikeThing);
@@ -78,7 +82,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 if ((isToStringConversion(conversion.Parent)) && conversion.Operand.Type is not null)
                 {
                     if (TryCreateDiagnostic(
-                            context.Compilation,
+                            info,
                             conversion.Operand.Type, 
                             context.Operation.Syntax.GetLocation(),
                             out var diagnostic))
@@ -95,7 +99,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                     conversion.Operand.Type is not null)
                 {
                     if (TryCreateDiagnostic(
-                        context.Compilation,
+                        info,
                         conversion.Operand.Type,
                         context.Operation.Syntax.GetLocation(),
                         out var diagnostic))

@@ -61,6 +61,20 @@ namespace ErrorProne.NET.Core
         }
     }
 
+    public sealed class TaskTypesInfo
+    {
+        public INamedTypeSymbol? TaskSymbol { get; }
+        public INamedTypeSymbol? TaskOfTSymbol { get; }
+        public INamedTypeSymbol? ValueTaskOfTSymbol { get; }
+
+        public TaskTypesInfo(Compilation compilation)
+        {
+            TaskSymbol = compilation.GetTypeByMetadataName(typeof(Task).FullName);
+            TaskOfTSymbol = compilation.GetTypeByMetadataName(typeof(Task<>).FullName);
+            ValueTaskOfTSymbol = compilation.GetTypeByMetadataName(typeof(ValueTask<>).FullName);
+        }
+    }
+
     // Copied from internal ICompilationExtensions class from the roslyn codebase
     public static class CompilationExtensions
     {
@@ -124,30 +138,29 @@ namespace ErrorProne.NET.Core
             return (taskType, taskOfTType, valueTaskOfTType);
         }
 
-        public static bool IsTaskLike(this ITypeSymbol? returnType, Compilation compilation)
+        public static bool IsTaskLike(this ITypeSymbol? returnType, TaskTypesInfo info)
         {
             if (returnType == null)
             {
                 return false;
             }
 
-            var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
-            if (taskType == null || taskOfTType == null)
+            if (info.TaskSymbol == null || info.TaskOfTSymbol == null)
             {
                 return false; // ?
             }
 
-            if (returnType.Equals(taskType, SymbolEqualityComparer.Default))
+            if (returnType.Equals(info.TaskSymbol, SymbolEqualityComparer.Default))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(taskOfTType, SymbolEqualityComparer.Default))
+            if (returnType.OriginalDefinition.Equals(info.TaskOfTSymbol, SymbolEqualityComparer.Default))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(valueTaskOfTType, SymbolEqualityComparer.Default))
+            if (returnType.OriginalDefinition.Equals(info.ValueTaskOfTSymbol, SymbolEqualityComparer.Default))
             {
                 return true;
             }

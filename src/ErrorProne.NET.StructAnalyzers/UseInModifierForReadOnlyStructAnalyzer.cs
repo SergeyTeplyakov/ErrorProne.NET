@@ -25,8 +25,13 @@ namespace ErrorProne.NET.StructAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
-            context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
+            context.RegisterCompilationStartAction(context =>
+            {
+                var taskTypesInfo = new TaskTypesInfo(context.Compilation);
+
+                context.RegisterSymbolAction(context => AnalyzeNamedType(context), SymbolKind.NamedType);
+                context.RegisterSymbolAction(context => AnalyzeMethod(context, taskTypesInfo), SymbolKind.Method);
+            });
         }
 
         private void AnalyzeNamedType(SymbolAnalysisContext context)
@@ -51,12 +56,12 @@ namespace ErrorProne.NET.StructAnalyzers
             }
         }
 
-        private void AnalyzeMethod(SymbolAnalysisContext context)
+        private void AnalyzeMethod(SymbolAnalysisContext context, TaskTypesInfo info)
         {
             context.TryGetSemanticModel(out var semanticModel);
 
             var method = (IMethodSymbol) context.Symbol;
-            if (IsOverridenMethod(method) || method.IsAsyncOrTaskBased(context.Compilation) || method.IsIteratorBlock())
+            if (IsOverridenMethod(method) || method.IsAsyncOrTaskBased(info) || method.IsIteratorBlock())
             {
                 // If the method overrides a base method or implements an interface,
                 // then we can't enforce 'in'-modifier

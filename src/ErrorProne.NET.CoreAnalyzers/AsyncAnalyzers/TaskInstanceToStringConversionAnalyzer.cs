@@ -23,11 +23,11 @@ namespace ErrorProne.NET.AsyncAnalyzers
         {
         }
 
-        protected override bool TryCreateDiagnostic(Compilation compilation, ITypeSymbol type, Location location, [NotNullWhen(true)]out Diagnostic? diagnostic)
+        protected override bool TryCreateDiagnostic(TaskTypesInfo info, ITypeSymbol type, Location location, [NotNullWhen(true)]out Diagnostic? diagnostic)
         {
             diagnostic = null;
 
-            if (type.IsTaskLike(compilation))
+            if (type.IsTaskLike(info))
             {
                 diagnostic = Diagnostic.Create(Rule, location);
             }
