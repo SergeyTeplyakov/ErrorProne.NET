@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using ErrorProne.NET.Core;
+using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.Net.StructAnalyzers.NonDefaultStructs
 {

@@ -1,7 +1,4 @@
-﻿using ErrorProne.NET.TestHelpers;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Testing;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.SuspiciousEqualsMethodAnalyzer,
@@ -21,20 +18,10 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests
 public class MyS : System.IEquatable<MyS>
 {
     public int Line { get; }
-    public bool Equals(MyS other) => other != null;
+    public bool [|Equals|](MyS other) => other != null;
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(5, 17, 5, 23).WithArguments("Instance members are not used"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -98,24 +85,14 @@ class FooBar
     private static int _s = 4;
     private static Foo _f = new Foo();
 
-    public override bool Equals(object obj)
+    public override bool [|Equals|](object obj)
     {
         return _f.X == _s && 
             System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(obj as FooBar);
     }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(9, 26, 9, 32).WithArguments("Instance members are not used"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -129,23 +106,13 @@ class FooBar
     private static int _s = 4;
     private static Foo _f = new Foo();
 
-    public override bool Equals(object obj)
+    public override bool [|Equals|](object obj)
        =>
         _f.X == _s && 
             System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(obj as FooBar);
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(9, 26, 9, 32).WithArguments("Instance members are not used"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -156,23 +123,13 @@ class FooBar
 {
     private int N => 42;
 
-    public override bool Equals(object obj)
+    public override bool [|Equals|](object obj)
     {
         return System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(obj as FooBar);
     }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(6, 26, 6, 32).WithArguments("Instance members are not used"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -192,7 +149,7 @@ class FooBar
 ";
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
-
+        
         [Test]
         public async Task Warn_When_Only_Static_Members_Are_Used_For_Structs()
         {
@@ -204,31 +161,22 @@ struct FooBar
     private static int _s = 4;
     private static Foo _f = new Foo();
 
-    public override bool Equals(object obj)
+    public override bool [|Equals|](object obj)
     {
         return _f.X == _s && 
-            System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(obj as FooBar);
+            System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals((FooBar)obj);
     }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(9, 26, 9, 32).WithArguments("Instance members are not used"),
-                        DiagnosticResult.CompilerError("CS0077").WithSpan(12, 80, 12, 93).WithMessage("The as operator must be used with a reference type or nullable type ('FooBar' is a non-nullable value type)"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
         public async Task NoWorn_When_Class_Has_No_Instance_Members()
         {
             string code = @"
+
+class Foo {public int X;}
 class FooBar
 {
     private static int _n = 42;
@@ -242,10 +190,7 @@ class FooBar
     }
 }
 ";
-            await VerifyCS.VerifyAnalyzerAsync(
-                code,
-                DiagnosticResult.CompilerError("CS0246").WithSpan(6, 20, 6, 23).WithMessage("The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)"),
-                DiagnosticResult.CompilerError("CS0246").WithSpan(6, 33, 6, 36).WithMessage("The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)"));
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -292,24 +237,14 @@ class FooBar
     private static int _s = 4;
     private static Foo _f = new Foo();
 
-    public override bool Equals(object obj)
+    public override bool Equals(object [|obj|])
     {
         return _f.X == _n && 
             System.Collections.Generic.EqualityComparer<FooBar>.Default.Equals(this as FooBar);
     }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(DiagnosticId).WithSpan(9, 40, 9, 43).WithArguments("right hand side parameter 'obj' is never used"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]

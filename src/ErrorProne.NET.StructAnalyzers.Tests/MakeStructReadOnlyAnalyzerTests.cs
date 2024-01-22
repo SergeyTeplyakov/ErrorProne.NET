@@ -110,10 +110,7 @@ this = other;
                 ref readonly SelfAssign x = ref this;
             }
         }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -148,29 +145,20 @@ this = other;
             public void Bar(in SelfAssign sa) {}
         }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
         public async Task HasDiagnosticsForEmptyStruct()
         {
             string code = @"struct [|FooBar|] {}";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
         public async Task HasDiagnosticCases(string code)
         {
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()

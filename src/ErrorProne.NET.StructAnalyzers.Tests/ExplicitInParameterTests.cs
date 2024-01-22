@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
 using ErrorProne.NET.TestHelpers;
 using System.Threading.Tasks;
-using Microsoft;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.ExplicitInParameterAnalyzer,
     ErrorProne.NET.StructAnalyzers.ExplicitInParameterCodeFixProvider>;

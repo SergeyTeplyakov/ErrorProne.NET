@@ -63,11 +63,7 @@ struct Test : ITest {
     readonly int ITest.Y => 42;
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
 
         [Test]
@@ -83,11 +79,7 @@ struct Test : ITest {
     public readonly int X { get=> 42; }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
         
         [Test]
@@ -103,11 +95,7 @@ struct Test : ITest {
     public readonly int X() => 42;
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
         
         [Test]
@@ -123,11 +111,7 @@ struct Test : ITest {
     public readonly int X() { return 42; }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
         
         [Test]
@@ -143,11 +127,7 @@ struct Test : ITest {
     public override readonly string ToString() => string.Empty;
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
     }
 }

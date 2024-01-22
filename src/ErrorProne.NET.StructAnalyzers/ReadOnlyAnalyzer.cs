@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;

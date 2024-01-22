@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.SetContainsAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using ErrorProne.NET.TestHelpers;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
@@ -27,10 +26,7 @@ public class MyClass
 
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -49,10 +45,7 @@ public class MyClass
 
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -71,10 +64,7 @@ public class MyClass
 
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -94,10 +84,7 @@ public class MyClass
 
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -117,10 +104,7 @@ public class MyClass
 
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -140,10 +124,7 @@ public class MyClass
     }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -163,10 +144,7 @@ public class MyClass
 
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -306,10 +284,7 @@ public class MyClass
 
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
     }
 }

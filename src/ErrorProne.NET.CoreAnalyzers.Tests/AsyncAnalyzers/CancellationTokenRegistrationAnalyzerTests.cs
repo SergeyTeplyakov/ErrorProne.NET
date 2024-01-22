@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 using Verify = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.AsyncAnalyzers.CancellationTokenRegistrationAnalyzer,

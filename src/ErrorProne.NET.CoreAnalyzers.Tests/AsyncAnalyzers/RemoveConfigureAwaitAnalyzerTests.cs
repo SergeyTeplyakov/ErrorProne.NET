@@ -1,7 +1,4 @@
-﻿using ErrorProne.NET.AsyncAnalyzers;
-using ErrorProne.NET.TestHelpers;
-using Microsoft.CodeAnalysis;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.AsyncAnalyzers.RedundantConfigureAwaitFalseAnalyzer,
@@ -18,25 +15,18 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
             string code = @"
 [assembly:DoNotUseConfigureAwait()]
 
+[System.AttributeUsage(System.AttributeTargets.Assembly)]
+public class DoNotUseConfigureAwait : System.Attribute { }
+
 public class MyClass
 {
     public static async System.Threading.Tasks.Task Foo()
     {
-       await System.Threading.Tasks.Task.Delay(42).ConfigureAwait(false);
+       await System.Threading.Tasks.Task.Delay(42).[|ConfigureAwait(false)|];
     }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(RedundantConfigureAwaitFalseAnalyzer.Rule).WithSpan(8, 52, 8, 73),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -45,26 +35,20 @@ public class MyClass
             string code = @"
 [assembly:DoNotUseConfigureAwait()]
 
+[System.AttributeUsage(System.AttributeTargets.Assembly)]
+public class DoNotUseConfigureAwait : System.Attribute { }
+
 public class MyClass
 {
     private static System.Threading.Tasks.Task MyTask => null;
     public static async System.Threading.Tasks.Task Foo()
     {
-       await MyTask.ConfigureAwait(false);
+       await MyTask.[|ConfigureAwait(false)|];
     }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(RedundantConfigureAwaitFalseAnalyzer.Rule).WithSpan(9, 21, 9, 42),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().WithConfigureAwaitAttributes().RunAsync();
+
+            await VerifyCS.VerifyAsync(code);
         }
     }
 }

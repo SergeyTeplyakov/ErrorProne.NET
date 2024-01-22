@@ -4,7 +4,6 @@
 //  
 // --------------------------------------------------------------------
 
-using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
@@ -28,14 +27,8 @@ class Test
     catch {[|}|]
   }
 }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
-
-
-
 
         [Test]
         public async Task DoNotWarnOnAnonymousUsageOfException()
@@ -101,10 +94,7 @@ class Test
     return null;
   }
 }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -120,10 +110,7 @@ class Test
     catch {Console.WriteLine(42);[|}|]
   }
 }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -139,10 +126,7 @@ class Test
     catch(Exception) {Console.WriteLine(42);[|}|]
   }
 }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -158,13 +142,7 @@ class Test
     catch {Console.WriteLine(); if (n == 42) [|return;|] throw;}
   }
 }";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -180,13 +158,7 @@ class Test
     catch(Exception e) {if (e is System.AggregateException) throw;[|}|]
   }
 }";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -202,10 +174,7 @@ class Test
     catch(Exception e) {if (n != 0) throw; Console.WriteLine(42);[|}|]
   }
 }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]

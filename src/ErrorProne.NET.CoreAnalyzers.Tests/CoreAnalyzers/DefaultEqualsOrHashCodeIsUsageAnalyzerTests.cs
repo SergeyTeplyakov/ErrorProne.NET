@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.DefaultEqualsOrHashCodeUsageAnalyzer,
@@ -14,10 +13,7 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.CoreAnalyzers
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
         public async Task HasDiagnosticCases(string code)
         {
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()

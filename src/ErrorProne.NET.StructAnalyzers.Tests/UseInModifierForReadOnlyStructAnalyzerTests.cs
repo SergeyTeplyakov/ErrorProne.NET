@@ -1,5 +1,4 @@
-﻿using ErrorProne.NET.TestHelpers;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
@@ -22,10 +21,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         {
             string code = @"readonly struct S {readonly long l, l2,l3;} class FooBar { public void Foo([|S? n|]) {} }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -115,11 +111,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
         public async Task HasDiagnosticsForLargeReadOnlyStruct()
         {
             string code = @"readonly struct S {readonly long l, l2,l3;} class FooBar { public void Foo([|S n|]) {} }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                ExpectedDiagnostics = { }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -129,11 +121,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
             // For indexers, the error is just on the parameter name itself!
             string code = @"readonly struct FooBar { readonly (long, long, long) data; }
         class FooClass { public int this[FooBar [|fb|]] => 42; }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                ExpectedDiagnostics = { }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -158,19 +146,13 @@ class FooBar
     {
     }
 }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [TestCaseSource(nameof(GetHasDiagnosticsTestCases))]
         public async Task HasDiagnosticsTestCases(string code)
         {
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         public static IEnumerable<string> GetHasDiagnosticsTestCases()
