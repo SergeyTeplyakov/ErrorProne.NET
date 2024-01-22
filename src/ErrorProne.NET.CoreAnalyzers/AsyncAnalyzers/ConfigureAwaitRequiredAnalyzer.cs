@@ -1,11 +1,10 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using CompilationExtensions = ErrorProne.NET.Core.CompilationExtensions;
 
 namespace ErrorProne.NET.AsyncAnalyzers
 {
@@ -27,38 +26,56 @@ namespace ErrorProne.NET.AsyncAnalyzers
         /// <inheritdoc />
         protected override void InitializeCore(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeAwaitExpression, SyntaxKind.AwaitExpression);
+            context.RegisterCompilationStartAction(context =>
+            {
+                var compilation = context.Compilation;
+
+                var configureAwaitConfig = ConfigureAwaitConfiguration.TryGetConfigureAwait(context.Compilation);
+                if (configureAwaitConfig != ConfigureAwait.UseConfigureAwaitFalse)
+                {
+                    return;
+                }
+
+                var taskType = compilation.GetTypeByMetadataName(typeof(Task).FullName);
+                if (taskType is null)
+                {
+                    return;
+                }
+
+                var configureAwaitMethods = taskType.GetMembers("ConfigureAwait").OfType<IMethodSymbol>().ToImmutableArray();
+                if (configureAwaitMethods.IsEmpty)
+                {
+                    return;
+                }
+
+                var yieldAwaitable = compilation.GetTypeByMetadataName(typeof(YieldAwaitable).FullName);
+
+                context.RegisterOperationAction(context => AnalyzeAwaitOperation(context, configureAwaitMethods, yieldAwaitable), OperationKind.Await);
+            });
+            
         }
 
-        private void AnalyzeAwaitExpression(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeAwaitOperation(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> configureAwaitMethods, INamedTypeSymbol? yieldAwaitable)
         {
-            var invocation = (AwaitExpressionSyntax)context.Node;
+            var awaitOperation = (IAwaitOperation)context.Operation;
 
-            var configureAwaitConfig = ConfigureAwaitConfiguration.TryGetConfigureAwait(context.Compilation);
-            if (configureAwaitConfig == ConfigureAwait.UseConfigureAwaitFalse)
+            if (awaitOperation.Operation is IInvocationOperation configureAwaitOperation)
             {
-                var operation = context.SemanticModel.GetOperation(invocation, context.CancellationToken);
-                if (operation is IAwaitOperation awaitOperation)
+                if (configureAwaitMethods.Contains(configureAwaitOperation.TargetMethod))
                 {
-                    if (awaitOperation.Operation is IInvocationOperation configureAwaitOperation)
-                    {
-                        if (configureAwaitOperation.TargetMethod.IsConfigureAwait(context.Compilation))
-                        {
-                            return;
-                        }
+                    return;
+                }
 
-                        if (CompilationExtensions.IsClrType(configureAwaitOperation.Type, context.Compilation, typeof(YieldAwaitable)))
-                        {
-                            return;
-                        }
-                    }
-
-                    var location = awaitOperation.Syntax.GetLocation();
-
-                    var diagnostic = Diagnostic.Create(Rule, location);
-                    context.ReportDiagnostic(diagnostic);
+                if (SymbolEqualityComparer.Default.Equals(configureAwaitOperation.Type, yieldAwaitable))
+                {
+                    return;
                 }
             }
+
+            var location = awaitOperation.Syntax.GetLocation();
+
+            var diagnostic = Diagnostic.Create(Rule, location);
+            context.ReportDiagnostic(diagnostic);
         }
     }
 }

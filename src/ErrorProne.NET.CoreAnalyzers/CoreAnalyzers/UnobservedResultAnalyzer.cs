@@ -17,6 +17,24 @@ namespace ErrorProne.NET.CoreAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class UnobservedResultAnalyzer : DiagnosticAnalyzer
     {
+        private sealed class UnobservedResultAnalyzerInfo
+        {
+            public ImmutableArray<IMethodSymbol> ConfigureAwaitMethods { get; }
+            public ImmutableHashSet<IMethodSymbol> ContinueWithMethods { get; }
+            public INamedTypeSymbol? ExceptionSymbol { get; }
+            public TaskTypesInfo TaskTypesInfo { get; }
+
+            public UnobservedResultAnalyzerInfo(Compilation compilation)
+            {
+                TaskTypesInfo = new TaskTypesInfo(compilation);
+                ExceptionSymbol = compilation.GetTypeByMetadataName(typeof(Exception).FullName);
+                ConfigureAwaitMethods = TaskTypesInfo.TaskSymbol?.GetMembers("ConfigureAwait").OfType<IMethodSymbol>().ToImmutableArray() ?? ImmutableArray<IMethodSymbol>.Empty;
+#pragma warning disable RS1024 // Symbols should be compared for equality
+                ContinueWithMethods = TaskTypesInfo.TaskSymbol?.GetMembers("ContinueWith").OfType<IMethodSymbol>().ToImmutableHashSet() ?? ImmutableHashSet<IMethodSymbol>.Empty;
+#pragma warning restore RS1024 // Symbols should be compared for equality
+            }
+        }
+
         private static DiagnosticDescriptor Rule => DiagnosticDescriptors.EPC13;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
@@ -33,28 +51,31 @@ namespace ErrorProne.NET.CoreAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSyntaxNodeAction(AnalyzeAwaitExpression, SyntaxKind.AwaitExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeMethodInvocation, SyntaxKind.InvocationExpression);
+            context.RegisterCompilationStartAction(context =>
+            {
+                var compilation = context.Compilation;
+
+                var info = new UnobservedResultAnalyzerInfo(compilation);
+
+                context.RegisterOperationAction(context => AnalyzeAwaitOperation(context, info), OperationKind.Await);
+                context.RegisterOperationAction(context => AnalyzeMethodInvocation(context, info), OperationKind.Invocation);
+            });
         }
 
-        private void AnalyzeMethodInvocation(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeMethodInvocation(OperationAnalysisContext context, UnobservedResultAnalyzerInfo info)
         {
-            var invocation = (InvocationExpressionSyntax)context.Node;
-
-            if (invocation.Parent is ExpressionStatementSyntax ex &&
-                context.SemanticModel.GetSymbolInfo(ex.Expression).Symbol is IMethodSymbol ms && 
-                TypeMustBeObserved(ms.ReturnType, ms, context.Compilation))
+            var invocationOperation = (IInvocationOperation)context.Operation;
+            var invocation = (InvocationExpressionSyntax)invocationOperation.Syntax;
+            if (invocationOperation.Parent is IExpressionStatementOperation &&
+                TypeMustBeObserved(invocationOperation.TargetMethod.ReturnType, invocationOperation.TargetMethod, info))
             {
-                var operation = context.SemanticModel.GetOperation(invocation);
-                var invocationOperation = operation as IInvocationOperation;
-                if (invocationOperation != null &&
-                    ResultObservedByExtensionMethod(invocationOperation, context.SemanticModel))
+                if (ResultObservedByExtensionMethod(invocationOperation, info))
                 {
                     // Result is observed!
                     return;
                 }
 
-                if (invocationOperation != null && IsException(invocationOperation.Type, context.Compilation) &&
+                if (IsException(invocationOperation.Type, info) &&
                     invocationOperation.TargetMethod.ConstructedFrom.ReturnType is ITypeParameterSymbol)
                 {
                     // The inferred type is System.Exception (or one of it's derived types),
@@ -63,23 +84,22 @@ namespace ErrorProne.NET.CoreAnalyzers
                     return;
                 }
 
-                var diagnostic = Diagnostic.Create(Rule, invocation.GetNodeLocationForDiagnostic(), ms.ReturnType.Name);
+                var diagnostic = Diagnostic.Create(Rule, invocation.GetNodeLocationForDiagnostic(), invocationOperation.TargetMethod.ReturnType.Name);
                 context.ReportDiagnostic(diagnostic);
             }
         }
 
-        private void AnalyzeAwaitExpression(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeAwaitOperation(OperationAnalysisContext context, UnobservedResultAnalyzerInfo info)
         {
-            var awaitExpression = (AwaitExpressionSyntax)context.Node;
+            var awaitOperation = (IAwaitOperation)context.Operation;
 
             // await can be used on a task value, so the awaited expression may be anything.
-            if (awaitExpression.Parent is ExpressionStatementSyntax)
+            if (awaitOperation.Parent is IExpressionStatementOperation)
             {
-                var operation = context.SemanticModel.GetOperation(awaitExpression);
-                if (operation is IAwaitOperation awaitOperation && operation.Type != null && TypeMustBeObserved(operation.Type, null, context.Compilation))
+                if (awaitOperation.Type != null && TypeMustBeObserved(awaitOperation.Type, null, info))
                 {
                     if (awaitOperation.Operation is IInvocationOperation invocation &&
-                        ResultObservedByExtensionMethod(invocation, context.SemanticModel))
+                        ResultObservedByExtensionMethod(invocation, info))
                     {
                         // Result is observed!
                         return;
@@ -87,21 +107,21 @@ namespace ErrorProne.NET.CoreAnalyzers
 
                     // Making an exception for 'Task<Task>' case.
                     // For instance, the following code is totally fine: await Task.WhenAll(t1, t2);
-                    if (operation.Type.IsTaskLike(context.Compilation))
+                    if (awaitOperation.Type.IsTaskLike(info.TaskTypesInfo))
                     {
                         return;
                     }
 
                     // Need to extract a real method if this one is 'ConfigureAwait'
-                    var location = GetLocationForDiagnostic(awaitExpression);
+                    var location = GetLocationForDiagnostic((AwaitExpressionSyntax)awaitOperation.Syntax);
 
-                    var diagnostic = Diagnostic.Create(Rule, location, operation.Type.Name);
+                    var diagnostic = Diagnostic.Create(Rule, location, awaitOperation.Type.Name);
                     ReportDiagnostic(context, diagnostic);
                 }
             }
         }
 
-        private static bool ResultObservedByExtensionMethod(IInvocationOperation operation, SemanticModel semanticModel)
+        private static bool ResultObservedByExtensionMethod(IInvocationOperation operation, UnobservedResultAnalyzerInfo info)
         {
             // In some cases, the following pattern is used:
             // Foo().Handle();
@@ -111,7 +131,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             var methodSymbol = operation.TargetMethod;
 
             // Exception for this rule is 'ConfigureAwait()'
-            if (operation.TargetMethod.IsConfigureAwait(semanticModel.Compilation))
+            if (info.ConfigureAwaitMethods.Contains(methodSymbol))
             {
                 return false;
             }
@@ -133,7 +153,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             return awaitExpression.GetLocation();
         }
 
-        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, Diagnostic diagnostic)
+        private static void ReportDiagnostic(OperationAnalysisContext context, Diagnostic diagnostic)
         {
 #if DEBUG
             Console.WriteLine($"ERROR: {diagnostic}");
@@ -141,20 +161,20 @@ namespace ErrorProne.NET.CoreAnalyzers
             context.ReportDiagnostic(diagnostic);
         }
 
-        private static bool TypeMustBeObserved(ITypeSymbol type, IMethodSymbol? method, Compilation compilation)
+        private static bool TypeMustBeObserved(ITypeSymbol type, IMethodSymbol? method, UnobservedResultAnalyzerInfo info)
         {
-            if (method?.IsContinueWith(compilation) == true)
+            if (method is not null && info.ContinueWithMethods.Contains(method))
             {
                 // Task.ContinueWith is a bit special.
                 return false;
             }
 
-            return type.EnumerateBaseTypesAndSelf().Any(t => IsObservableType(t, method, compilation));
+            return type.EnumerateBaseTypesAndSelf().Any(t => IsObservableType(t, method, info));
         }
 
-        private static bool IsObservableType(ITypeSymbol type, IMethodSymbol? method, Compilation compilation)
+        private static bool IsObservableType(ITypeSymbol type, IMethodSymbol? method, UnobservedResultAnalyzerInfo info)
         {
-            if (type.IsClrType(compilation, typeof(Exception)))
+            if (type.Equals(info.ExceptionSymbol, SymbolEqualityComparer.Default))
             {
                 // 'ThrowException' method that throws but still returns an exception is quite common.
                 var methodName = method?.Name;
@@ -171,7 +191,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                 return true;
             }
 
-            if (type.IsClrType(compilation, typeof(Task)))
+            if (type.Equals(info.TaskTypesInfo.TaskSymbol, SymbolEqualityComparer.Default))
             {
                 // Tasks should be observed
                 return true;
@@ -186,9 +206,9 @@ namespace ErrorProne.NET.CoreAnalyzers
             return false;
         }
 
-        private static bool IsException(ITypeSymbol? type, Compilation compilation)
+        private static bool IsException(ITypeSymbol? type, UnobservedResultAnalyzerInfo info)
         {
-            return type.EnumerateBaseTypesAndSelf().Any(t => t.IsClrType(compilation, typeof(Exception)));
+            return type.EnumerateBaseTypesAndSelf().Any(t => t.Equals(info.ExceptionSymbol, SymbolEqualityComparer.Default));
         }
     }
 

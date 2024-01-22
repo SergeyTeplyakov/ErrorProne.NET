@@ -28,13 +28,4 @@ namespace ErrorProne.NET.AsyncAnalyzers
         UseConfigureAwaitFalse,
         DoNotUseConfigureAwait,
     }
-
-    internal static class TempExtensions
-    {
-        public static bool IsConfigureAwait(this IMethodSymbol method, Compilation compilation)
-        {
-            // Naive implementation
-            return method.Name == "ConfigureAwait" && method.ReceiverType.IsTaskLike(compilation);
-        }
-    }
 }

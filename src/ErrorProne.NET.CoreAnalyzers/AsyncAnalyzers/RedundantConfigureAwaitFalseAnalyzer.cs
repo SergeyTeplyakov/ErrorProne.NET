@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.ContractsLight;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.ContractsLight;
+using System.Threading.Tasks;
 using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -27,45 +29,63 @@ namespace ErrorProne.NET.AsyncAnalyzers
         /// <inheritdoc />
         protected override void InitializeCore(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeAwaitExpression, SyntaxKind.AwaitExpression);
+            context.RegisterCompilationStartAction(context =>
+            {
+                var compilation = context.Compilation;
+
+                var configureAwaitConfig = ConfigureAwaitConfiguration.TryGetConfigureAwait(context.Compilation);
+                if (configureAwaitConfig != ConfigureAwait.DoNotUseConfigureAwait)
+                {
+                    return;
+                }
+
+                var taskType = compilation.GetTypeByMetadataName(typeof(Task).FullName);
+                if (taskType is null)
+                {
+                    return;
+                }
+
+                var configureAwaitMethods = taskType.GetMembers("ConfigureAwait").OfType<IMethodSymbol>().ToImmutableArray();
+                if (configureAwaitMethods.IsEmpty)
+                {
+                    return;
+                }
+
+                context.RegisterOperationAction(context => AnalyzeAwaitOperation(context, configureAwaitMethods), OperationKind.Await);
+            });
+            
         }
 
-        private void AnalyzeAwaitExpression(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeAwaitOperation(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> configureAwaitMethods)
         {
-            var invocation = (AwaitExpressionSyntax)context.Node;
+            var awaitOperation = (IAwaitOperation)context.Operation;
 
-            var configureAwaitConfig = ConfigureAwaitConfiguration.TryGetConfigureAwait(context.Compilation);
-            if (configureAwaitConfig == ConfigureAwait.DoNotUseConfigureAwait)
+            if (awaitOperation.Operation is IInvocationOperation configureAwaitOperation &&
+                configureAwaitMethods.Contains(configureAwaitOperation.TargetMethod))
             {
-                var operation = context.SemanticModel.GetOperation(invocation, context.CancellationToken);
-                if (operation is IAwaitOperation awaitOperation &&
-                    awaitOperation.Operation is IInvocationOperation configureAwaitOperation &&
-                    configureAwaitOperation.TargetMethod.IsConfigureAwait(context.Compilation))
+                if (configureAwaitOperation.Arguments.Length != 0 &&
+                    configureAwaitOperation.Arguments[0].Value is ILiteralOperation literal &&
+                    literal.ConstantValue.Value?.Equals(false) == true)
                 {
-                    if (configureAwaitOperation.Arguments.Length != 0 &&
-                        configureAwaitOperation.Arguments[0].Value is ILiteralOperation literal &&
-                        literal.ConstantValue.Value?.Equals(false) == true)
+                    var location = configureAwaitOperation.Syntax.GetLocation();
+
+                    // Need to find 'ConfigureAwait' node.
+                    if (configureAwaitOperation.Syntax is InvocationExpressionSyntax i &&
+                        i.Expression is
+                        MemberAccessExpressionSyntax mae)
                     {
-                        var location = configureAwaitOperation.Syntax.GetLocation();
+                        // This is a really weird way for getting a location for 'ConfigureAwait(false)' span!
 
-                        // Need to find 'ConfigureAwait' node.
-                        if (configureAwaitOperation.Syntax is InvocationExpressionSyntax i &&
-                            i.Expression is
-                            MemberAccessExpressionSyntax mae)
-                        {
-                            // This is a really weird way for getting a location for 'ConfigureAwait(false)' span!
+                        var argsLocation = i.ArgumentList.GetLocation();
+                        var nameLocation = mae.Name.GetLocation().SourceSpan;
 
-                            var argsLocation = i.ArgumentList.GetLocation();
-                            var nameLocation = mae.Name.GetLocation().SourceSpan;
-                            
-                            Contract.Assert(argsLocation.SourceTree != null);
-                            location = Location.Create(argsLocation.SourceTree,
-                                TextSpan.FromBounds(nameLocation.Start, argsLocation.SourceSpan.End));
-                        }
-
-                        var diagnostic = Diagnostic.Create(Rule, location);
-                        context.ReportDiagnostic(diagnostic);
+                        Contract.Assert(argsLocation.SourceTree != null);
+                        location = Location.Create(argsLocation.SourceTree,
+                            TextSpan.FromBounds(nameLocation.Start, argsLocation.SourceSpan.End));
                     }
+
+                    var diagnostic = Diagnostic.Create(Rule, location);
+                    context.ReportDiagnostic(diagnostic);
                 }
             }
         }

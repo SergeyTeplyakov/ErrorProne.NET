@@ -136,23 +136,6 @@ namespace ErrorProne.NET.Core
         }
 
         /// <summary>
-        /// Returns true if a given <paramref name="method"/> is <see cref="Task.ConfigureAwait(bool)"/>.
-        /// </summary>
-        public static bool IsConfigureAwait(this IMethodSymbol method, Compilation compilation)
-        {
-            // Naive implementation
-            return method.Name == "ConfigureAwait" && method.ReceiverType.IsTaskLike(compilation);
-        }
-
-        /// <summary>
-        /// Returns true if a given <paramref name="method"/> is <see cref="Task.ContinueWith(System.Action{System.Threading.Tasks.Task,object},object)"/>.
-        /// </summary>
-        public static bool IsContinueWith(this IMethodSymbol method, Compilation compilation)
-        {
-            return method.Name == "ContinueWith" && method.ReceiverType.IsTaskLike(compilation) && method.ReturnType.IsTaskLike(compilation);
-        }
-
-        /// <summary>
         /// Returns true if a given <paramref name="method"/> has iterator block inside of it.
         /// </summary>
         public static bool IsIteratorBlock(this IMethodSymbol method)
@@ -168,7 +151,7 @@ namespace ErrorProne.NET.Core
         /// <summary>
         /// Returns true if the given <paramref name="method"/> is async or return task-like type.
         /// </summary>
-        public static bool IsAsyncOrTaskBased(this IMethodSymbol method, Compilation compilation)
+        public static bool IsAsyncOrTaskBased(this IMethodSymbol method, TaskTypesInfo info)
         {
             // Currently method detects only Task<T> or ValueTask<T>
             if (method.IsAsync)
@@ -176,7 +159,7 @@ namespace ErrorProne.NET.Core
                 return true;
             }
 
-            return method.ReturnType.IsTaskLike(compilation);
+            return method.ReturnType.IsTaskLike(info);
         }
 
         /// <summary>
