@@ -280,6 +280,13 @@ this = other;
         }
 
         [Test]
+        public async Task NoDiagnosticRecordStruct()
+        {
+            string code = @"public record struct ItemGroup(int Amount);";
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Test]
         public async Task NoDiagnosticCasesWhenStructIsAlreadyReadonlyWithPartialDeclaration()
         {
             string code = @"partial struct FooBar {} readonly partial struct FooBar {}";
