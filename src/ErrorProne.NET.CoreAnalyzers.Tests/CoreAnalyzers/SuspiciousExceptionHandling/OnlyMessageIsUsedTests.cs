@@ -1,6 +1,4 @@
-﻿using ErrorProne.NET.TestHelpers;
-using Microsoft.CodeAnalysis;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.SuspiciousExceptionHandlingAnalyzer,
@@ -18,21 +16,11 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.SuspiciousExceptionHandling
 class FooBar {
   public static void Foo() {
     try { new object(); }
-    catch(System.Exception e) {System.Console.WriteLine(e.Message);}
+    catch(System.Exception e) {System.Console.WriteLine(e.[|Message|]);}
   }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(5, 59, 5, 66).WithArguments("e"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -42,21 +30,11 @@ class FooBar {
 class FooBar {
   public static void Foo() {
     try { new object(); }
-    catch(System.AggregateException e) {System.Console.WriteLine(e.Message);}
+    catch(System.AggregateException e) {System.Console.WriteLine(e.[|Message|]);}
   }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(5, 68, 5, 75).WithArguments("e"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -66,21 +44,11 @@ class FooBar {
 class FooBar {
   public static void Foo() {
     try { new object(); }
-    catch(System.Reflection.TargetInvocationException e) {System.Console.WriteLine(e.Message);}
+    catch(System.Reflection.TargetInvocationException e) {System.Console.WriteLine(e.[|Message|]);}
   }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(5, 86, 5, 93).WithArguments("e"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -90,21 +58,11 @@ class FooBar {
 class FooBar {
   public static void Foo() {
     try { new object(); }
-    catch(System.TypeLoadException e) {System.Console.WriteLine(e.Message);}
+    catch(System.TypeLoadException e) {System.Console.WriteLine(e.[|Message|]);}
   }
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(5, 67, 5, 74).WithArguments("e"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         [Test]
         public async Task Warn_On_Anonymous_Usage_Of_ExceptionMessage()
@@ -118,23 +76,14 @@ class Test
       var errors=new ArrayList();
       try { new object();
       } catch (Exception exception) {
-        errors.Add($""{new { key, subKey, exception.Message }}"");
+        errors.Add($""{new { key, subKey, exception.[|Message|] }}"");
       }
     return errors;
     }
 }";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                    ExpectedDiagnostics =
-                    {
-                        VerifyCS.Diagnostic(SuspiciousExceptionHandlingAnalyzer.Rule).WithSpan(10, 52, 10, 59).WithArguments("exception"),
-                    },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
+
         [Test]
         public async Task NoWarn_When_Only_Message_Is_Used_But_Exception_Is_Not_Generic()
         {

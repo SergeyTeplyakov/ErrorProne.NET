@@ -1,6 +1,5 @@
 ﻿using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.UseInModifierForReadOnlyStructAnalyzer,
@@ -18,11 +17,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
 
             string expected = @"readonly struct FooBar { public static void Foo(in FooBar fb) {} readonly (long, long, long) data; }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
 
         [Test]
@@ -48,11 +43,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
     readonly (long, long, long) data;
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
 
         [Test]

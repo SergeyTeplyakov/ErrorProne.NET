@@ -1,5 +1,4 @@
-﻿using ErrorProne.NET.TestHelpers;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.AsyncAnalyzers.NullConditionalOperatorAnalyzer,
@@ -22,11 +21,7 @@ public class MyClass
     }
 }
 ";
-
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
    }
 }

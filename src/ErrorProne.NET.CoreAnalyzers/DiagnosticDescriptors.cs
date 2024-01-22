@@ -1,7 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
-using ErrorProne.NET.CoreAnalyzers;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET
 {

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.ComponentModel.Design.Serialization;
-using System.Globalization;
 using ErrorProne.NET.Core;
 using ErrorProne.NET.Extensions;
 using Microsoft.CodeAnalysis;

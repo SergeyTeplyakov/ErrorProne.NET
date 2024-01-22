@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Reflection;
 using ErrorProne.NET.Core;

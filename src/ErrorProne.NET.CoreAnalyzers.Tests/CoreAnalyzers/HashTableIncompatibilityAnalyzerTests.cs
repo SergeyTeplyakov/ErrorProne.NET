@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.HashTableIncompatibilityAnalyzer,
@@ -19,13 +18,7 @@ struct MyStruct {}
 static class Ex {
     private static [|System.Collections.Generic.ISet<MyStruct>|] hs = null;
 }";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -36,22 +29,13 @@ struct MyStruct {}
 static class Ex {
     private static [|System.Collections.Generic.HashSet<MyStruct>|] P() => null;
 }";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { code },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code); ;
         }
 
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
         public async Task HasDiagnosticCases(string code)
         {
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()
@@ -101,7 +85,7 @@ struct MyStruct {}
 abstract class Ex : [|System.Collections.Generic.HashSet<MyStruct>|] {
 }";
             
-            // Implicitely typed local declaration
+            // Implicitly typed local declaration
             yield return @"
 struct MyStruct {}
 class Ex {

@@ -4,6 +4,25 @@
     <AssemblyName>ErrorProne.Net.StructAnalyzers</AssemblyName>
     <RootNamespace>ErrorProne.Net.StructAnalyzers</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\ErrorProne.NET.Core\AnalyzerConfigOptionsExtensions.cs" Link="AnalyzerConfigOptionsExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\BodySyntaxExtensions.cs" Link="BodySyntaxExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\CastUtilities.cs" Link="CastUtilities.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\CompilationExtensions.cs" Link="CompilationExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\DiagnosticAnalyzerBase.cs" Link="DiagnosticAnalyzerBase.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\ErrorProneAttributes.cs" Link="ErrorProneAttributes.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\FlowAnalysisExtensions.cs" Link="FlowAnalysisExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\MethodDeclarationSyntaxExtensions.cs" Link="MethodDeclarationSyntaxExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\NamedSymbolExtensions.cs" Link="NamedSymbolExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\StructSizeCalculator.cs" Link="StructSizeCalculator.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\SymbolAnalysisContextExtensions.cs" Link="SymbolAnalysisContextExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\SymbolExtensions.cs" Link="SymbolExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\SyntaxFactoryExtensions.cs" Link="SyntaxFactoryExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\SyntaxNodeExtensions.cs" Link="SyntaxNodeExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\TypeExtensions.cs" Link="TypeExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\ValueTypeEqualityImplementations.cs" Link="ValueTypeEqualityImplementations.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\WellKnownTypesProvider.cs" Link="WellKnownTypesProvider.cs" />
+  </ItemGroup>
 
   <!--
       Instead of splitting the code into a separate dll, just reference it as the source code.
@@ -11,7 +30,6 @@
       incompatible changes on the "core" level
    -->
   <ItemGroup>
-    <Compile Include="..\ErrorProne.NET.Core\**.cs" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="4.6.0" />
   </ItemGroup>
 

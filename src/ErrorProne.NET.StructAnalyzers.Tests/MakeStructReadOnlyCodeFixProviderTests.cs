@@ -1,5 +1,4 @@
-﻿using ErrorProne.NET.TestHelpers;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.StructAnalyzers.MakeStructReadOnlyAnalyzer,
@@ -17,11 +16,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
 
             string expected = @"readonly struct FooBar {}";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
 
         [Test]
@@ -31,11 +26,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
 
             string expected = @"internal readonly partial struct FooBar {}";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
 
         [Test]
@@ -45,11 +36,7 @@ namespace ErrorProne.NET.StructAnalyzers.Tests
 
             string expected = @"public readonly struct FooBar {}";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
 
         [Test]
@@ -65,11 +52,7 @@ public struct [|FooBar|] {}";
 /// </summary>
 public readonly struct FooBar {}";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
 
         [Test]
@@ -79,11 +62,7 @@ public readonly struct FooBar {}";
 
             string expected = @"public readonly partial struct FooBar {}";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-                FixedState = { Sources = { expected } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyCodeFixAsync(code, expected);
         }
     }
 }

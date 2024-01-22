@@ -1,9 +1,5 @@
-﻿using System;
-
-namespace ErrorProne.NET.Core.Attributes
+﻿namespace ErrorProne.NET.Core.Attributes
 {
-    [AttributeUsage(AttributeTargets.Assembly)]
-    public class UseConfigureAwaitFalseAttribute : Attribute
-    {
-    }
+    [System.AttributeUsage(System.AttributeTargets.Assembly)]
+    public class UseConfigureAwaitFalseAttribute : System.Attribute { }
 }

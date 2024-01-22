@@ -1,5 +1,4 @@
-﻿using ErrorProne.NET.TestHelpers;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
@@ -267,20 +266,14 @@ class Foo {
         public async Task HasDiagnosticsForMethodCallsOnReadOnlyField()
         {
             string code = @"struct S {private readonly long l1,l2,l3; public int Foo() => 42;} class Foo {private readonly S _s; public string Bar() => _s.[|Foo|]().ToString();}";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
         public async Task HasDiagnosticsForMethodCallsOnInParameter()
         {
             string code = @"struct S {private readonly long l1,l2,l3; public int Foo() => 42;} class Foo {public int Bar(in S s) => s.[|Foo|]();}";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -295,10 +288,7 @@ class Foo {
         return rs.[|Foo|]();
     }
 }";
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -313,10 +303,7 @@ public class C {
     private readonly S _s;
     public string M() => [|_s|][0];
 }"; ;
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -333,10 +320,7 @@ readonly struct S {
 static class C {
     public static void Foo(this S s) {}
 }"; ;
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         [Test]
@@ -433,10 +417,7 @@ class Foo {private readonly S _s; public string Bar() => _s.ToString();}";
         [TestCaseSource(nameof(GetHasDiagnosticCases))]
         public async Task HasDiagnosticCases(string code)
         {
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
 
         public static IEnumerable<string> GetHasDiagnosticCases()

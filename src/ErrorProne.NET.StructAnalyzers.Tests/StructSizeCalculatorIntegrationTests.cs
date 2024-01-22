@@ -93,7 +93,6 @@ class Foo {
    public static void Bar([|S s|]) {}
 }";
 
-
             await new VerifyCS.Test
                 {
                     TestState = { Sources = { code } },
