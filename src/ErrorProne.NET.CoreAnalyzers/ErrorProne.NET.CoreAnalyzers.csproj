@@ -35,7 +35,7 @@
       incompatible changes on the "core" level
    -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.6.0" />
+    <!--<PackageReference Include="Microsoft.CodeAnalysis" />-->
   </ItemGroup>
 
   <PropertyGroup>
@@ -43,52 +43,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.3">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" >
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Update="ILRepack.Lib.MSBuild" Version="2.1.18" />
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
-    <PackageReference Update="RuntimeContracts" Version="0.5.0" />
-  </ItemGroup>
-
-  <!--<Target Name="ILRepack" AfterTargets="Build">
-    <ItemGroup>
-      <InputAssemblies Include="$(OutputPath)$(AssemblyName).dll" />
-      --><!--<InputAssemblies Include="$(OutputPath)RuntimeContracts.dll" />--><!--
-       --><!--Add more dependencies as needed--><!-- 
-    </ItemGroup>
-    --><!--<ILRepack OutputType="Library"  />--><!--
-  </Target>-->
-
-
-  <!--<Target Name="ILRepacker" AfterTargets="Build" >
-    <ItemGroup>
-      <InputAssemblies Include="$(TargetPath)"/>
-      <InputAssemblies Include="@(ReferencePathWithRefAssemblies)" Condition="'%(filename)' == 'RuntimeContracts'" />
-    </ItemGroup>
-
-    <ILRepack
-        AllowDuplicateResources="false"
-        DebugInfo="true"
-        Internalize="true"
-        InputAssemblies="@(InputAssemblies)"
-        OutputFile="$(TargetPath)"
-        Parallel="true"
-        TargetKind="SameAsPrimaryAssembly" />
-  </Target>-->
-
-  <!--<Target Name="_GetFilesToPackage">
-    <ItemGroup>
-      <_File Include="$(OutputPath)$(AssemblyName).dll" />
-      --><!--<_File Include="$(OutputPath)RuntimeContracts.dll" />--><!--
-
-      <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
-    </ItemGroup>
-  </Target>-->
-  
 </Project>

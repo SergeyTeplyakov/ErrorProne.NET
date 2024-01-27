@@ -6,22 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.6.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.1" PrivateAssets="all" />
-    <PackageReference Include="NUnit" Version="3.13.3" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" PrivateAssets="all" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj" />
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj" />
     <ProjectReference Include="..\RoslynNUnitTestRunner\ErrorProne.NET.TestHelpers.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="ILRepack.Lib.MSBuild" Version="2.1.18" />
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
-    <PackageReference Update="RuntimeContracts" Version="0.5.0" />
   </ItemGroup>
 
 </Project>
