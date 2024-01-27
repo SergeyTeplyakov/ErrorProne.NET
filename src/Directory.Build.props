@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project>
-
   <PropertyGroup>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <Nullable>Enable</Nullable>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
@@ -15,10 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis" />
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="All" />
     <!-- RuntimeContracts is marked as 'PrivateAssets' because the dependency is erased via ILRepack. -->
-    <PackageReference Include="RuntimeContracts" Version="0.1.10" PrivateAssets="All" GeneratePathProperty="true"/>
-    <PackageReference Include="ILRepack.Lib.MSBuild" Version="2.1.16.1" PrivateAssets="All" />
+    <PackageReference Include="RuntimeContracts" PrivateAssets="All" GeneratePathProperty="true"/>
+    <PackageReference Include="ILRepack.Lib.MSBuild" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
