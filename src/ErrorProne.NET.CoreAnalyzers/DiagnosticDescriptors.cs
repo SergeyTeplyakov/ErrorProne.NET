@@ -133,6 +133,14 @@ namespace ErrorProne.NET
                 messageFormat: "The default 'ValueType.{0}' is used in {1}",
                 category: PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
                 description: "The default implementation of 'Equals' and 'GetHashCode' for structs is inefficient and could cause severe performance issues.");
+        
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC26 =
+            new DiagnosticDescriptor(nameof(EPC26),
+                title: "Do not use tasks in using block",
+                messageFormat: "A Task was used in using block",
+                category: PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+                description: "Task implements IDisposable but should not be ever disposed explicitly.");
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
