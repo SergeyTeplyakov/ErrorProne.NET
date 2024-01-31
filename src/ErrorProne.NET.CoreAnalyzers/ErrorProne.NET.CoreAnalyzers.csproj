@@ -24,6 +24,7 @@
     <Compile Include="..\ErrorProne.NET.Core\SymbolExtensions.cs" Link="SymbolExtensions.cs" />
     <Compile Include="..\ErrorProne.NET.Core\SyntaxFactoryExtensions.cs" Link="SyntaxFactoryExtensions.cs" />
     <Compile Include="..\ErrorProne.NET.Core\SyntaxNodeExtensions.cs" Link="SyntaxNodeExtensions.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\TaskTypeExtensions.cs" Link="TaskTypeExtensions.cs" />
     <Compile Include="..\ErrorProne.NET.Core\TypeExtensions.cs" Link="TypeExtensions.cs" />
     <Compile Include="..\ErrorProne.NET.Core\ValueTypeEqualityImplementations.cs" Link="ValueTypeEqualityImplementations.cs" />
     <Compile Include="..\ErrorProne.NET.Core\WellKnownTypesProvider.cs" Link="WellKnownTypesProvider.cs" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.ContractsLight;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +11,28 @@ namespace ErrorProne.NET.Core
 {
     public static class OperationExtensions
     {
+        public static IEnumerable<IOperation> EnumerateChildOperations(this IOperation? operation)
+        {
+            if (operation is null)
+            {
+                yield break;
+            }
+
+            var stack = new Stack<IOperation>();
+            stack.Push(operation);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                yield return current;
+
+                foreach (var child in current.ChildOperations)
+                {
+                    stack.Push(child);
+                }
+            }
+        }
+
         public static ITypeSymbol? GetReceiverType(this IInvocationOperation invocationOperation, bool includeLocal = false)
         {
             // We have (at least) two cases here:
@@ -61,6 +84,8 @@ namespace ErrorProne.NET.Core
         }
     }
 
+    
+
     // Copied from internal ICompilationExtensions class from the roslyn codebase
     public static class CompilationExtensions
     {
@@ -87,6 +112,9 @@ namespace ErrorProne.NET.Core
         public static INamedTypeSymbol? TaskOfTType(this Compilation compilation)
             => compilation.GetTypeByFullName(typeof(Task<>).FullName);
 
+        public static INamedTypeSymbol? ValueTaskType(this Compilation compilation)
+            => compilation.GetTypeByFullName("System.Threading.Tasks.ValueTask");
+        
         public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByFullName("System.Threading.Tasks.ValueTask`1");
 
@@ -114,52 +142,6 @@ namespace ErrorProne.NET.Core
 
         public static bool IsSystemValueType(this INamedTypeSymbol type, Compilation compilation)
             => type.Equals(compilation.GetTypeByFullName("System.ValueType"), SymbolEqualityComparer.Default);
-
-        public static (INamedTypeSymbol? taskType, INamedTypeSymbol? taskOfTType, INamedTypeSymbol? valueTaskOfTTypeOpt) GetTaskTypes(Compilation compilation)
-        {
-            var taskType = compilation.TaskType();
-            var taskOfTType = compilation.TaskOfTType();
-            var valueTaskOfTType = compilation.ValueTaskOfTType();
-
-            return (taskType, taskOfTType, valueTaskOfTType);
-        }
-
-        public static bool IsTaskLike(this ITypeSymbol? returnType, Compilation compilation)
-        {
-            if (returnType == null)
-            {
-                return false;
-            }
-
-            var (taskType, taskOfTType, valueTaskOfTType) = GetTaskTypes(compilation);
-            if (taskType == null || taskOfTType == null)
-            {
-                return false; // ?
-            }
-
-            if (returnType.Equals(taskType, SymbolEqualityComparer.Default))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(taskOfTType, SymbolEqualityComparer.Default))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(valueTaskOfTType, SymbolEqualityComparer.Default))
-            {
-                return true;
-            }
-
-            if (returnType.IsErrorType())
-            {
-                return returnType.Name.Equals("Task") ||
-                       returnType.Name.Equals("ValueTask");
-            }
-
-            return false;
-        }
 
         public static bool IsErrorType(this ITypeSymbol symbol)
         {
@@ -238,5 +220,13 @@ namespace ErrorProne.NET.Core
 
             return type;
         }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <nodoc />
+    internal sealed class IsExternalInit
+    {
     }
 }
