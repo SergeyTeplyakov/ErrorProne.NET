@@ -17,6 +17,9 @@ EPC20 | CodeSmell | Warning | DefaultToStringImplementationUsageAnalyzer
 EPC23 | Performance | Warning | HashSetContainsAnalyzer
 EPC24 | Performance | Warning | HashTableIncompatibilityAnalyzer
 EPC25 | Performance | Warning | DefaultEqualsOrHashCodeUsageAnalyzer
+EPC26 | CodeSmell | Warning | TaskInUsingBlockAnalyzer
 ERP021 | CodeSmell | Warning | ThrowExAnalyzer
 ERP022 | CodeSmell | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
+ERP041 | CodeSmell | Warning | EventSourceSealedAnalyzer
+ERP042 | CodeSmell | Warning | EventSourceAnalyzer

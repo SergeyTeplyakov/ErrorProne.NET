@@ -22,6 +22,7 @@
     <Compile Include="..\ErrorProne.NET.Core\TypeExtensions.cs" Link="TypeExtensions.cs" />
     <Compile Include="..\ErrorProne.NET.Core\ValueTypeEqualityImplementations.cs" Link="ValueTypeEqualityImplementations.cs" />
     <Compile Include="..\ErrorProne.NET.Core\WellKnownTypesProvider.cs" Link="WellKnownTypesProvider.cs" />
+    <Compile Include="..\ErrorProne.NET.Core\TaskTypeExtensions.cs" Link="TaskTypeExtensions.cs" />
   </ItemGroup>
 
   <!--

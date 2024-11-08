@@ -35,9 +35,6 @@
       This allows referncing multiple analyzer versions at the same time without runtime errors caused by
       incompatible changes on the "core" level
    -->
-  <ItemGroup>
-    <!--<PackageReference Include="Microsoft.CodeAnalysis" />-->
-  </ItemGroup>
 
   <PropertyGroup>
     <PackageId>ErrorProne.NET.CoreAnalyzers.RenameToAvoidConflict</PackageId>
@@ -45,7 +42,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" >
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

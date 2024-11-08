@@ -18,6 +18,9 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.7.0
+        * Add EventSource analyzers
+        * Warn on using tasks in 'using' block or 'using' statements.
       0.6.1
         * Add Enumerable.Contains(HashSet{T}) analyzer.
         * Move DefaultEqualsOrHashCodeUsageAnalyzer and HashTableIncompatibilityAnalyzer moved from structs analyzers to core analyzers.

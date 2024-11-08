@@ -139,7 +139,7 @@ namespace ErrorProne.NET
             new DiagnosticDescriptor(nameof(EPC26),
                 title: "Do not use tasks in using block",
                 messageFormat: "A Task was used in using block",
-                category: PerformanceCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+                category: CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
                 description: "Task implements IDisposable but should not be ever disposed explicitly.");
 
         /// <nodoc />
@@ -149,5 +149,21 @@ namespace ErrorProne.NET
             messageFormat: "The API is not thread-safe.{0}", 
             ConcurrencyCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
             description: "The API is not thread safe and can cause runtime failures.");
+        
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor ERP041 = new DiagnosticDescriptor(
+            nameof(ERP041), 
+            title: "EventSource class should be sealed", 
+            messageFormat: "{0}: {1}",
+            CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true, 
+            description: "The event source implementation must follow special rules to avoid hitting runtime errors.");
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor ERP042 = new DiagnosticDescriptor(
+            nameof(ERP042),
+            title: "EventSource implementation is not correct",
+            messageFormat: "{0}: {1}",
+            CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "The event source implementation must follow special rules to avoid hitting runtime errors.");
     }
 }
