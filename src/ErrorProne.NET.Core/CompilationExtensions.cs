@@ -11,6 +11,32 @@ namespace ErrorProne.NET.Core
 {
     public static class OperationExtensions
     {
+        public record struct ArgumentInfo(IOperation Operation, string? ParameterName);
+        public static List<ArgumentInfo> FlattenArguments(this IInvocationOperation invocation)
+        {
+            // In case of an invocation operation its possible that the last argument is a 'ParamArray'.
+            // In this case, even though the invocation has 4 arguments, we'll have 3 and the last one would be 'ParamArray'.
+            // This method flattens the argument list
+            var result = new List<ArgumentInfo>(invocation.Arguments.Length);
+            foreach (var a in invocation.Arguments)
+            {
+                if (a.ArgumentKind == ArgumentKind.ParamArray && a.Value is IArrayCreationOperation arrayCreationOperation)
+                {
+                    var childOps = arrayCreationOperation.Initializer?.ElementValues.OfType<IOperation>() ??
+                                   Enumerable.Empty<IOperation>();
+                    // For all the 'params' we have the same parameter name, but different values.
+
+                    result.AddRange(childOps.Select(o => new ArgumentInfo(o, a.Parameter?.Name)));
+                }
+                else
+                {
+                    result.Add(new ArgumentInfo(a.Value, a.Parameter?.Name));
+                }
+            }
+
+            return result;
+        }
+
         public static IEnumerable<IOperation> EnumerateChildOperations(this IOperation? operation)
         {
             if (operation is null)

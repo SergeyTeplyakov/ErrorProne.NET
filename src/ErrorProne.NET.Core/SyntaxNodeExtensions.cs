@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,6 +9,21 @@ namespace ErrorProne.NET.Extensions
 {
     public static class SyntaxNodeExtensions
     {
+        public static bool IsPartialClass(this ClassDeclarationSyntax classDeclaration)
+        {
+            return classDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
+        }
+
+        public static IEnumerable<SyntaxNode> EnumerateParents(this SyntaxNode node)
+        {
+            while (node?.Parent != null)
+            {
+                yield return node.Parent;
+
+                node = node.Parent;
+            }
+        }
+
         public static bool IsAutoProperty(this BasePropertyDeclarationSyntax syntax)
         {
             bool isAutoProperty = true;

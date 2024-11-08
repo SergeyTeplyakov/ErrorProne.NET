@@ -28,17 +28,37 @@ namespace ErrorProne.NET.AsyncAnalyzers
             context.RegisterOperationAction(AnalyzeUsingDeclaration, OperationKind.UsingDeclaration);
         }
 
+        private static bool HasTaskLikeVariableDeclaration(IOperation operation, Compilation compilation)
+        {
+            return operation.EnumerateChildOperations().OfType<IVariableInitializerOperation>()
+                .Any(t => t.Value.Type.IsTaskLike(compilation));
+        }
+
         private void AnalyzeUsingDeclaration(OperationAnalysisContext context)
         {
             IUsingDeclarationOperation usingDeclarationOperation = (IUsingDeclarationOperation)context.Operation;
-            AnalyzeCore(context,usingDeclarationOperation);
+            if (HasTaskLikeVariableDeclaration(usingDeclarationOperation.DeclarationGroup, context.Compilation))
+            {
+                var diagnostic = Diagnostic.Create(Rule, usingDeclarationOperation.Syntax.GetLocation());
+                context.ReportDiagnostic(diagnostic);
+            }
+            //AnalyzeCore(context,usingDeclarationOperation);
         }
 
         private void AnalyzeUsing(OperationAnalysisContext context)
         {
             IUsingOperation usingOperation = (IUsingOperation)context.Operation;
-
-            AnalyzeCore(context, usingOperation);
+            if (
+                // This is needed to cover the case like 'using(GetTask()) {}'
+                usingOperation.Resources.Type.IsTaskLike(context.Compilation) ||
+                HasTaskLikeVariableDeclaration(usingOperation.Resources, context.Compilation))
+                // usingOperation.Locals.Any(l => l.Type.IsTaskLike(context.Compilation)) ||
+                
+                //(usingOperation.Body as IBlockOperation)?.Locals.Any(l => l.Type.IsTaskLike(context.Compilation)) == true)
+            {
+                var diagnostic = Diagnostic.Create(Rule, usingOperation.Syntax.GetLocation());
+                context.ReportDiagnostic(diagnostic);
+            }
         }
 
         private void AnalyzeCore(OperationAnalysisContext context, IOperation parentOperation)
