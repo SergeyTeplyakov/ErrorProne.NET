@@ -97,7 +97,14 @@ namespace ErrorProne.NET.Core
                     size = sizeof(long);
                     break;
                 default:
-                    size = 0;
+                    if (type.Name == "TimeSpan" && type.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat) == "System")
+                    {
+                        size = sizeof(long);
+                    }
+                    else
+                    {
+                        size = 0;
+                    }
                     break;
             }
 
