@@ -67,6 +67,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="tools\*.ps1" Pack="true" PackagePath="" />
   </ItemGroup>
 
@@ -79,5 +84,4 @@
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
   </Target>
-
 </Project>

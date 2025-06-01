@@ -14,13 +14,13 @@ namespace ErrorProne.NET.TestHelpers
         where TCodeFix : CodeFixProvider, new()
     {
         public static DiagnosticResult Diagnostic()
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, NUnitVerifier>.Diagnostic();
+            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic();
 
         public static DiagnosticResult Diagnostic(string diagnosticId)
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, NUnitVerifier>.Diagnostic(diagnosticId);
+            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic(diagnosticId);
 
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, NUnitVerifier>.Diagnostic(descriptor);
+            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic(descriptor);
 
         public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
         {

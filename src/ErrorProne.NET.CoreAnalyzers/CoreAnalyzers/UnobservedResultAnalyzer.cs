@@ -135,9 +135,6 @@ namespace ErrorProne.NET.CoreAnalyzers
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, Diagnostic diagnostic)
         {
-#if DEBUG
-            Console.WriteLine($"ERROR: {diagnostic}");
-#endif
             context.ReportDiagnostic(diagnostic);
         }
 
