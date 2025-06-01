@@ -13,7 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" />
     <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="All" />
     <!-- RuntimeContracts is marked as 'PrivateAssets' because the dependency is erased via ILRepack. -->
     <PackageReference Include="RuntimeContracts" PrivateAssets="All" GeneratePathProperty="true"/>
