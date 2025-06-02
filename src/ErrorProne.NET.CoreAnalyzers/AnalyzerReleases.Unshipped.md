@@ -18,6 +18,7 @@ EPC23 | Performance | Warning | HashSetContainsAnalyzer
 EPC24 | Performance | Warning | HashTableIncompatibilityAnalyzer
 EPC25 | Performance | Warning | DefaultEqualsOrHashCodeUsageAnalyzer
 EPC26 | CodeSmell | Warning | TaskInUsingBlockAnalyzer
+EPC27 | CodeSmell | Warning | AsyncVoidMethodAnalyzer
 ERP021 | CodeSmell | Warning | ThrowExAnalyzer
 ERP022 | CodeSmell | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
