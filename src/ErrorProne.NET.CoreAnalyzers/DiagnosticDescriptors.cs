@@ -143,6 +143,16 @@ namespace ErrorProne.NET
                 description: "Task implements IDisposable but should not be ever disposed explicitly.");
 
         /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC27 = new DiagnosticDescriptor(
+            nameof(EPC27),
+            title: "Avoid async void methods",
+            messageFormat: "Method '{0}' is 'async void'. Use 'async Task' instead.",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Async void methods are dangerous and should be avoided except for event handlers.");
+
+        /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
             nameof(ERP031), 
             title: "The API is not thread-safe", 
