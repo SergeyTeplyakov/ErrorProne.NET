@@ -57,8 +57,6 @@ namespace ErrorProne.NET.EventSourceAnalysis
 
         private void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context)
         {
-            var syntax = (ClassDeclarationSyntax)context.Node;
-
             if (context.ContainingSymbol is INamedTypeSymbol classType && classType.IsEventSourceClass(context.Compilation))
             {
                 // Checking for duplicate ids.
@@ -80,7 +78,7 @@ namespace ErrorProne.NET.EventSourceAnalysis
                             continue;
                         }
 
-                        if (!syntax.IsPartialClass() || methodSyntax.EnumerateParents().Any(p => p == context.Node))
+                        if (!classType.IsPartialDefinition() || methodSyntax.EnumerateParents().Any(p => p == context.Node))
                         {
                             var location = methodSyntax.Identifier.GetLocation();
 

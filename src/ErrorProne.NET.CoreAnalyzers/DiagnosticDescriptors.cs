@@ -153,6 +153,16 @@ namespace ErrorProne.NET
             description: "Async void methods are dangerous and should be avoided except for event handlers.");
 
         /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC28 = new DiagnosticDescriptor(
+            nameof(EPC28),
+            title: "Do not use ExcludeFromCodeCoverage on partial classes",
+            messageFormat: "'ExcludeFromCodeCoverageAttribute' should not be applied to partial class '{0}' (directly or indirectly)",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Applying ExcludeFromCodeCoverageAttribute to a partial class can lead to inconsistent code coverage results.");
+
+        /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
             nameof(ERP031), 
             title: "The API is not thread-safe", 
