@@ -175,6 +175,16 @@ namespace ErrorProne.NET
             description: "Always provide a message when using ExcludeFromCodeCoverageAttribute to document the reason for exclusion.");
 
         /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC30 = new DiagnosticDescriptor(
+            nameof(EPC30),
+            title: "Method calls itself recursively",
+            messageFormat: "Method '{0}' calls itself recursively",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Detects when a method calls itself recursively, either conditionally or unconditionally.");
+
+        /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
             nameof(ERP031), 
             title: "The API is not thread-safe", 
