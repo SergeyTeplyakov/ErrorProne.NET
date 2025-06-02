@@ -20,6 +20,14 @@ namespace ErrorProne.NET.Core
     /// <nodoc />
     public static class SymbolExtensions
     {
+        public static bool IsPartialDefinition(this INamedTypeSymbol symbol)
+        {
+            return symbol.DeclaringSyntaxReferences
+                .Select(r => r.GetSyntax())
+                .OfType<ClassDeclarationSyntax>()
+                .Any(c => c.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)));
+        }
+
         public static bool IsConstructor(this ISymbol symbol)
         {
             return (symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Constructor);
