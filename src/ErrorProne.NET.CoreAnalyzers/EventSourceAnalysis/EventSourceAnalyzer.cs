@@ -247,8 +247,6 @@ namespace ErrorProne.NET.EventSourceAnalysis
                                     CreateDiagnostic(invocation.Syntax.GetLocation(), eventSourceType, error));
                             }
                         }
-
-
                     }
 
                     if (foundWriteEvent)

@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET
 {
@@ -161,6 +163,16 @@ namespace ErrorProne.NET
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Applying ExcludeFromCodeCoverageAttribute to a partial class can lead to inconsistent code coverage results.");
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC29 = new DiagnosticDescriptor(
+            nameof(EPC29),
+            title: "ExcludeFromCodeCoverageAttribute should provide a message",
+            messageFormat: "'ExcludeFromCodeCoverageAttribute' should provide a message explaining the exclusion",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Always provide a message when using ExcludeFromCodeCoverageAttribute to document the reason for exclusion.");
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
