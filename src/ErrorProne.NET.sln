@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.TestHelpers", ".\RoslynNUnitTestRunner\ErrorProne.NET.TestHelpers.csproj", "{1B3267CD-E7F1-4F74-90E2-68646FC7C788}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.TestHelpers", ".\RoslynNunitTestRunner\ErrorProne.NET.TestHelpers.csproj", "{1B3267CD-E7F1-4F74-90E2-68646FC7C788}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers", ".\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj", "{3DAE1AEB-C520-4EEB-8E3D-D9C548F02A1B}"
 EndProject
