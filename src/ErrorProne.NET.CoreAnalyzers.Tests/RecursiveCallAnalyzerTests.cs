@@ -34,6 +34,19 @@ class C {
 ";
             await Verify.VerifyAsync(test);
         }
+        
+        [Test]
+        public async Task WarnsOnConditionalRecursiveCall_With_Named_Parameters()
+        {
+            var test = @"
+class C {
+    void Foo(bool b) {
+        if (b) [|Foo(b: b)|];
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
 
         [Test]
         public async Task NoWarn_When_Different_Argument_Is_Passed()
