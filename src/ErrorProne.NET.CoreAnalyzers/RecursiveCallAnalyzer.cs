@@ -26,7 +26,19 @@ namespace ErrorProne.NET.CoreAnalyzers
             var methodBody = (IMethodBodyOperation)context.Operation;
             foreach (var invocation in methodBody.Descendants().OfType<IInvocationOperation>())
             {
-                if (SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.OriginalDefinition, method.OriginalDefinition))
+                // Check if all parameters are passed as-is
+                // So Factorial(n - 1) should be totally fine!
+                if (invocation.Arguments.Length == method.Parameters.Length &&
+                    // Checking that the method is the same.
+                    SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.OriginalDefinition, method.OriginalDefinition) &&
+
+                    // Checking if the parameters are passed as is.
+                    // It is possible to have a false positive here if the parameters are mutable.
+                    // But it is a very rare case, so we will ignore it for now.
+                    invocation.Arguments.Zip(method.Parameters, (arg, param) =>
+                        arg.Value is IParameterReferenceOperation paramRef &&
+                        SymbolEqualityComparer.Default.Equals(paramRef.Parameter, param)
+                    ).All(b => b))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticDescriptors.EPC30,
