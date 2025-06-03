@@ -1,6 +1,5 @@
 using NUnit.Framework;
 using System.Threading.Tasks;
-using ErrorProne.NET.CoreAnalyzers;
 using Verify = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.CoreAnalyzers.RecursiveCallAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
@@ -30,6 +29,35 @@ class C {
 class C {
     void Foo(bool b) {
         if (b) [|Foo(b)|];
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Different_Argument_Is_Passed()
+        {
+            var test = @"
+class C {
+    void Foo(bool b) {
+        if (b) Foo(false);
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+        
+        [Test]
+        public async Task NoWarn_For_Factorial()
+        {
+            var test = @"
+class C {
+    int Factorial(int n)
+    {
+        if (n <= 1)
+            return 1; // Base case
+        return n * Factorial(n - 1); // Recursive call with changing argument
     }
 }
 ";
