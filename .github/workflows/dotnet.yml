@@ -21,8 +21,11 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore src/ErrorProne.NET.sln
+      run: dotnet restore
+      working-directory: ./src/
     - name: Build
-      run: dotnet build src/ErrorPRone.NET.sln --no-restore
+      run: dotnet build --no-restore
+      working-directory: ./src/
     - name: Test
-      run: dotnet test src/ErrorPRone.NET.sln --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal
+      working-directory: ./src/
