@@ -44,7 +44,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                     var constant = arg.Value.ConstantValue;
                     if (constant.HasValue && constant.Value is int intValue)
                     {
-                        int runContinuationsValue = (int)TaskContinuationOptions.RunContinuationsAsynchronously;
+                        int runContinuationsValue = (int)TaskCreationOptions.RunContinuationsAsynchronously;
                         if ((intValue & runContinuationsValue) == runContinuationsValue)
                         {
                             hasRunContinuations = true;
