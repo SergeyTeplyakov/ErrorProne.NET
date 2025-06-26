@@ -192,7 +192,7 @@ namespace ErrorProne.NET
             category: CodeSmellCategory,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: "Returning null for a Task-like type may lead to NullReferenceException when the task is awaited. Return Task.Completed task instead.");
+            description: "Returning null for a Task-like type may lead to NullReferenceException when the task is awaited. Return Task.CompletedTask instead.");
 
         /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
