@@ -207,5 +207,15 @@ namespace ErrorProne.NET
             messageFormat: "{0}: {1}",
             CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
             description: "The event source implementation must follow special rules to avoid hitting runtime errors.");
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC31 = new DiagnosticDescriptor(
+            nameof(EPC31),
+            title: "TaskCompletionSource should use RunContinuationsAsynchronously",
+            messageFormat: "TaskCompletionSource instance should be created with TaskCreationOptions.RunContinuationsAsynchronously.",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Always use TaskCreationOptions.RunContinuationsAsynchronously when creating TaskCompletionSource to avoid potential deadlocks.");
     }
 }
