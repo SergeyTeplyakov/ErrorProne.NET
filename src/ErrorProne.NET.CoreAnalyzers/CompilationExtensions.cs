@@ -108,6 +108,18 @@ namespace ErrorProne.NET.Core
 
             return argumentOperation?.Type;
         }
+
+        public static IEnumerable<IOperation> EnumerateParentOperations(this IOperation? operation)
+        {
+            while (operation != null)
+            {
+                operation = operation.Parent;
+                if (operation != null)
+                {
+                    yield return operation;
+                }
+            }
+        }
     }
 
     

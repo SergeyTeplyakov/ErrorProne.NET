@@ -185,6 +185,16 @@ namespace ErrorProne.NET
             description: "Detects when a method calls itself recursively, either conditionally or unconditionally.");
 
         /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC31 = new DiagnosticDescriptor(
+            nameof(EPC31),
+            title: "Do not return null for Task-like types",
+            messageFormat: "Do not return null for Task-like type from method '{0}'",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Returning null for a Task-like type may lead to NullReferenceException when the task is awaited. Return Task.Completed task instead.");
+
+        /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
             nameof(ERP031), 
             title: "The API is not thread-safe", 
