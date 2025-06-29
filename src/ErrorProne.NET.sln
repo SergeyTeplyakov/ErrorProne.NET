@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.TestHelpers", "RoslynNUnitTestRunner\ErrorProne.NET.TestHelpers.csproj", "{1B3267CD-E7F1-4F74-90E2-68646FC7C788}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.TestHelpers", ".\RoslynNunitTestRunner\ErrorProne.NET.TestHelpers.csproj", "{1B3267CD-E7F1-4F74-90E2-68646FC7C788}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers", "ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj", "{3DAE1AEB-C520-4EEB-8E3D-D9C548F02A1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers", ".\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj", "{3DAE1AEB-C520-4EEB-8E3D-D9C548F02A1B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers.Tests", "ErrorProne.NET.CoreAnalyzers.Tests\ErrorProne.NET.CoreAnalyzers.Tests.csproj", "{27102FB5-EB0F-4466-8113-A11CC9B640ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers.Tests", ".\ErrorProne.NET.CoreAnalyzers.Tests\ErrorProne.NET.CoreAnalyzers.Tests.csproj", "{27102FB5-EB0F-4466-8113-A11CC9B640ED}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers.CodeFixes", "ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj", "{1E47DB73-DAF6-4EB6-B3F2-966FDF8E7179}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ErrorProne.NET.CoreAnalyzers.CodeFixes", ".\ErrorProne.NET.CoreAnalyzers.CodeFixes\ErrorProne.NET.CoreAnalyzers.CodeFixes.csproj", "{1E47DB73-DAF6-4EB6-B3F2-966FDF8E7179}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{81814DDF-F4D8-4390-972F-8ACCF5B85E88}"
 	ProjectSection(SolutionItems) = preProject
