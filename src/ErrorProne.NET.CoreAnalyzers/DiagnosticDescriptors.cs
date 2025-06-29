@@ -185,6 +185,16 @@ namespace ErrorProne.NET
             description: "Detects when a method calls itself recursively, either conditionally or unconditionally.");
 
         /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC31 = new DiagnosticDescriptor(
+            nameof(EPC31),
+            title: "Do not return null for Task-like types",
+            messageFormat: "Do not return null for Task-like type from method '{0}'",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Returning null for a Task-like type may lead to NullReferenceException when the task is awaited. Return Task.CompletedTask instead.");
+
+        /// <nodoc />
         public static readonly DiagnosticDescriptor ERP031 = new DiagnosticDescriptor(
             nameof(ERP031), 
             title: "The API is not thread-safe", 
@@ -207,5 +217,15 @@ namespace ErrorProne.NET
             messageFormat: "{0}: {1}",
             CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
             description: "The event source implementation must follow special rules to avoid hitting runtime errors.");
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC32 = new DiagnosticDescriptor(
+            nameof(EPC32),
+            title: "TaskCompletionSource should use RunContinuationsAsynchronously",
+            messageFormat: "TaskCompletionSource instance should be created with TaskCreationOptions.RunContinuationsAsynchronously",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Always use TaskCreationOptions.RunContinuationsAsynchronously when creating TaskCompletionSource to avoid potential deadlocks.");
     }
 }

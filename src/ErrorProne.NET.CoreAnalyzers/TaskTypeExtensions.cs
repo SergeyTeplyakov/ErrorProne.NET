@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace ErrorProne.NET.Core;
@@ -76,4 +77,19 @@ public static class TaskTypeExtensions
 
     public static bool IsTaskLike(this ITypeSymbol? returnType, Compilation compilation) =>
         IsTaskLike(returnType, compilation, TaskLikeTypes.All);
+
+    public static bool IsTaskCompletionSource(this ITypeSymbol? type, Compilation compilation)
+    {
+        if (type == null)
+        {
+            return false;
+        }
+
+        return type.IsClrType(compilation, typeof(TaskCompletionSource<>)) ||
+               // A non-generic version is not available in .netstandard2.0
+               // so using the full type name here.
+               type.OriginalDefinition.Equals(
+                   compilation.GetTypeByFullName("System.Threading.Tasks.TaskCompletionSource"),
+                   SymbolEqualityComparer.Default);
+    }
 }
