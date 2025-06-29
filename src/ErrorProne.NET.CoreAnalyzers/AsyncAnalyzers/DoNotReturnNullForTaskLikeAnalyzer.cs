@@ -41,10 +41,6 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 return;
             }
 
-            //var semanticModel = context.Compilation.GetSemanticModel(returnOperation.Syntax.SyntaxTree, false);
-            
-            
-
             // We don't need to analyze the method (which might be expensive), but we can just check the type of the return value.
             // And do nothing if it's not a Task-like type.
             var returnType = returnOperation.ReturnedValue?.Type;
@@ -61,7 +57,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             }
             
             var returnedValueOperation = returnOperation.ReturnedValue;
-            IMethodSymbol? methodSymbol = findParentLocalOrLambdaSymbol(returnedValueOperation) ?? context.ContainingSymbol as IMethodSymbol;
+            IMethodSymbol? methodSymbol = returnedValueOperation.FindEnclosingMethodSymbol(context);
             if (methodSymbol is not null && !methodSymbol.IsAsync)
             {
                 if (isReturningNull(returnedValueOperation, context.Compilation) && methodSymbol.ReturnType.IsTaskLike(context.Compilation))
@@ -83,9 +79,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                     if (returnedValueOperation.ConstantValue.HasValue && returnedValueOperation.ConstantValue.Value == null)
                     {
                         return true;
-                    }
-
-                    
+                    }                    
                 }
 
                 // Case B: Check for the 'default' keyword used with a reference type.
@@ -134,23 +128,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
             }
 
-            static IMethodSymbol? findParentLocalOrLambdaSymbol(IOperation? operation)
-            {
-                foreach (var parent in operation.EnumerateParentOperations())
-                {
-                    if (parent is ILocalFunctionOperation lf)
-                    {
-                        return lf.Symbol;
-                    }
-
-                    if (parent is IAnonymousFunctionOperation f)
-                    {
-                        return f.Symbol;
-                    }
-                }
-
-                return null;
-            }
+            
         }
     }
 }

@@ -5,12 +5,43 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace ErrorProne.NET.Core
 {
     public static class OperationExtensions
     {
+
+        /// <summary>
+        /// Finds the enclosing method symbol for the given operation.
+        /// </summary>
+        public static IMethodSymbol? FindEnclosingMethodSymbol(this IOperation? operation, OperationAnalysisContext context)
+        {
+            return operation.FindParentLocalOrLambdaSymbol() ?? context.ContainingSymbol as IMethodSymbol;
+        }
+
+        /// <summary>
+        /// Returns the parent local function or lambda symbol for the given operation.
+        /// </summary>
+        public static IMethodSymbol? FindParentLocalOrLambdaSymbol(this IOperation? operation)
+        {
+            foreach (var parent in operation.EnumerateParentOperations())
+            {
+                if (parent is ILocalFunctionOperation lf)
+                {
+                    return lf.Symbol;
+                }
+
+                if (parent is IAnonymousFunctionOperation f)
+                {
+                    return f.Symbol;
+                }
+            }
+
+            return null;
+        }
+
         public record struct ArgumentInfo(IOperation Operation, string? ParameterName);
         public static List<ArgumentInfo> FlattenArguments(this IInvocationOperation invocation)
         {

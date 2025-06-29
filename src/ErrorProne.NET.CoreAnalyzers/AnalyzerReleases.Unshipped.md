@@ -24,6 +24,7 @@ EPC29 | CodeSmell | Warning | ExcludeFromCodeCoverageMessageAnalyzer: Warn when 
 EPC30 | CodeSmell | Warning | RecursiveCallAnalyzer: Warns when a method calls itself recursively (conditionally or unconditionally).
 EPC31 | CodeSmell | Warning | DoNotReturnNullForTaskLikeAnalyzer
 EPC32 | CodeSmell | Warning | TaskCompletionSourceRunContinuationsAnalyzer
+EPC33 | CodeSmell | Warning | DoNotUseThreadSleepAnalyzer
 ERP021 | CodeSmell | Warning | ThrowExAnalyzer
 ERP022 | CodeSmell | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
