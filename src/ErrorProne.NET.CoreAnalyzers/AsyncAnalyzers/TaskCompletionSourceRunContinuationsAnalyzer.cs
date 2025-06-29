@@ -13,7 +13,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class TaskCompletionSourceRunContinuationsAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor Rule = DiagnosticDescriptors.EPC31;
+        private static readonly DiagnosticDescriptor Rule = DiagnosticDescriptors.EPC32;
 
         /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];

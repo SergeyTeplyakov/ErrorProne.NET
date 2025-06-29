@@ -209,10 +209,10 @@ namespace ErrorProne.NET
             description: "The event source implementation must follow special rules to avoid hitting runtime errors.");
 
         /// <nodoc />
-        public static readonly DiagnosticDescriptor EPC31 = new DiagnosticDescriptor(
-            nameof(EPC31),
+        public static readonly DiagnosticDescriptor EPC32 = new DiagnosticDescriptor(
+            nameof(EPC32),
             title: "TaskCompletionSource should use RunContinuationsAsynchronously",
-            messageFormat: "TaskCompletionSource instance should be created with TaskCreationOptions.RunContinuationsAsynchronously.",
+            messageFormat: "TaskCompletionSource instance should be created with TaskCreationOptions.RunContinuationsAsynchronously",
             category: CodeSmellCategory,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
