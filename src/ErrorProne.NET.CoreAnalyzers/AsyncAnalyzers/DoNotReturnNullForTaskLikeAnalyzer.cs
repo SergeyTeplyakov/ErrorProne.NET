@@ -134,7 +134,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
             }
 
-            static IMethodSymbol? findParentLocalOrLambdaSymbol(IOperation operation)
+            static IMethodSymbol? findParentLocalOrLambdaSymbol(IOperation? operation)
             {
                 foreach (var parent in operation.EnumerateParentOperations())
                 {

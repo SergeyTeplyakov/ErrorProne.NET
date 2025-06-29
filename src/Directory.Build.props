@@ -16,7 +16,7 @@
     <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="All" />
     <!-- RuntimeContracts is marked as 'PrivateAssets' because the dependency is erased via ILRepack. -->
     <PackageReference Include="RuntimeContracts" PrivateAssets="All" GeneratePathProperty="true"/>
-    <PackageReference Include="ILRepack.Lib.MSBuild" PrivateAssets="All" />
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
