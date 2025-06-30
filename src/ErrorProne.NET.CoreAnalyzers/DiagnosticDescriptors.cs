@@ -237,5 +237,15 @@ namespace ErrorProne.NET
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Thread.Sleep blocks the thread and defeats the purpose of async programming. Use Task.Delay with await instead.");
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC34 = new DiagnosticDescriptor(
+            nameof(EPC34),
+            title: "Method return value marked with MustUseResultAttribute must be used",
+            messageFormat: "The return value of method '{0}' marked with MustUseResultAttribute must be used",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Methods marked with MustUseResultAttribute return values that should always be observed and used.");
     }
 }
