@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using ErrorProne.NET.CoreAnalyzers;
@@ -128,32 +126,6 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 default:
                     return false;
             }
-        }
-
-        private static bool IsAsyncLambdaOrDelegate(IAnonymousFunctionOperation anonymousFunction)
-        {
-            // Check if the lambda/delegate is declared as async
-            if (anonymousFunction.Syntax is AnonymousMethodExpressionSyntax anonymousMethod)
-            {
-                return anonymousMethod.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
-            }
-
-            if (anonymousFunction.Syntax is LambdaExpressionSyntax lambda)
-            {
-                return lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
-            }
-
-            return false;
-        }
-
-        private static bool IsAsyncMethodReference(IDelegateCreationOperation delegateCreation, OperationAnalysisContext context)
-        {
-            if (delegateCreation.Target is IMethodReferenceOperation methodRef)
-            {
-                return methodRef.Method.IsAsync;
-            }
-
-            return false;
         }
     }
 }
