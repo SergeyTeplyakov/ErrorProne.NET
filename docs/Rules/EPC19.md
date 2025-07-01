@@ -14,7 +14,7 @@ public class MyService
     public void StartOperation(CancellationToken cancellationToken)
     {
         // Registration is not stored - potential memory leak
-        cancellationToken.Register(() => 
+        cancellationToken.Register(() =>  // ❌ EPC19
         {
             Console.WriteLine("Operation cancelled");
         });
@@ -26,7 +26,7 @@ public class MyService
 public async Task ProcessAsync(CancellationToken token)
 {
     // Registration result is ignored
-    token.Register(OnCancellation);
+    token.Register(OnCancellation); // ❌ EPC19
     
     await DoWorkAsync();
 }
@@ -49,7 +49,7 @@ public class MyService : IDisposable
     public void StartOperation(CancellationToken cancellationToken)
     {
         // Store the registration
-        _registration = cancellationToken.Register(() => 
+        _registration = cancellationToken.Register(() =>  // ✅ Correct
         {
             Console.WriteLine("Operation cancelled");
         });
@@ -58,7 +58,7 @@ public class MyService : IDisposable
     public void Dispose()
     {
         // Dispose the registration to prevent memory leaks
-        _registration.Dispose();
+        _registration.Dispose(); // ✅ Correct
     }
 }
 ```
@@ -67,21 +67,21 @@ public class MyService : IDisposable
 public async Task ProcessAsync(CancellationToken token)
 {
     // Store registration and dispose in finally block
-    var registration = token.Register(OnCancellation);
+    var registration = token.Register(OnCancellation); // ✅ Correct
     try
     {
         await DoWorkAsync();
     }
     finally
     {
-        registration.Dispose();
+        registration.Dispose(); // ✅ Correct
     }
 }
 
 // Or use using statement
 public async Task ProcessAsync(CancellationToken token)
 {
-    using var registration = token.Register(OnCancellation);
+    using var registration = token.Register(OnCancellation); // ✅ Correct
     await DoWorkAsync();
     // registration automatically disposed here
 }

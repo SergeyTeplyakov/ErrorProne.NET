@@ -21,13 +21,13 @@ public void Example()
     var person = new Person { Name = "John", Age = 30 };
     
     // Using default ToString() - outputs "Person" instead of useful info
-    Console.WriteLine(person.ToString());
+    Console.WriteLine(person.ToString()); // ❌ EPC20
     
     // Implicit ToString() call
-    string personString = person;
+    string personString = person; // ❌ EPC20
     
     // In string interpolation
-    Console.WriteLine($"Person: {person}");
+    Console.WriteLine($"Person: {person}"); // ❌ EPC20
 }
 ```
 
@@ -42,7 +42,7 @@ public class Person
     public int Age { get; set; }
     
     // Custom ToString() implementation
-    public override string ToString()
+    public override string ToString() // ✅ Correct
     {
         return $"Person(Name: {Name}, Age: {Age})";
     }

@@ -17,7 +17,7 @@ try
 catch (Exception ex)
 {
     // Only using ex.Message - this triggers the warning
-    Console.WriteLine(ex.Message);
+    Console.WriteLine(ex.Message); // ❌ EPC12
 }
 ```
 
@@ -34,8 +34,8 @@ try
 catch (Exception ex)
 {
     // Log the full exception object
-    Console.WriteLine(ex.ToString());
+    Console.WriteLine(ex.ToString()); // ✅ Correct
     // Or access the exception object directly
-    LogException(ex);
+    LogException(ex); // ✅ Correct
 }
 ```

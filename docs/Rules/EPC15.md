@@ -12,10 +12,10 @@ The analyzer warns when `ConfigureAwait(false)` should be used but is missing. T
 public async Task ProcessAsync()
 {
     // Missing ConfigureAwait(false) - this triggers the warning
-    await SomeAsyncMethod();
+    await SomeAsyncMethod(); // ❌ EPC15
     
     // Also missing ConfigureAwait(false)
-    var result = await GetDataAsync();
+    var result = await GetDataAsync(); // ❌ EPC15
 }
 ```
 
@@ -27,9 +27,9 @@ Add `ConfigureAwait(false)` to all await expressions:
 public async Task ProcessAsync()
 {
     // Add ConfigureAwait(false) to avoid capturing sync context
-    await SomeAsyncMethod().ConfigureAwait(false);
+    await SomeAsyncMethod().ConfigureAwait(false); // ✅ Correct
     
-    var result = await GetDataAsync().ConfigureAwait(false);
+    var result = await GetDataAsync().ConfigureAwait(false); // ✅ Correct
 }
 ```
 

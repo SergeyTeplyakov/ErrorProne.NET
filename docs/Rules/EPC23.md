@@ -16,10 +16,10 @@ public void Example()
     var hashSet = new HashSet<string> { "apple", "banana", "cherry" };
     
     // Inefficient: uses Enumerable.Contains (O(n) linear search)
-    bool found = hashSet.Contains("apple", StringComparer.OrdinalIgnoreCase);
+    bool found = hashSet.Contains("apple", StringComparer.OrdinalIgnoreCase); // ❌ EPC23
     
     // Also inefficient when using Enumerable.Contains explicitly
-    bool found2 = Enumerable.Contains(hashSet, "banana");
+    bool found2 = Enumerable.Contains(hashSet, "banana"); // ❌ EPC23
 }
 ```
 
@@ -33,14 +33,14 @@ public void Example()
     var hashSet = new HashSet<string> { "apple", "banana", "cherry" };
     
     // Efficient: uses HashSet.Contains (O(1) hash lookup)
-    bool found = hashSet.Contains("apple");
+    bool found = hashSet.Contains("apple"); // ✅ Correct
     
     // If you need custom comparison, create HashSet with comparer
     var caseInsensitiveSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "apple", "banana", "cherry"
     };
-    bool found2 = caseInsensitiveSet.Contains("APPLE"); // O(1) with custom comparer
+    bool found2 = caseInsensitiveSet.Contains("APPLE"); // ✅ Correct - O(1) with custom comparer
 }
 ```
 

@@ -14,13 +14,13 @@ public class Example
     public void ProcessData()
     {
         // Return value is ignored - this triggers the warning
-        GetImportantValue();
+        GetImportantValue(); // ❌ EPC13
         
         // String methods return new strings but result is ignored
-        "hello".ToUpper();
+        "hello".ToUpper(); // ❌ EPC13
         
         // Collection methods that return new collections
-        list.Where(x => x > 0);
+        list.Where(x => x > 0); // ❌ EPC13
     }
     
     public string GetImportantValue()
@@ -40,14 +40,14 @@ public class Example
     public void ProcessData()
     {
         // Store the result in a variable
-        var importantValue = GetImportantValue();
+        var importantValue = GetImportantValue(); // ✅ Correct
         
         // Use the result directly
-        var upperText = "hello".ToUpper();
+        var upperText = "hello".ToUpper(); // ✅ Correct
         Console.WriteLine(upperText);
         
         // Chain operations or store result
-        var filteredList = list.Where(x => x > 0).ToList();
+        var filteredList = list.Where(x => x > 0).ToList(); // ✅ Correct
     }
     
     public string GetImportantValue()

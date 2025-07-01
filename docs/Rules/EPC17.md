@@ -12,14 +12,14 @@ The analyzer warns against using async void delegates. Unlike async void methods
 public void SetupHandlers()
 {
     // Dangerous: async void delegate
-    SomeEvent += async () =>
+    SomeEvent += async () => // ❌ EPC17
     {
         await SomeAsyncMethod();
         // If this throws, it will crash the app
     };
     
     // Another dangerous pattern
-    Task.Run(async () =>
+    Task.Run(async () => // ❌ EPC17
     {
         await ProcessAsync();
         // Exceptions here are unhandled
@@ -31,7 +31,7 @@ public void SetupHandlers()
 public void RegisterCallback()
 {
     // Async void delegate in callback
-    RegisterCallback(async () =>
+    RegisterCallback(async () => // ❌ EPC17
     {
         await DoWorkAsync();
     });

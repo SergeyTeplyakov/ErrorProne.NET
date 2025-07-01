@@ -14,7 +14,7 @@ public async Task ProcessAsync()
     SomeService service = GetService(); // might return null
     
     // Dangerous: if service is null, this returns null, and awaiting null throws NRE
-    await service?.ProcessAsync();
+    await service?.ProcessAsync(); // ❌ EPC16
 }
 ```
 
@@ -24,7 +24,7 @@ public async Task<string> GetDataAsync()
     var client = GetHttpClient(); // might return null
     
     // This will throw NRE if client is null
-    return await client?.GetStringAsync("http://example.com");
+    return await client?.GetStringAsync("http://example.com"); // ❌ EPC16
 }
 ```
 
@@ -40,11 +40,11 @@ public async Task ProcessAsync()
     // Option 1: Check for null first
     if (service != null)
     {
-        await service.ProcessAsync();
+        await service.ProcessAsync(); // ✅ Correct
     }
     
     // Option 2: Use null-coalescing with Task.CompletedTask
-    await (service?.ProcessAsync() ?? Task.CompletedTask);
+    await (service?.ProcessAsync() ?? Task.CompletedTask); // ✅ Correct
 }
 ```
 
@@ -59,6 +59,6 @@ public async Task<string> GetDataAsync()
         return null; // or throw, or return default value
     }
     
-    return await client.GetStringAsync("http://example.com");
+    return await client.GetStringAsync("http://example.com"); // ✅ Correct
 }
 ```
