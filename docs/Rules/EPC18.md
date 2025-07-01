@@ -17,13 +17,13 @@ public async Task<string> GetDataAsync()
 public void ProcessData()
 {
     // Missing await - Task<string> converted to string
-    string result = GetDataAsync(); // This will be "System.Threading.Tasks.Task`1[System.String]"
+    string result = GetDataAsync(); // ❌ EPC18 - This will be "System.Threading.Tasks.Task`1[System.String]"
     
     // In string interpolation
-    Console.WriteLine($"Result: {GetDataAsync()}"); // Prints task type, not result
+    Console.WriteLine($"Result: {GetDataAsync()}"); // ❌ EPC18 - Prints task type, not result
     
     // In concatenation
-    string message = "Data: " + GetDataAsync(); // Concatenates with task type
+    string message = "Data: " + GetDataAsync(); // ❌ EPC18 - Concatenates with task type
 }
 ```
 
@@ -40,12 +40,12 @@ public async Task<string> GetDataAsync()
 public async Task ProcessData()
 {
     // Properly await the task
-    string result = await GetDataAsync(); // Now gets "Hello World"
+    string result = await GetDataAsync(); // ✅ Correct - Now gets "Hello World"
     
     // In string interpolation
-    Console.WriteLine($"Result: {await GetDataAsync()}"); // Prints actual result
+    Console.WriteLine($"Result: {await GetDataAsync()}"); // ✅ Correct - Prints actual result
     
     // In concatenation
-    string message = "Data: " + await GetDataAsync(); // Concatenates with actual result
+    string message = "Data: " + await GetDataAsync(); // ✅ Correct - Concatenates with actual result
 }
 ```

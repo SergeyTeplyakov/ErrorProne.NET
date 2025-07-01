@@ -106,7 +106,7 @@ namespace ErrorProne.NET
             nameof(EPC20),
             title: "Avoid using default ToString implementation",
             messageFormat: "A default ToString implementation is used for type {0}",
-            AsyncCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
             description: "A default ToString implementation is rarely gives the result you need.",
             helpLinkUri: GetHelpUri(nameof(EPC20)));
 

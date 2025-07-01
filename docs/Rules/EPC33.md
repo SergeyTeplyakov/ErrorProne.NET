@@ -12,22 +12,21 @@ The analyzer warns when `Thread.Sleep` is used in async methods. This blocks the
 public async Task ProcessAsync()
 {
     // Bad: Thread.Sleep blocks the thread
-    Thread.Sleep(1000); // Blocks for 1 second
+    Thread.Sleep(1000); // ❌ EPC33 - Blocks for 1 second
     
     await DoWorkAsync();
     
     // Also bad: Thread.Sleep with TimeSpan
-    Thread.Sleep(TimeSpan.FromSeconds(2));
+    Thread.Sleep(TimeSpan.FromSeconds(2)); // ❌ EPC33
 }
 
 public async void HandleEventAsync()
 {
     // Bad: blocking in async event handler
-    Thread.Sleep(500);
+    Thread.Sleep(500); // ❌ EPC33
     await UpdateUIAsync();
 }
-
-public async Task<string> GetDataAsync()
+```
 {
     // Bad: mixed blocking and async code
     Thread.Sleep(100); // Simulate delay - wrong way
@@ -43,25 +42,25 @@ Use `Task.Delay` with await instead:
 public async Task ProcessAsync()
 {
     // Good: Task.Delay doesn't block the thread
-    await Task.Delay(1000); // Non-blocking delay
+    await Task.Delay(1000); // ✅ Correct - Non-blocking delay
     
     await DoWorkAsync();
     
     // Good: Task.Delay with TimeSpan
-    await Task.Delay(TimeSpan.FromSeconds(2));
+    await Task.Delay(TimeSpan.FromSeconds(2)); // ✅ Correct
 }
 
 public async void HandleEventAsync()
 {
     // Good: non-blocking delay in async event handler
-    await Task.Delay(500);
+    await Task.Delay(500); // ✅ Correct
     await UpdateUIAsync();
 }
 
 public async Task<string> GetDataAsync()
 {
     // Good: all async operations
-    await Task.Delay(100); // Non-blocking simulation
+    await Task.Delay(100); // ✅ Correct - Non-blocking simulation
     return await FetchDataAsync();
 }
 ```

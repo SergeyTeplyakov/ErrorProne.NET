@@ -22,13 +22,13 @@ public void Example()
     var struct2 = new MyStruct { Value1 = 1, Value2 = 2 };
     
     // Using default ValueType.Equals - slow!
-    bool areEqual = struct1.Equals(struct2);
+    bool areEqual = struct1.Equals(struct2); // ❌ EPC25
     
     // Using default ValueType.GetHashCode - slow!
-    int hash = struct1.GetHashCode();
+    int hash = struct1.GetHashCode(); // ❌ EPC25
     
     // In collections this causes performance issues
-    var dictionary = new Dictionary<MyStruct, string>();
+    var dictionary = new Dictionary<MyStruct, string>(); // ❌ EPC25
     dictionary[struct1] = "value"; // Triggers slow hash operations
 }
 ```
@@ -43,7 +43,7 @@ public struct MyStruct : IEquatable<MyStruct>
     public int Value1 { get; set; }
     public int Value2 { get; set; }
     
-    public bool Equals(MyStruct other)
+    public bool Equals(MyStruct other) // ✅ Correct
     {
         return Value1 == other.Value1 && Value2 == other.Value2;
     }

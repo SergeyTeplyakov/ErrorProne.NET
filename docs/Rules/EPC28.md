@@ -12,7 +12,7 @@ The analyzer warns when `ExcludeFromCodeCoverageAttribute` is applied to partial
 using System.Diagnostics.CodeAnalysis;
 
 // Bad: ExcludeFromCodeCoverage on partial class
-[ExcludeFromCodeCoverage]
+[ExcludeFromCodeCoverage] // ❌ EPC28
 public partial class MyPartialClass
 {
     public void Method1()
@@ -33,7 +33,7 @@ public partial class MyPartialClass
 
 ```csharp
 // Also problematic: one part has the attribute
-[ExcludeFromCodeCoverage]
+[ExcludeFromCodeCoverage] // ❌ EPC28
 public partial class DataClass
 {
     // Part 1
@@ -52,13 +52,13 @@ Apply the attribute to specific members instead of the partial class:
 ```csharp
 public partial class MyPartialClass
 {
-    [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage] // ✅ Correct
     public void Method1()
     {
         // Explicitly excluded from coverage
     }
     
-    public void Method2()
+    public void Method2() // ✅ Correct
     {
         // Included in coverage
     }
@@ -66,7 +66,7 @@ public partial class MyPartialClass
 
 public partial class MyPartialClass
 {
-    [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage] // ✅ Correct
     public void Method3()
     {
         // Explicitly excluded from coverage

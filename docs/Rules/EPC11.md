@@ -14,7 +14,7 @@ public class MyClass
     public override bool Equals(object obj)
     {
         // Suspicious: only using static members or not using 'this' instance
-        return SomeStaticProperty == 42;
+        return SomeStaticProperty == 42; // ❌ EPC11
     }
 }
 ```
@@ -27,7 +27,7 @@ public class Person
     public override bool Equals(object obj)
     {
         // Suspicious: parameter 'obj' is never used
-        return this.Name == "test";
+        return this.Name == "test"; // ❌ EPC11
     }
 }
 ```
@@ -49,7 +49,7 @@ public class Person
     {
         if (obj is Person other)
         {
-            return this.Name == other.Name;
+            return this.Name == other.Name; // ✅ Correct
         }
         return false;
     }

@@ -34,10 +34,10 @@ public class Example
         var validator = new ValidationService();
         
         // Bad: ignoring return value of method marked with MustUseResult
-        validator.ValidateInput(input);
+        validator.ValidateInput(input); // ❌ EPC34
         
         // Also bad: not using the validation result
-        validator.CheckData(data);
+        validator.CheckData(data); // ❌ EPC34
         
         // Proceeding without checking validation results - dangerous!
         DoSomethingWithData(input, data);
@@ -57,14 +57,14 @@ public class Example
         var validator = new ValidationService();
         
         // Good: checking the validation result
-        bool isValid = validator.ValidateInput(input);
+        bool isValid = validator.ValidateInput(input); // ✅ Correct
         if (!isValid)
         {
             throw new ArgumentException("Invalid input");
         }
         
         // Good: using the validation result
-        var result = validator.CheckData(data);
+        var result = validator.CheckData(data); // ✅ Correct
         if (!result.IsValid)
         {
             throw new ArgumentException(result.ErrorMessage);
@@ -86,7 +86,7 @@ public class Example
         var validator = new ValidationService();
         
         // Good: using result in conditional
-        if (validator.ValidateInput(input))
+        if (validator.ValidateInput(input)) // ✅ Correct
         {
             ProcessValidInput(input);
         }

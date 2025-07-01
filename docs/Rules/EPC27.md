@@ -12,14 +12,14 @@ The analyzer warns when methods are declared as `async void`. These methods are 
 public class Example
 {
     // Bad: async void method
-    public async void ProcessData()
+    public async void ProcessData() // ❌ EPC27
     {
         await SomeAsyncOperation();
         // If this throws, it will crash the app
     }
     
     // Also bad: async void in other contexts
-    private async void Helper()
+    private async void Helper() // ❌ EPC27
     {
         await DoWorkAsync();
     }
@@ -34,14 +34,14 @@ Use `async Task` instead:
 public class Example
 {
     // Good: async Task method
-    public async Task ProcessDataAsync()
+    public async Task ProcessDataAsync() // ✅ Correct
     {
         await SomeAsyncOperation();
         // Exceptions can be caught by caller
     }
     
     // Good: async Task for helper methods
-    private async Task HelperAsync()
+    private async Task HelperAsync() // ✅ Correct
     {
         await DoWorkAsync();
     }

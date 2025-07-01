@@ -12,7 +12,7 @@ The analyzer warns when `TaskCompletionSource` instances are created without usi
 public class Example
 {
     // Bad: TaskCompletionSource without RunContinuationsAsynchronously
-    private TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
+    private TaskCompletionSource<string> tcs = new TaskCompletionSource<string>(); // ❌ EPC32
     
     public Task<string> GetResultAsync()
     {
@@ -33,7 +33,7 @@ public class Worker
     // Also problematic: creating without the flag
     public Task<int> ProcessAsync()
     {
-        var completionSource = new TaskCompletionSource<int>();
+        var completionSource = new TaskCompletionSource<int>(); // ❌ EPC32
         
         ThreadPool.QueueUserWorkItem(_ =>
         {
@@ -54,7 +54,7 @@ Always use `TaskCreationOptions.RunContinuationsAsynchronously`:
 public class Example
 {
     // Good: TaskCompletionSource with RunContinuationsAsynchronously
-    private TaskCompletionSource<string> tcs = new TaskCompletionSource<string>(
+    private TaskCompletionSource<string> tcs = new TaskCompletionSource<string>( // ✅ Correct
         TaskCreationOptions.RunContinuationsAsynchronously);
     
     public Task<string> GetResultAsync()
@@ -76,7 +76,7 @@ public class Worker
     // Good: creating with the flag
     public Task<int> ProcessAsync()
     {
-        var completionSource = new TaskCompletionSource<int>(
+        var completionSource = new TaskCompletionSource<int>( // ✅ Correct
             TaskCreationOptions.RunContinuationsAsynchronously);
         
         ThreadPool.QueueUserWorkItem(_ =>

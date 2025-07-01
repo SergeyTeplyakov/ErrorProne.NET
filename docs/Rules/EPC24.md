@@ -19,13 +19,13 @@ public struct Point
 public void Example()
 {
     // Using struct with default Equals/GetHashCode as dictionary key
-    var pointData = new Dictionary<Point, string>();
+    var pointData = new Dictionary<Point, string>(); // ❌ EPC24
     
     var point = new Point { X = 1, Y = 2 };
     pointData[point] = "First point"; // Performance issue!
     
     // HashSet also affected
-    var pointSet = new HashSet<Point>();
+    var pointSet = new HashSet<Point>(); // ❌ EPC24
     pointSet.Add(point); // Performance issue!
 }
 ```
@@ -41,18 +41,18 @@ public struct Point : IEquatable<Point>
     public int Y { get; set; }
     
     // Custom Equals implementation
-    public bool Equals(Point other)
+    public bool Equals(Point other) // ✅ Correct
     {
         return X == other.X && Y == other.Y;
     }
     
-    public override bool Equals(object obj)
+    public override bool Equals(object obj) // ✅ Correct
     {
         return obj is Point other && Equals(other);
     }
     
     // Custom GetHashCode implementation
-    public override int GetHashCode()
+    public override int GetHashCode() // ✅ Correct
     {
         return HashCode.Combine(X, Y);
     }

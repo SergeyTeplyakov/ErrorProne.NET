@@ -15,7 +15,7 @@ public class Example
     public Task ProcessAsync()
     {
         if (someCondition)
-            return null; // This will cause NRE when awaited
+            return null; // ❌ EPC31 - This will cause NRE when awaited
         
         return DoWorkAsync();
     }
@@ -24,7 +24,7 @@ public class Example
     public Task<string> GetDataAsync()
     {
         if (noData)
-            return null; // NRE when awaited
+            return null; // ❌ EPC31 - NRE when awaited
             
         return FetchDataAsync();
     }
@@ -32,7 +32,7 @@ public class Example
     // Bad: conditional return with null
     public Task? MaybeProcessAsync()
     {
-        return condition ? ProcessDataAsync() : null;
+        return condition ? ProcessDataAsync() : null; // ❌ EPC31
     }
 }
 ```
@@ -48,7 +48,7 @@ public class Example
     public Task ProcessAsync()
     {
         if (someCondition)
-            return Task.CompletedTask; // Safe to await
+            return Task.CompletedTask; // ✅ Correct - Safe to await
         
         return DoWorkAsync();
     }
@@ -57,7 +57,7 @@ public class Example
     public Task<string> GetDataAsync()
     {
         if (noData)
-            return Task.FromResult<string>(null); // Or return default value
+            return Task.FromResult<string>(null); // ✅ Correct - Or return default value
             
         return FetchDataAsync();
     }
@@ -66,7 +66,7 @@ public class Example
     public Task<int> GetCountAsync()
     {
         if (isEmpty)
-            return Task.FromResult(0); // Return default value
+            return Task.FromResult(0); // ✅ Correct - Return default value
             
         return CalculateCountAsync();
     }
@@ -82,7 +82,7 @@ public class Example
     public Task ProcessIfNeededAsync()
     {
         if (!needsProcessing)
-            return Task.CompletedTask;
+            return Task.CompletedTask; // ✅ Correct
             
         return ActualProcessingAsync();
     }

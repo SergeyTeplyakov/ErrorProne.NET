@@ -12,20 +12,20 @@ The analyzer warns when Task objects are used in `using` statements or `using` d
 public async Task Example()
 {
     // Bad: using statement with Task
-    using (var task = SomeAsyncMethod())
+    using (var task = SomeAsyncMethod()) // ❌ EPC26
     {
         await task;
     } // Task.Dispose() called here - problematic!
     
     // Also bad: using declaration
-    using var task2 = GetTaskAsync();
+    using var task2 = GetTaskAsync(); // ❌ EPC26
     await task2; // task2.Dispose() called at end of scope
 }
 
 public async Task AnotherExample()
 {
     // Bad: Task in using block
-    using var delayTask = Task.Delay(1000);
+    using var delayTask = Task.Delay(1000); // ❌ EPC26
     await delayTask;
 }
 ```
@@ -38,10 +38,10 @@ Simply remove the `using` statement and use the task directly:
 public async Task Example()
 {
     // Good: just await the task directly
-    await SomeAsyncMethod();
+    await SomeAsyncMethod(); // ✅ Correct
     
     // Or store in variable if needed
-    var task = GetTaskAsync();
+    var task = GetTaskAsync(); // ✅ Correct
     await task;
     // No explicit disposal needed
 }

@@ -15,9 +15,9 @@ public class Example
     public void ProcessData()
     {
         // Some processing...
-        ProcessData(); // Calls itself without obvious base case
+        ProcessData(); // ❌ EPC30 - Calls itself without obvious base case
     }
-
+}
 ```
 
 ## How to fix
@@ -28,7 +28,7 @@ Add proper base cases and ensure recursion terminates:
 public class Example
 {
     // Good: proper recursive method with base case
-    public int Factorial(int n)
+    public int Factorial(int n) // ✅ Correct
     {
         if (n <= 1) // Base case
             return 1;
@@ -36,7 +36,7 @@ public class Example
     }
     
     // Good: recursive tree traversal with termination condition
-    public void TraverseTree(TreeNode node)
+    public void TraverseTree(TreeNode node) // ✅ Correct
     {
         if (node == null) // Base case
             return;
