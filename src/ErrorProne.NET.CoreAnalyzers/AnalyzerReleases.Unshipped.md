@@ -26,6 +26,7 @@ EPC31 | CodeSmell | Warning | DoNotReturnNullForTaskLikeAnalyzer
 EPC32 | CodeSmell | Warning | TaskCompletionSourceRunContinuationsAnalyzer
 EPC33 | CodeSmell | Warning | DoNotUseThreadSleepAnalyzer
 EPC34 | CodeSmell | Warning | MustUseResultAnalyzer
+EPC35 | CodeSmell | Warning | DoNotBlockUnnecessarilyInAsyncMethodsAnalyzer: Warns when an async method blocks on a Task.
 ERP021 | CodeSmell | Warning | ThrowExAnalyzer
 ERP022 | CodeSmell | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer

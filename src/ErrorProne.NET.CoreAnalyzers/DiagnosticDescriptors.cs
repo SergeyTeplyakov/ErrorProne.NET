@@ -247,5 +247,15 @@ namespace ErrorProne.NET
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Methods marked with MustUseResultAttribute return values that should always be observed and used.");
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC35 = new DiagnosticDescriptor(
+            "EPC35",
+            title: "Do not block unnecessarily in async methods",
+            messageFormat: "'{0}' is blocking and should not be used in an async method. Use 'await' instead.",
+            category: CodeSmellCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Synchronously blocking on Tasks inside an async method can lead to deadlocks. Use 'await' instead.");
     }
 }
