@@ -279,6 +279,16 @@ namespace ErrorProne.NET
             description: "The event source implementation must follow special rules to avoid hitting runtime errors.",
             helpLinkUri: GetHelpUri(nameof(ERP042)));
 
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC35 = new DiagnosticDescriptor(
+            "EPC35",
+            title: "Do not block unnecessarily in async methods",
+            messageFormat: "'{0}' is blocking and should not be used in an async method. Use 'await' instead.",
+            category: AsyncCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Synchronously blocking on Tasks inside an async method can lead to deadlocks. Use 'await' instead.");
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";

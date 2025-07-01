@@ -26,6 +26,7 @@ EPC31 | Async | Warning | DoNotReturnNullForTaskLikeAnalyzer
 EPC32 | Async | Warning | TaskCompletionSourceRunContinuationsAnalyzer
 EPC33 | Async | Warning | DoNotUseThreadSleepAnalyzer
 EPC34 | ErrorHandling | Warning | MustUseResultAnalyzer
+EPC35 | Async | Warning | DoNotBlockUnnecessarilyInAsyncMethodsAnalyzer
 ERP021 | ErrorHandling | Warning | ThrowExAnalyzer
 ERP022 | ErrorHandling | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer

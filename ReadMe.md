@@ -26,6 +26,7 @@ Add the following nuget package to you project: https://www.nuget.org/packages/E
 | [EPC31](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC31.md) | Do not return null for Task-like types |
 | [EPC32](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC32.md) | TaskCompletionSource should use RunContinuationsAsynchronously |
 | [EPC33](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC33.md) | Do not use Thread.Sleep in async methods |
+| [EPC35](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC35.md) | Do not block unnecessarily in async methods |
 
 ### Generic Bugs and Code Smells
 

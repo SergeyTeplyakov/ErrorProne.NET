@@ -33,9 +33,9 @@ public static class TaskTypeExtensions
         return new(taskType, taskOfTType, valueTaskType, valueTaskOfTType);
     }
 
-    public static bool IsTaskLike(this ITypeSymbol? returnType, Compilation compilation, TaskLikeTypes typesToCheck)
+    public static bool IsTaskLike(this ITypeSymbol? type, Compilation compilation, TaskLikeTypes typesToCheck)
     {
-        if (returnType == null)
+        if (type == null)
         {
             return false;
         }
@@ -46,37 +46,37 @@ public static class TaskTypeExtensions
             return false; // ?
         }
 
-        if ((typesToCheck & TaskLikeTypes.Task) != 0 && returnType.Equals(taskType, SymbolEqualityComparer.Default))
+        if ((typesToCheck & TaskLikeTypes.Task) != 0 && type.Equals(taskType, SymbolEqualityComparer.Default))
         {
             return true;
         }
 
-        if ((typesToCheck & TaskLikeTypes.TaskOfT) != 0 && returnType.OriginalDefinition.Equals(taskOfTType, SymbolEqualityComparer.Default))
+        if ((typesToCheck & TaskLikeTypes.TaskOfT) != 0 && type.OriginalDefinition.Equals(taskOfTType, SymbolEqualityComparer.Default))
         {
             return true;
         }
 
-        if ((typesToCheck & TaskLikeTypes.ValueTask) != 0 && returnType.Equals(valueTaskType, SymbolEqualityComparer.Default))
+        if ((typesToCheck & TaskLikeTypes.ValueTask) != 0 && type.Equals(valueTaskType, SymbolEqualityComparer.Default))
         {
             return true;
         }
         
-        if ((typesToCheck & TaskLikeTypes.ValueTaskOfT) != 0 && returnType.OriginalDefinition.Equals(valueTaskOfTType, SymbolEqualityComparer.Default))
+        if ((typesToCheck & TaskLikeTypes.ValueTaskOfT) != 0 && type.OriginalDefinition.Equals(valueTaskOfTType, SymbolEqualityComparer.Default))
         {
             return true;
         }
 
-        if (returnType.IsErrorType())
+        if (type.IsErrorType())
         {
-            return returnType.Name.Equals("Task") ||
-                   returnType.Name.Equals("ValueTask");
+            return type.Name.Equals("Task") ||
+                   type.Name.Equals("ValueTask");
         }
 
         return false;
     }
 
-    public static bool IsTaskLike(this ITypeSymbol? returnType, Compilation compilation) =>
-        IsTaskLike(returnType, compilation, TaskLikeTypes.All);
+    public static bool IsTaskLike(this ITypeSymbol? type, Compilation compilation) =>
+        IsTaskLike(type, compilation, TaskLikeTypes.All);
 
     public static bool IsTaskCompletionSource(this ITypeSymbol? type, Compilation compilation)
     {
