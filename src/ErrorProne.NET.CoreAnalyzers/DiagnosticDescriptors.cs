@@ -289,6 +289,17 @@ namespace ErrorProne.NET
             isEnabledByDefault: true,
             description: "Synchronously blocking on Tasks inside an async method can lead to deadlocks. Use 'await' instead.");
 
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC36 = new DiagnosticDescriptor(
+            nameof(EPC36),
+            title: "Do not use async delegates with Task.Factory.StartNew and TaskCreationOptions.LongRunning",
+            messageFormat: "Async delegate should not be used with TaskCreationOptions.LongRunning. Use Task.Run for async delegates or remove LongRunning for synchronous work.",
+            category: AsyncCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "TaskCreationOptions.LongRunning is intended for long-running synchronous work. Using it with async delegates wastes thread pool threads and defeats the purpose of using async methods in this case.",
+            helpLinkUri: GetHelpUri(nameof(EPC36)));
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";

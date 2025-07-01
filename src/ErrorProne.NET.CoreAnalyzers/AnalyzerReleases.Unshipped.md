@@ -13,7 +13,7 @@ EPC16 | Async | Warning | NullConditionalOperatorAnalyzer
 EPC17 | Async | Warning | AsyncVoidDelegateAnalyzer
 EPC18 | Async | Warning | TaskInstanceToStringConversionAnalyzer
 EPC19 | CodeSmell | Warning | CancellationTokenRegistrationAnalyzer
-EPC20 | Async | Warning | DefaultToStringImplementationUsageAnalyzer
+EPC20 | CodeSmell | Warning | DefaultToStringImplementationUsageAnalyzer
 EPC23 | Performance | Warning | HashSetContainsAnalyzer
 EPC24 | Performance | Warning | HashTableIncompatibilityAnalyzer
 EPC25 | Performance | Warning | DefaultEqualsOrHashCodeUsageAnalyzer
@@ -27,6 +27,7 @@ EPC32 | Async | Warning | TaskCompletionSourceRunContinuationsAnalyzer
 EPC33 | Async | Warning | DoNotUseThreadSleepAnalyzer
 EPC34 | ErrorHandling | Warning | MustUseResultAnalyzer
 EPC35 | Async | Warning | DoNotBlockUnnecessarilyInAsyncMethodsAnalyzer
+EPC36 | Async | Warning | DoNotUseAsyncDelegatesForLongRunningTasksAnalyzer
 ERP021 | ErrorHandling | Warning | ThrowExAnalyzer
 ERP022 | ErrorHandling | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
