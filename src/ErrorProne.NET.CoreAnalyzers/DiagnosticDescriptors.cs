@@ -279,51 +279,19 @@ namespace ErrorProne.NET
             description: "The event source implementation must follow special rules to avoid hitting runtime errors.",
             helpLinkUri: GetHelpUri(nameof(ERP042)));
 
-<<<<<<< HEAD
-        /// <nodoc />
-        public static readonly DiagnosticDescriptor EPC32 = new DiagnosticDescriptor(
-            nameof(EPC32),
-            title: "TaskCompletionSource should use RunContinuationsAsynchronously",
-            messageFormat: "TaskCompletionSource instance should be created with TaskCreationOptions.RunContinuationsAsynchronously",
-            category: CodeSmellCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Always use TaskCreationOptions.RunContinuationsAsynchronously when creating TaskCompletionSource to avoid potential deadlocks.");
-
-        /// <nodoc />
-        public static readonly DiagnosticDescriptor EPC33 = new DiagnosticDescriptor(
-            nameof(EPC33),
-            title: "Do not use Thread.Sleep in async methods",
-            messageFormat: "Thread.Sleep should not be used in async methods. Use 'await Task.Delay()' instead.",
-            category: CodeSmellCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Thread.Sleep blocks the thread and defeats the purpose of async programming. Use Task.Delay with await instead.");
-
-        /// <nodoc />
-        public static readonly DiagnosticDescriptor EPC34 = new DiagnosticDescriptor(
-            nameof(EPC34),
-            title: "Method return value marked with MustUseResultAttribute must be used",
-            messageFormat: "The return value of method '{0}' marked with MustUseResultAttribute must be used",
-            category: CodeSmellCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Methods marked with MustUseResultAttribute return values that should always be observed and used.");
-
         /// <nodoc />
         public static readonly DiagnosticDescriptor EPC35 = new DiagnosticDescriptor(
             "EPC35",
             title: "Do not block unnecessarily in async methods",
             messageFormat: "'{0}' is blocking and should not be used in an async method. Use 'await' instead.",
-            category: CodeSmellCategory,
+            category: AsyncCategory,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Synchronously blocking on Tasks inside an async method can lead to deadlocks. Use 'await' instead.");
-=======
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";
         }
->>>>>>> master
     }
 }
