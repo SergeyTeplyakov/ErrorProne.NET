@@ -300,6 +300,18 @@ namespace ErrorProne.NET
             description: "TaskCreationOptions.LongRunning is intended for long-running synchronous work. Using it with async delegates wastes thread pool threads and defeats the purpose of using async methods in this case.",
             helpLinkUri: GetHelpUri(nameof(EPC36)));
 
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC37 = new DiagnosticDescriptor(
+            nameof(EPC37),
+            title: "Do not validate arguments in async methods",
+            messageFormat: "Argument validation in async method '{0}' will not fail eagerly. Consider using a wrapper method or Task.FromException.",
+            category: AsyncCategory,
+            // Info by default, since it might generate quite a bit of warnings for a codebase.
+            defaultSeverity: DiagnosticSeverity.Info,
+            isEnabledByDefault: true,
+            description: "Argument validation in async methods does not throw exceptions eagerly. The exception is thrown when the task is awaited, which can lead to unexpected behavior.",
+            helpLinkUri: GetHelpUri(nameof(EPC37)));
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";

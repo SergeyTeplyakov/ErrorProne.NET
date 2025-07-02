@@ -20,19 +20,21 @@ Add the following nuget package to you project: https://www.nuget.org/packages/E
 | [EPC16](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC16.md) | Awaiting a result of a null-conditional expression will cause NullReferenceException |
 | [EPC17](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC17.md) | Avoid async-void delegates |
 | [EPC18](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC18.md) | A task instance is implicitly converted to a string |
-| [EPC20](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC20.md) | Avoid using default ToString implementation |
 | [EPC26](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC26.md) | Do not use tasks in using block |
 | [EPC27](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC27.md) | Avoid async void methods |
 | [EPC31](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC31.md) | Do not return null for Task-like types |
 | [EPC32](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC32.md) | TaskCompletionSource should use RunContinuationsAsynchronously |
 | [EPC33](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC33.md) | Do not use Thread.Sleep in async methods |
 | [EPC35](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC35.md) | Do not block unnecessarily in async methods |
+| [EPC36](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC36.md) | Do not use async delegates with Task.Factory.StartNew and TaskCreationOptions.LongRunning |
+| [EPC37](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC37.md) | Do not validate arguments in async methods |
 
 ### Generic Bugs and Code Smells
 
 | Id | Description |
 |---|---|
 | [EPC19](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC19.md) | Observe and Dispose a 'CancellationTokenRegistration' to avoid memory leaks |
+| [EPC20](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC20.md) | Avoid using default ToString implementation |
 | [EPC28](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC28.md) | Do not use ExcludeFromCodeCoverage on partial classes |
 | [EPC29](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC29.md) | ExcludeFromCodeCoverageAttribute should provide a message |
 | [EPC30](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC30.md) | Method calls itself recursively |
