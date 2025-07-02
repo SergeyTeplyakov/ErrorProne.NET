@@ -144,7 +144,12 @@ namespace ErrorProne.NET.AsyncAnalyzers
             // This is 'ThrowIfNull' or similar methods
 
             var typeName = targetMethod.ContainingType?.Name;
-            return typeName is nameof(ArgumentNullException) or nameof(ArgumentException) or nameof(ArgumentOutOfRangeException);
+            if (typeName is nameof(ArgumentNullException) 
+                or nameof(ArgumentException)
+                or nameof(ArgumentOutOfRangeException))
+            {
+                return true;
+            }
 
             // This potentially can be extended in the future by providing a list of validation methods
             // inside .editorconfig to support custom validation methods.
