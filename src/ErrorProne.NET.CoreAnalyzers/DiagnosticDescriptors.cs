@@ -303,7 +303,7 @@ namespace ErrorProne.NET
         /// <nodoc />
         public static readonly DiagnosticDescriptor EPC37 = new DiagnosticDescriptor(
             nameof(EPC37),
-            title: "Do not validate arguments in async methods",
+            title: "Do not validate arguments in async methods eagerly",
             messageFormat: "Argument validation in async method '{0}' will not fail eagerly. Consider using a wrapper method or Task.FromException.",
             category: AsyncCategory,
             // Info by default, since it might generate quite a bit of warnings for a codebase.
