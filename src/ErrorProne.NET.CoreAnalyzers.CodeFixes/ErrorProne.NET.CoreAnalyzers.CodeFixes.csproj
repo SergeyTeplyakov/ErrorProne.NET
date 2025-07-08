@@ -18,6 +18,15 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.8.0
+        * Add DoNotBlockAsyncCallsInAsyncMethodsAnalyzer
+        * Add MustUseResultAnalyzer
+        * Add DoNotUseThreadSleepAnalyzer
+        * Add analyzer to warn on returning null for Task-like types
+        * Add TaskCompletionSourceAnalyzer
+        * Add ExcludeFromCodeCoverage analyzer
+        * Add Do not use async void methods rule
+        * Add the analyzer for detecting infinite recursions
       0.7.0
         * Add EventSource analyzers
         * Warn on using tasks in 'using' block or 'using' statements.
