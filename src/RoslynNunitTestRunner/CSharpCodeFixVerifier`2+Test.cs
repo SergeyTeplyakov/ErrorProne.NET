@@ -12,12 +12,17 @@ namespace ErrorProne.NET.TestHelpers
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        public static Task VerifyAsync(string code)
+        public static Task VerifyAsync(string code, LanguageVersion langVersion = LanguageVersion.Latest)
         {
             return new Test
             {
-                TestState = { Sources = { code } }
-                
+                TestState =
+                {
+                    Sources = { code },
+                },
+                LanguageVersion = langVersion,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
