@@ -23,6 +23,76 @@ class C {
         }
 
         [Test]
+        public async Task NoWarn_On_Different_Instance()
+        {
+            var test = @"
+public class Node
+{
+    public void Foo() { Parent?.Foo();}
+    public Node Parent { get; set; }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_With_Ref_Parameter_When_Touched()
+        {
+            var test = @"
+public class Node
+{
+    public void Foo(ref int x)
+    {
+        Bar(ref x);
+        Foo(ref x);
+    }
+
+    private void Bar(ref int x)
+    {
+        x++;
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_With_Ref_Parameter_When_Changed()
+        {
+            var test = @"
+public class Node
+{
+    public void Foo(ref int x)
+    {
+        x = 42;
+        Foo(ref x);
+    }
+
+    private void Bar(ref int x)
+    {
+        x++;
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task Warn_With_Ref_Parameter_When_Not_Touched()
+        {
+            var test = @"
+public class Node
+{
+    public void Foo(ref int x)
+    {
+        [|Foo(ref x)|];
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
         public async Task WarnsOnConditionalRecursiveCall()
         {
             var test = @"
