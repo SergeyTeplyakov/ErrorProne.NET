@@ -18,6 +18,8 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.8.2
+        * Reduce severity for the analyzers.
       0.8.1
         * Minor fixes in recursive analyzer
         * Downgraded the compiler packages to 4.13.0 to avoid conflicts with the latest Roslyn versions.
