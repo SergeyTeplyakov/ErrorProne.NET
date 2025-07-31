@@ -61,7 +61,7 @@ namespace ErrorProne.NET
             nameof(EPC15),
             title: "ConfigureAwait(false) must be used",
             messageFormat: "ConfigureAwait(false) must be used",
-            AsyncCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            AsyncCategory, DiagnosticSeverity.Info, isEnabledByDefault: true,
             description: "The assembly is configured to use .ConfigureAwait(false).",
             helpLinkUri: GetHelpUri(nameof(EPC15)));
 
@@ -97,7 +97,7 @@ namespace ErrorProne.NET
             nameof(EPC19),
             title: "Observe and Dispose a 'CancellationTokenRegistration' to avoid memory leaks",
             messageFormat: "Observe and Dispose a 'CancellationTokenRegistration' to avoid memory leaks",
-            CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            CodeSmellCategory, DiagnosticSeverity.Info, isEnabledByDefault: true,
             description: "Failure to dispose 'CancellationTokenRegistration' may cause a memory leak if obtained from a non-local token.",
             helpLinkUri: GetHelpUri(nameof(EPC19)));
 
@@ -170,7 +170,7 @@ namespace ErrorProne.NET
             title: "Avoid async void methods",
             messageFormat: "Method '{0}' is 'async void'. Use 'async Task' instead.",
             category: AsyncCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: "Async void methods are dangerous and should be avoided except for event handlers.",
             helpLinkUri: GetHelpUri(nameof(EPC27)));
@@ -181,7 +181,7 @@ namespace ErrorProne.NET
             title: "Do not use ExcludeFromCodeCoverage on partial classes",
             messageFormat: "'ExcludeFromCodeCoverageAttribute' should not be applied to partial class '{0}' (directly or indirectly)",
             category: CodeSmellCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: "Applying ExcludeFromCodeCoverageAttribute to a partial class can lead to inconsistent code coverage results.",
             helpLinkUri: GetHelpUri(nameof(EPC28)));
@@ -192,7 +192,7 @@ namespace ErrorProne.NET
             title: "ExcludeFromCodeCoverageAttribute should provide a message",
             messageFormat: "'ExcludeFromCodeCoverageAttribute' should provide a message explaining the exclusion",
             category: CodeSmellCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: "Always provide a message when using ExcludeFromCodeCoverageAttribute to document the reason for exclusion.",
             helpLinkUri: GetHelpUri(nameof(EPC29)));
@@ -225,7 +225,7 @@ namespace ErrorProne.NET
             title: "TaskCompletionSource should use RunContinuationsAsynchronously",
             messageFormat: "TaskCompletionSource instance should be created with TaskCreationOptions.RunContinuationsAsynchronously",
             category: AsyncCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: "Always use TaskCreationOptions.RunContinuationsAsynchronously when creating TaskCompletionSource to avoid potential deadlocks.",
             helpLinkUri: GetHelpUri(nameof(EPC32)));
@@ -236,7 +236,7 @@ namespace ErrorProne.NET
             title: "Do not use Thread.Sleep in async methods",
             messageFormat: "Thread.Sleep should not be used in async methods. Use 'await Task.Delay()' instead.",
             category: AsyncCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: "Thread.Sleep blocks the thread and defeats the purpose of async programming. Use Task.Delay with await instead.",
             helpLinkUri: GetHelpUri(nameof(EPC33)));
@@ -266,7 +266,7 @@ namespace ErrorProne.NET
             nameof(ERP041),
             title: "EventSource class should be sealed",
             messageFormat: "{0}: {1}",
-            CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            CodeSmellCategory, DiagnosticSeverity.Info, isEnabledByDefault: true,
             description: "The event source implementation must follow special rules to avoid hitting runtime errors.",
             helpLinkUri: GetHelpUri(nameof(ERP041)));
 
@@ -285,7 +285,7 @@ namespace ErrorProne.NET
             title: "Do not block unnecessarily in async methods",
             messageFormat: "'{0}' is blocking and should not be used in an async method. Use 'await' instead.",
             category: AsyncCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: "Synchronously blocking on Tasks inside an async method can lead to deadlocks. Use 'await' instead.");
 
@@ -295,7 +295,7 @@ namespace ErrorProne.NET
             title: "Do not use async delegates with Task.Factory.StartNew and TaskCreationOptions.LongRunning",
             messageFormat: "Async delegate should not be used with TaskCreationOptions.LongRunning. Use Task.Run for async delegates or remove LongRunning for synchronous work.",
             category: AsyncCategory,
-            defaultSeverity: DiagnosticSeverity.Warning,
+            defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             description: "TaskCreationOptions.LongRunning is intended for long-running synchronous work. Using it with async delegates wastes thread pool threads and defeats the purpose of using async methods in this case.",
             helpLinkUri: GetHelpUri(nameof(EPC36)));
