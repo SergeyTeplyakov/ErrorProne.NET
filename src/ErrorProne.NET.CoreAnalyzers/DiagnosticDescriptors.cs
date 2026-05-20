@@ -334,6 +334,17 @@ namespace ErrorProne.NET
             description: "Iterating the same enumerable more than once inside a loop turns an O(N) walk into an O(N*M) one. Materialize the source with .ToList()/.ToArray() before the loop, or restructure to enumerate once.",
             helpLinkUri: GetHelpUri(nameof(EPC39)));
 
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC40 = new DiagnosticDescriptor(
+            nameof(EPC40),
+            title: "Multiple enumeration of deferred query passed to private method",
+            messageFormat: "Private method '{0}' enumerates parameter '{1}' multiple times; this argument is a deferred query ({2}) that will be re-executed on each enumeration",
+            category: PerformanceCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "When a private method enumerates its IEnumerable<T> parameter multiple times and a caller passes a deferred LINQ query, every enumeration re-runs the entire query. The analyzer cross-references all (up to 3) private call sites and reports only when a caller passes a deferred query. Materialize the source (.ToList()/.ToArray()) before passing, or change the parameter type to IReadOnlyList<T>/T[].",
+            helpLinkUri: GetHelpUri(nameof(EPC40)));
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";
