@@ -18,6 +18,13 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.9.0
+        * Add EPC38: TaskEnumerableReEnumerationAnalyzer (disabled by default).
+        * Add EPC39: QuadraticEnumerationAnalyzer (disabled by default).
+        * Add EPC40: PrivateMethodMultipleEnumerationAnalyzer (disabled by default).
+        * Add EPC41: FormatMethodArgumentsAnalyzer to validate arguments passed to string.Format-like methods.
+        * Fix EPC30: do not warn on recursive calls made from nested lambdas, anonymous methods, or local functions (#318).
+        * Fix EPC20: do not warn when the type defines a user-defined implicit conversion to string (#317).
       0.8.2
         * Reduce severity for the analyzers.
       0.8.1
