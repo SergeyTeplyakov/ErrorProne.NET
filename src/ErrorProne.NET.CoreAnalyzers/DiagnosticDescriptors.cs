@@ -312,6 +312,50 @@ namespace ErrorProne.NET
             description: "Argument validation in async methods does not throw exceptions eagerly. The exception is thrown when the task is awaited, which can lead to unexpected behavior.",
             helpLinkUri: GetHelpUri(nameof(EPC37)));
 
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC38 = new DiagnosticDescriptor(
+            nameof(EPC38),
+            title: "Do not re-enumerate IEnumerable<Task>",
+            messageFormat: "Possible re-enumeration of IEnumerable<Task> '{0}'. Each enumeration starts a new set of tasks, which is almost certainly a bug.",
+            category: AsyncCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: false,
+            description: "Enumerating an IEnumerable<Task> more than once (for example, via Task.WhenAll followed by a foreach over the same enumerable) re-executes the underlying task producer and creates a new, unrelated set of tasks. Materialize with .ToArray() or .ToList() before observing.",
+            helpLinkUri: GetHelpUri(nameof(EPC38)));
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC39 = new DiagnosticDescriptor(
+            nameof(EPC39),
+            title: "Same enumerable iterated more than once inside a loop",
+            messageFormat: "Quadratic enumeration: {0}",
+            category: PerformanceCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: false,
+            description: "Iterating the same enumerable more than once inside a loop turns an O(N) walk into an O(N*M) one. Materialize the source with .ToList()/.ToArray() before the loop, or restructure to enumerate once.",
+            helpLinkUri: GetHelpUri(nameof(EPC39)));
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC40 = new DiagnosticDescriptor(
+            nameof(EPC40),
+            title: "Multiple enumeration of deferred query passed to private method",
+            messageFormat: "Private method '{0}' enumerates parameter '{1}' multiple times; this argument is a deferred query ({2}) that will be re-executed on each enumeration",
+            category: PerformanceCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: false,
+            description: "When a private method enumerates its IEnumerable<T> parameter multiple times and a caller passes a deferred LINQ query, every enumeration re-runs the entire query. The analyzer cross-references all (up to 3) private call sites and reports only when a caller passes a deferred query. Materialize the source (.ToList()/.ToArray()) before passing, or change the parameter type to IReadOnlyList<T>/T[].",
+            helpLinkUri: GetHelpUri(nameof(EPC40)));
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC41 = new DiagnosticDescriptor(
+            nameof(EPC41),
+            title: "Format string does not match arguments",
+            messageFormat: "{0}",
+            category: ErrorHandlingCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Format-string placeholders (e.g. '{0}', '{1}') do not match the arguments supplied to a user-annotated formatting method; the call would throw FormatException at runtime. Annotate formatting methods via 'dotnet_diagnostic.EPC41.format_methods' in .editorconfig (e.g. MyCorp.Logger.Log:0).",
+            helpLinkUri: GetHelpUri(nameof(EPC41)));
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";
