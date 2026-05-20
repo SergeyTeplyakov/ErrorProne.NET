@@ -26,7 +26,7 @@ jobs:
       run: dotnet restore
       working-directory: ./src
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -m:1
       working-directory: ./src
     - name: Test
       run: dotnet test --no-build --verbosity normal
