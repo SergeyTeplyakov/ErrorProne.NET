@@ -50,12 +50,33 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 return false;
             }
 
+            if (HasImplicitConversionToString(type))
+            {
+                // The type opts into a custom string representation via 'public static implicit operator string',
+                // so a default ToString impl is not what will actually be used. See issue #317.
+                return false;
+            }
+
             if (NoToStringOverride(type, out var typeWithNoToString))
             {
                 diagnostic = Diagnostic.Create(Rule, location, typeWithNoToString);
             }
 
             return diagnostic != null;
+        }
+
+        private static bool HasImplicitConversionToString(ITypeSymbol type)
+        {
+            foreach (var member in type.GetMembers(WellKnownMemberNames.ImplicitConversionName))
+            {
+                if (member is IMethodSymbol { MethodKind: MethodKind.Conversion } method &&
+                    method.ReturnType.SpecialType == SpecialType.System_String)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool NoToStringOverride(ITypeSymbol type, [NotNullWhen(true)]out ITypeSymbol? typeWithNoToString)
