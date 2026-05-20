@@ -312,6 +312,17 @@ namespace ErrorProne.NET
             description: "Argument validation in async methods does not throw exceptions eagerly. The exception is thrown when the task is awaited, which can lead to unexpected behavior.",
             helpLinkUri: GetHelpUri(nameof(EPC37)));
 
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC38 = new DiagnosticDescriptor(
+            nameof(EPC38),
+            title: "Do not re-enumerate IEnumerable<Task>",
+            messageFormat: "Possible re-enumeration of IEnumerable<Task> '{0}'. Each enumeration starts a new set of tasks, which is almost certainly a bug.",
+            category: AsyncCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Enumerating an IEnumerable<Task> more than once (for example, via Task.WhenAll followed by a foreach over the same enumerable) re-executes the underlying task producer and creates a new, unrelated set of tasks. Materialize with .ToArray() or .ToList() before observing.",
+            helpLinkUri: GetHelpUri(nameof(EPC38)));
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";

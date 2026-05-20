@@ -29,6 +29,7 @@ EPC34 | ErrorHandling | Warning | MustUseResultAnalyzer
 EPC35 | Async | Info | DoNotBlockUnnecessarilyInAsyncMethodsAnalyzer
 EPC36 | Async | Info | DoNotUseAsyncDelegatesForLongRunningTasksAnalyzer
 EPC37 | Async | Info | DoNotValidateArgumentsInAsyncMethodsAnalyzer
+EPC38 | Async | Warning | TaskEnumerableReEnumerationAnalyzer
 ERP021 | ErrorHandling | Warning | ThrowExAnalyzer
 ERP022 | ErrorHandling | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
