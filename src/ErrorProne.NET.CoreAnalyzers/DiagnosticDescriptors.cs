@@ -323,6 +323,17 @@ namespace ErrorProne.NET
             description: "Enumerating an IEnumerable<Task> more than once (for example, via Task.WhenAll followed by a foreach over the same enumerable) re-executes the underlying task producer and creates a new, unrelated set of tasks. Materialize with .ToArray() or .ToList() before observing.",
             helpLinkUri: GetHelpUri(nameof(EPC38)));
 
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC39 = new DiagnosticDescriptor(
+            nameof(EPC39),
+            title: "Same enumerable iterated more than once inside a loop",
+            messageFormat: "Quadratic enumeration: {0}",
+            category: PerformanceCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Iterating the same enumerable more than once inside a loop turns an O(N) walk into an O(N*M) one. Materialize the source with .ToList()/.ToArray() before the loop, or restructure to enumerate once.",
+            helpLinkUri: GetHelpUri(nameof(EPC39)));
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";
