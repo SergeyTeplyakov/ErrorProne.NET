@@ -130,6 +130,52 @@ class C {
 ";
             await Verify.VerifyAsync(test);
         }
+
+        [Test]
+        public async Task NoWarn_When_Same_Method_Is_Called_From_Lambda()
+        {
+            // Issue #318: a call to the same method from within a lambda is not
+            // an unconditional recursive call -- the lambda body is deferred.
+            var test = @"
+using System;
+class C {
+    void Foo() {
+        Action a = () => Foo();
+        a();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Same_Method_Is_Called_From_AnonymousMethod()
+        {
+            var test = @"
+using System;
+class C {
+    void Foo() {
+        Action a = delegate { Foo(); };
+        a();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Same_Method_Is_Called_From_LocalFunction()
+        {
+            var test = @"
+class C {
+    void Foo() {
+        void Local() { Foo(); }
+        Local();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
         
         [Test]
         public async Task NoWarn_For_Factorial()

@@ -31,6 +31,13 @@ namespace ErrorProne.NET.CoreAnalyzers
             
             foreach (var invocation in methodBody.Descendants().OfType<IInvocationOperation>())
             {
+                // Calls inside a lambda or local function don't execute as part of this method's
+                // immediate control flow, so they aren't unconditional recursion. See issue #318.
+                if (IsInsideNestedFunction(invocation))
+                {
+                    continue;
+                }
+
                 // Check if all parameters are passed as-is
                 // So Factorial(n - 1) should be totally fine!
                 if (invocation.Arguments.Length == method.Parameters.Length &&
@@ -60,6 +67,19 @@ namespace ErrorProne.NET.CoreAnalyzers
                         method.Name));
                 }
             }
+        }
+
+        private static bool IsInsideNestedFunction(IOperation operation)
+        {
+            for (var parent = operation.Parent; parent != null; parent = parent.Parent)
+            {
+                if (parent is IAnonymousFunctionOperation or ILocalFunctionOperation)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool HasTouchedRefParameterBeforeCall(IInvocationOperation recursiveCall, IMethodSymbol method, HashSet<IParameterSymbol> touchedRefParameters)
