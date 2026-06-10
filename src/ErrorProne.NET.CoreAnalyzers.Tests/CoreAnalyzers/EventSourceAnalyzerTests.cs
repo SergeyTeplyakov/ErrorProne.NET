@@ -96,6 +96,25 @@ public sealed class DemoEventSource : System.Diagnostics.Tracing.EventSource
         }
 
         [Test]
+        public async Task No_Warn_When_NonEvent_Method_Precedes_Implicit_Event()
+        {
+            // A [NonEvent] method must not shift the inferred ordinal id of the implicit event method.
+            // Here the implicit event method is the 2nd ordinary method but the 1st actual event, so its id is 1
+            // and WriteEvent(1, ...) must match.
+            string code = @"
+[System.Diagnostics.Tracing.EventSource(Name = ""Demo"")]
+public sealed class DemoEventSource : System.Diagnostics.Tracing.EventSource
+{
+    [System.Diagnostics.Tracing.NonEvent]
+    public void Helper() {}
+
+    public void AppStarted(string message) => WriteEvent(1, message);
+}";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
         public async Task No_Warn_On_Properties()
         {
             string code = @"

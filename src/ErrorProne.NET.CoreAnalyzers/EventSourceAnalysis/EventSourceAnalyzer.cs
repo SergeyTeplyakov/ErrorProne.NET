@@ -286,14 +286,15 @@ namespace ErrorProne.NET.EventSourceAnalysis
             if (eventAttribute == null)
             {
                 // From the docs: "Any instance, non-virtual, void returning method defined in an event source class is by default an ETW event method."
-                // Only ordinary methods can be event methods. Property/event accessors, operators, etc. must be ignored even
-                // though some of them (like property setters) are non-static, non-virtual and void-returning.
-                if (method.MethodKind == MethodKind.Ordinary && !method.IsStatic && !method.IsVirtual && method.ReturnsVoid && !method.IsConstructor() && method.MethodKind != MethodKind.Destructor)
+                if (IsImplicitEventMethodCandidate(method, compilation))
                 {
                     // In this case the Id is inferred.
                     // "Implicitly: by the ordinal number of the method in the class (thus the first method in the class is 1, second 2 …)"
-                    var methods = method.ContainingType.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary && !m.IsStatic && !m.IsVirtual && m.ReturnsVoid).ToList();
-                    
+                    // The ordinal list must use the same eligibility rules so that [NonEvent] (and other non-event) methods
+                    // don't shift the inferred index of real event methods.
+                    var methods = method.ContainingType.GetMembers().OfType<IMethodSymbol>()
+                        .Where(m => IsImplicitEventMethodCandidate(m, compilation)).ToList();
+
                     var index = methods.IndexOf(method) + 1;
                     return new EventMethodInfo(EventId: index, MethodSymbol: method);
                 }
@@ -314,6 +315,23 @@ namespace ErrorProne.NET.EventSourceAnalysis
             }
 
             return new EventMethodInfo(eventId, method);
+        }
+
+        /// <summary>
+        /// Returns true if the method can be an implicit ETW event method (i.e. one without an explicit 'Event' attribute).
+        /// </summary>
+        private static bool IsImplicitEventMethodCandidate(IMethodSymbol method, Compilation compilation)
+        {
+            // Only ordinary methods can be event methods. Property/event accessors, operators, constructors, destructors, etc.
+            // must be ignored even though some of them (like property setters) are non-static, non-virtual and void-returning.
+            // 'MethodKind.Ordinary' already excludes constructors and destructors.
+            if (method.MethodKind != MethodKind.Ordinary || method.IsStatic || method.IsVirtual || !method.ReturnsVoid)
+            {
+                return false;
+            }
+
+            // Methods marked with [NonEvent] are explicitly excluded from being events.
+            return !method.GetAttributes().Any(a => a.AttributeClass?.IsClrType(compilation, typeof(NonEventAttribute)) == true);
         }
 
         private static IOperation GetExpectedEventId(IInvocationOperation invocation)
