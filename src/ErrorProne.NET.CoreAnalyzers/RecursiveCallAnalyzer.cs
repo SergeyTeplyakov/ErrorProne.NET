@@ -28,6 +28,9 @@ namespace ErrorProne.NET.CoreAnalyzers
             
             // Find all ref parameters that have been "touched" (modified or passed to other methods)
             var touchedRefParameters = GetTouchedRefParameters(methodBody, method);
+
+            // Parameters that are mutated anywhere in the body cannot make a guard "invariant".
+            var mutatedParameters = GetMutatedParameters(methodBody);
             
             foreach (var invocation in methodBody.Descendants().OfType<IInvocationOperation>())
             {
@@ -59,7 +62,18 @@ namespace ErrorProne.NET.CoreAnalyzers
                     
                     // For ref parameters, check if they were touched before this call
                     // If any ref parameter was touched, don't warn
-                    !HasTouchedRefParameterBeforeCall(invocation, method, touchedRefParameters))
+                    !HasTouchedRefParameterBeforeCall(invocation, method, touchedRefParameters) &&
+
+                    // Only warn when the recursive call is guaranteed to be reached and to
+                    // recurse forever. That means either:
+                    //   * the call is unconditional (no branching could terminate the method first), or
+                    //   * the call is guarded only by "invariant" conditions -- conditions composed
+                    //     purely of unchanged value parameters and constants -- so taking the branch
+                    //     once guarantees taking it forever (e.g. 'if (b) Foo(b);').
+                    // Anything that could terminate the recursion (early returns, instance-state
+                    // checks, mutated arguments, method calls in the guard, etc.) suppresses the
+                    // diagnostic to avoid false positives.
+                    ShouldReportRecursion(invocation, methodBody, mutatedParameters))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
                         DiagnosticDescriptors.EPC30,
@@ -82,6 +96,171 @@ namespace ErrorProne.NET.CoreAnalyzers
             return false;
         }
 
+        /// <summary>
+        /// Returns <c>true</c> when the recursive <paramref name="call"/> is guaranteed to be
+        /// reached and to recurse forever: either it is reached unconditionally, or every branching
+        /// construct enclosing it is an "invariant guard" (a condition that, once taken, is always
+        /// taken because it depends only on unchanged value parameters and constants). Any statement
+        /// before the call that could terminate or branch the method suppresses the diagnostic.
+        /// </summary>
+        private static bool ShouldReportRecursion(
+            IInvocationOperation call,
+            IMethodBodyOperation methodBody,
+            HashSet<IParameterSymbol> mutatedParameters)
+        {
+            IOperation child = call;
+            for (IOperation? parent = call.Parent; parent != null; parent = parent.Parent)
+            {
+                // The call is nested inside a branching construct. Only keep going if that construct
+                // is an invariant guard that still guarantees infinite recursion.
+                if (IsBranchingOperation(parent) && !IsInvariantGuard(parent, mutatedParameters))
+                {
+                    return false;
+                }
+
+                // For an enclosing block, any statement executed before the call that can terminate
+                // or branch the method (e.g. 'if (x) return;') means the recursion might not happen.
+                if (parent is IBlockOperation block)
+                {
+                    foreach (var statement in block.Operations)
+                    {
+                        if (ReferenceEquals(statement, child))
+                        {
+                            break;
+                        }
+
+                        if (ContainsTerminatingOrBranchingFlow(statement))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                if (ReferenceEquals(parent, methodBody))
+                {
+                    break;
+                }
+
+                child = parent;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Branching constructs that, when an operation is nested within them, mean the operation
+        /// does not execute unconditionally.
+        /// </summary>
+        private static bool IsBranchingOperation(IOperation operation)
+        {
+            return operation is
+                IConditionalOperation or          // 'if' statement and '?:' ternary
+                ISwitchOperation or
+                ISwitchExpressionOperation or
+                ILoopOperation or                 // for/foreach/while/do
+                ITryOperation or                  // try/catch/finally
+                ICoalesceOperation or             // '??'
+                IConditionalAccessOperation;      // '?.'
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if taking the branch represented by <paramref name="branching"/> is
+        /// guaranteed to be taken again on the next recursion, i.e. its condition is "invariant".
+        /// Only simple <c>if</c>/ternary and top-tested <c>while</c> guards are considered; switches,
+        /// loops with side effects, try/catch and null-conditional operators are never treated as
+        /// invariant (we suppress to stay on the safe side).
+        /// </summary>
+        private static bool IsInvariantGuard(IOperation branching, HashSet<IParameterSymbol> mutatedParameters)
+        {
+            switch (branching)
+            {
+                case IConditionalOperation conditional:
+                    return IsInvariantCondition(conditional.Condition, mutatedParameters);
+
+                case IWhileLoopOperation { ConditionIsTop: true, ConditionIsUntil: false, Condition: { } condition }:
+                    return IsInvariantCondition(condition, mutatedParameters);
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// A condition is invariant when it is composed purely of references to unchanged value
+        /// parameters, constants, comparisons and boolean/arithmetic operators. References to
+        /// instance state, properties, locals, method calls, or mutated parameters make it
+        /// non-invariant (so the recursion may terminate and we don't warn).
+        /// </summary>
+        private static bool IsInvariantCondition(IOperation condition, HashSet<IParameterSymbol> mutatedParameters)
+        {
+            foreach (var op in DescendantsAndSelf(condition))
+            {
+                if (!IsAllowedInvariantOperation(op, mutatedParameters))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsAllowedInvariantOperation(IOperation operation, HashSet<IParameterSymbol> mutatedParameters)
+        {
+            switch (operation)
+            {
+                case IParameterReferenceOperation parameterReference:
+                    // Only by-value parameters that are never mutated keep the condition invariant.
+                    return parameterReference.Parameter.RefKind == RefKind.None &&
+                           !mutatedParameters.Contains(parameterReference.Parameter);
+
+                case ILiteralOperation:
+                case IBinaryOperation:
+                case IUnaryOperation:
+                case IParenthesizedOperation:
+                case IConversionOperation:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// <summary>
+        /// Returns <c>true</c> if the statement subtree contains control flow that can terminate
+        /// or branch the method (conditionals, switches, loops, try, return, throw, break,
+        /// continue, goto).
+        /// </summary>
+        private static bool ContainsTerminatingOrBranchingFlow(IOperation statement)
+        {
+            foreach (var op in DescendantsAndSelf(statement))
+            {
+                if (op is
+                    IConditionalOperation or
+                    ISwitchOperation or
+                    ISwitchExpressionOperation or
+                    ILoopOperation or
+                    ITryOperation or
+                    IReturnOperation or
+                    IThrowOperation or
+                    IBranchOperation)             // break/continue/goto
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<IOperation> DescendantsAndSelf(IOperation operation)
+        {
+            yield return operation;
+            foreach (var descendant in operation.Descendants())
+            {
+                yield return descendant;
+            }
+        }
+
         private static bool HasTouchedRefParameterBeforeCall(IInvocationOperation recursiveCall, IMethodSymbol method, HashSet<IParameterSymbol> touchedRefParameters)
         {
             // Check if any ref parameter in the recursive call was touched
@@ -101,6 +280,36 @@ namespace ErrorProne.NET.CoreAnalyzers
             }
             
             return false;
+        }
+
+        /// <summary>
+        /// Returns every parameter that is mutated anywhere in the body: assigned to, incremented/
+        /// decremented, or passed by <c>ref</c>/<c>out</c> to another method.
+        /// </summary>
+        private static HashSet<IParameterSymbol> GetMutatedParameters(IMethodBodyOperation methodBody)
+        {
+            var mutated = new HashSet<IParameterSymbol>(SymbolEqualityComparer.Default);
+
+            foreach (var op in methodBody.Descendants())
+            {
+                switch (op)
+                {
+                    case IAssignmentOperation { Target: IParameterReferenceOperation assignedParam }:
+                        mutated.Add(assignedParam.Parameter);
+                        break;
+
+                    case IIncrementOrDecrementOperation { Target: IParameterReferenceOperation incrementedParam }:
+                        mutated.Add(incrementedParam.Parameter);
+                        break;
+
+                    case IArgumentOperation { Value: IParameterReferenceOperation refArg } argument
+                        when argument.Parameter?.RefKind is RefKind.Ref or RefKind.Out:
+                        mutated.Add(refArg.Parameter);
+                        break;
+                }
+            }
+
+            return mutated;
         }
 
         private static HashSet<IParameterSymbol> GetTouchedRefParameters(IMethodBodyOperation methodBody, IMethodSymbol method)

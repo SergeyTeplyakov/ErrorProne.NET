@@ -93,8 +93,10 @@ public class Node
         }
 
         [Test]
-        public async Task WarnsOnConditionalRecursiveCall()
+        public async Task Warns_OnInvariantGuardedRecursiveCall()
         {
+            // The guard 'b' is passed unchanged to the call, so once the branch is taken it is
+            // taken forever -> provably infinite recursion.
             var test = @"
 class C {
     void Foo(bool b) {
@@ -106,12 +108,176 @@ class C {
         }
         
         [Test]
-        public async Task WarnsOnConditionalRecursiveCall_With_Named_Parameters()
+        public async Task Warns_OnInvariantGuardedRecursiveCall_With_Named_Parameters()
         {
             var test = @"
 class C {
     void Foo(bool b) {
         if (b) [|Foo(b: b)|];
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task Warns_OnInvariantComparisonGuardedRecursiveCall()
+        {
+            var test = @"
+class C {
+    void Foo(int n) {
+        if (n > 0) [|Foo(n)|];
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task Warns_When_Call_Is_Inside_Ternary_With_Invariant_Condition()
+        {
+            var test = @"
+class C {
+    int Foo(bool b) {
+        return b ? [|Foo(b)|] : 0;
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task Warns_When_Call_Is_Inside_While_With_Invariant_Condition()
+        {
+            var test = @"
+class C {
+    void Foo(int n) {
+        while (n > 0) {
+            [|Foo(n)|];
+        }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Guard_Parameter_Is_Mutated()
+        {
+            // 'n' is decremented before the recursive call, so the guard is not invariant.
+            var test = @"
+class C {
+    void Foo(int n) {
+        if (n > 0) {
+            n--;
+            Foo(n);
+        }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Guard_Depends_On_Instance_Field()
+        {
+            var test = @"
+class C {
+    private bool _flag;
+    void Foo() {
+        if (_flag) Foo();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Guard_Depends_On_Property()
+        {
+            var test = @"
+class C {
+    private bool Flag { get; set; }
+    void Foo() {
+        if (Flag) Foo();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Conditional_Early_Return_Terminates()
+        {
+            // Issue: 'if (n > 10) return;' can terminate the recursion before the call.
+            var test = @"
+class C {
+    void Foo(int n) {
+        n++;
+        if (n > 10) return;
+        Foo(n);
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Conditional_Throw_Terminates()
+        {
+            var test = @"
+using System;
+class C {
+    void Foo(int n) {
+        if (n > 10) throw new InvalidOperationException();
+        Foo(n);
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Termination_Depends_On_Instance_State()
+        {
+            var test = @"
+class C {
+    private bool _done;
+    void Foo() {
+        if (_done) return;
+        Foo();
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Call_Is_Inside_Switch()
+        {
+            // We don't attempt to prove invariance through switch statements, so we stay safe and
+            // do not warn.
+            var test = @"
+class C {
+    void Foo(int n) {
+        switch (n) {
+            case 0: Foo(n); break;
+        }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task Warns_When_Unconditional_After_StraightLine_Statements()
+        {
+            var test = @"
+using System;
+class C {
+    void Foo(int n) {
+        Console.WriteLine(n);
+        [|Foo(n)|];
     }
 }
 ";
