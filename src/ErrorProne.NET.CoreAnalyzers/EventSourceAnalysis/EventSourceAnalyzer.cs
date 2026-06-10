@@ -286,11 +286,13 @@ namespace ErrorProne.NET.EventSourceAnalysis
             if (eventAttribute == null)
             {
                 // From the docs: "Any instance, non-virtual, void returning method defined in an event source class is by default an ETW event method."
-                if (!method.IsStatic && !method.IsVirtual && method.ReturnsVoid && !method.IsConstructor() && method.MethodKind != MethodKind.Destructor)
+                // Only ordinary methods can be event methods. Property/event accessors, operators, etc. must be ignored even
+                // though some of them (like property setters) are non-static, non-virtual and void-returning.
+                if (method.MethodKind == MethodKind.Ordinary && !method.IsStatic && !method.IsVirtual && method.ReturnsVoid && !method.IsConstructor() && method.MethodKind != MethodKind.Destructor)
                 {
                     // In this case the Id is inferred.
                     // "Implicitly: by the ordinal number of the method in the class (thus the first method in the class is 1, second 2 …)"
-                    var methods = method.ContainingType.GetMembers().OfType<IMethodSymbol>().Where(m => !m.IsStatic && !m.IsVirtual && m.ReturnsVoid).ToList();
+                    var methods = method.ContainingType.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary && !m.IsStatic && !m.IsVirtual && m.ReturnsVoid).ToList();
                     
                     var index = methods.IndexOf(method) + 1;
                     return new EventMethodInfo(EventId: index, MethodSymbol: method);

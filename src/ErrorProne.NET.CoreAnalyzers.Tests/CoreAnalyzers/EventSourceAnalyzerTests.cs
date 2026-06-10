@@ -96,6 +96,31 @@ public sealed class DemoEventSource : System.Diagnostics.Tracing.EventSource
         }
 
         [Test]
+        public async Task No_Warn_On_Properties()
+        {
+            string code = @"
+[System.Diagnostics.Tracing.EventSource(Name = ""Demo"")]
+public sealed class DemoEventSource : System.Diagnostics.Tracing.EventSource
+{
+    private int AutoProperty { get; set; }
+
+    private string ExpressionProperty => string.Empty;
+
+    private int _field;
+    private int FullProperty
+    {
+        get => _field;
+        set => _field = value;
+    }
+
+    [System.Diagnostics.Tracing.Event(1)]
+    public void AppStarted(string message) => WriteEvent(1, message);
+}";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
         public async Task Warn_On_Count_Mismatch_Core()
         {
             string code = @"
