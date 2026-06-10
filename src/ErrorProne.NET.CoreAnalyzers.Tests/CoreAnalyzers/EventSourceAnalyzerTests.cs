@@ -96,6 +96,25 @@ public sealed class DemoEventSource : System.Diagnostics.Tracing.EventSource
         }
 
         [Test]
+        public async Task No_Warn_On_Non_Void_Method()
+        {
+            // Only void-returning methods are implicit event methods, so non-void methods must not be flagged.
+            string code = @"
+[System.Diagnostics.Tracing.EventSource(Name = ""Demo"")]
+public sealed class DemoEventSource : System.Diagnostics.Tracing.EventSource
+{
+    private int Compute() => 42;
+
+    private string GetName() { return string.Empty; }
+
+    [System.Diagnostics.Tracing.Event(1)]
+    public void AppStarted(string message) => WriteEvent(1, message);
+}";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
         public async Task No_Warn_When_NonEvent_Method_Precedes_Implicit_Event()
         {
             // A [NonEvent] method must not shift the inferred ordinal id of the implicit event method.

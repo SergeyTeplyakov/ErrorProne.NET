@@ -32,4 +32,7 @@ public sealed class DemoEventSource : System.Diagnostics.Tracing.EventSource
     private int SomeValue { get; set; }
 
     private string Name { get; set; }
+
+    // Non-void returning methods are not implicit event methods (ERP042 must not warn here).
+    private int Compute() => 42;
 }
