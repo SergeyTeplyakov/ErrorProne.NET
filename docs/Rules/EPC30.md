@@ -15,6 +15,7 @@ To avoid false positives, the analyzer does **not** warn when:
 - Termination depends on instance state, a property, or a method call (e.g. `if (_done) return;`, `if (Flag) Foo();`).
 - An argument is changed before the call (e.g. `Foo(n - 1)`, `n--; Foo(n);`), or a `ref` parameter is modified before the call.
 - The guard is anything we cannot prove invariant (a `switch`, a non-trivial loop, etc.).
+- The call is in a `catch` or `finally` block (those run conditionally). A call in a `try` *body*, however, is still reached unconditionally and is reported.
 
 When in doubt, the analyzer favors *not* reporting to keep false positives low.
 

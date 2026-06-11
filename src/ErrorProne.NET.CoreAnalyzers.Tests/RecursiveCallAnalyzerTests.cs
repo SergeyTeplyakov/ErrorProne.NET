@@ -179,6 +179,81 @@ class C {
         }
 
         [Test]
+        public async Task NoWarn_When_Guard_Parameter_Is_Mutated_Via_Compound_Assignment()
+        {
+            var test = @"
+class C {
+    void Foo(int n) {
+        if (n > 0) {
+            n += 1;
+            Foo(n);
+        }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Guard_Parameter_Is_Mutated_Via_Deconstruction()
+        {
+            var test = @"
+class C {
+    void Foo(int n) {
+        if (n > 0) {
+            (n, var x) = (n - 1, 0);
+            Foo(n);
+        }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task Warns_When_Call_Is_In_Try_Body()
+        {
+            // A try body executes unconditionally, so unconditional recursion in it is still a bug.
+            var test = @"
+class C {
+    void Foo() {
+        try {
+            [|Foo()|];
+        } catch { }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Call_Is_In_Catch()
+        {
+            var test = @"
+using System;
+class C {
+    void Foo() {
+        try { } catch (Exception) { Foo(); }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task NoWarn_When_Call_Is_In_Finally()
+        {
+            var test = @"
+class C {
+    void Foo() {
+        try { } finally { Foo(); }
+    }
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
         public async Task NoWarn_When_Guard_Depends_On_Instance_Field()
         {
             var test = @"

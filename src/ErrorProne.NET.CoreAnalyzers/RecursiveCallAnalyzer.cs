@@ -118,6 +118,13 @@ namespace ErrorProne.NET.CoreAnalyzers
                     return false;
                 }
 
+                // A 'try' body executes unconditionally, so recursion directly in it is still
+                // reachable. Only the 'catch'/'finally' paths are conditional, so suppress those.
+                if (parent is ITryOperation tryOperation && !ReferenceEquals(child, tryOperation.Body))
+                {
+                    return false;
+                }
+
                 // For an enclosing block, any statement executed before the call that can terminate
                 // or branch the method (e.g. 'if (x) return;') means the recursion might not happen.
                 if (parent is IBlockOperation block)
@@ -158,7 +165,6 @@ namespace ErrorProne.NET.CoreAnalyzers
                 ISwitchOperation or
                 ISwitchExpressionOperation or
                 ILoopOperation or                 // for/foreach/while/do
-                ITryOperation or                  // try/catch/finally
                 ICoalesceOperation or             // '??'
                 IConditionalAccessOperation;      // '?.'
         }
@@ -226,7 +232,6 @@ namespace ErrorProne.NET.CoreAnalyzers
         }
 
         /// <summary>
-        /// <summary>
         /// Returns <c>true</c> if the statement subtree contains control flow that can terminate
         /// or branch the method (conditionals, switches, loops, try, return, throw, break,
         /// continue, goto).
@@ -283,8 +288,9 @@ namespace ErrorProne.NET.CoreAnalyzers
         }
 
         /// <summary>
-        /// Returns every parameter that is mutated anywhere in the body: assigned to, incremented/
-        /// decremented, or passed by <c>ref</c>/<c>out</c> to another method.
+        /// Returns every parameter that is mutated anywhere in the body: assigned to (including
+        /// compound '+=', coalesce '??=', and deconstruction assignments), incremented/decremented,
+        /// or passed by <c>ref</c>/<c>out</c> to another method.
         /// </summary>
         private static HashSet<IParameterSymbol> GetMutatedParameters(IMethodBodyOperation methodBody)
         {
@@ -294,6 +300,19 @@ namespace ErrorProne.NET.CoreAnalyzers
             {
                 switch (op)
                 {
+                    // Deconstruction targets are tuples, e.g. '(n, x) = ...'; collect every
+                    // parameter written by the deconstruction.
+                    case IDeconstructionAssignmentOperation deconstruction:
+                        foreach (var target in DescendantsAndSelf(deconstruction.Target))
+                        {
+                            if (target is IParameterReferenceOperation deconstructedParam)
+                            {
+                                mutated.Add(deconstructedParam.Parameter);
+                            }
+                        }
+                        break;
+
+                    // Covers simple '=', compound '+=' etc., and coalesce '??=' assignments.
                     case IAssignmentOperation { Target: IParameterReferenceOperation assignedParam }:
                         mutated.Add(assignedParam.Parameter);
                         break;
