@@ -33,6 +33,7 @@ EPC38 | Async | Disabled | TaskEnumerableReEnumerationAnalyzer
 EPC39 | Performance | Disabled | QuadraticEnumerationAnalyzer
 EPC40 | Performance | Disabled | PrivateMethodMultipleEnumerationAnalyzer
 EPC41 | ErrorHandling | Warning | FormatMethodArgumentsAnalyzer
+EPC42 | ErrorHandling | Warning | DataContractSerializableMemberAnalyzer
 ERP021 | ErrorHandling | Warning | ThrowExAnalyzer
 ERP022 | ErrorHandling | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
