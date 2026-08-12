@@ -9,7 +9,7 @@ namespace ErrorProne.NET.CoreAnalyzers
 {
     /// <summary>
     /// An analyzer that warns when a data member of a type marked with 'DataContractAttribute'
-    /// has a type that can not be serialized by 'DataContractSerializer'.
+    /// has a type that cannot be serialized by 'DataContractSerializer'.
     /// </summary>
     /// <remarks>
     /// 'DataContractSerializer' validates the object graph lazily, i.e. the constructor succeeds and
@@ -54,7 +54,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             // a 'record' is a class ('TypeKind.Class') and a 'record struct' is a struct ('TypeKind.Struct'),
             // so all the record flavors are analyzed here as well.
             // The same is true for the union types: a union is compiled into a struct.
-            // Everything else (interfaces, enums, delegates) can not be a data contract.
+            // Everything else (interfaces, enums, delegates) cannot be a data contract.
             if (type.TypeKind != TypeKind.Class && type.TypeKind != TypeKind.Struct)
             {
                 return;

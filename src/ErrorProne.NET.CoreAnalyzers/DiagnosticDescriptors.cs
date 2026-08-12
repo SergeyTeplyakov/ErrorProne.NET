@@ -360,7 +360,7 @@ namespace ErrorProne.NET
         public static readonly DiagnosticDescriptor EPC42 = new DiagnosticDescriptor(
             nameof(EPC42),
             title: "A member of a data contract is not serializable",
-            messageFormat: "Member '{0}' can't be serialized by DataContractSerializer because {1}",
+            messageFormat: "Member '{0}' cannot be serialized by DataContractSerializer because {1}",
             category: ErrorHandlingCategory,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
