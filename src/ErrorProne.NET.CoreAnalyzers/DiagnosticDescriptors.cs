@@ -356,6 +356,17 @@ namespace ErrorProne.NET
             description: "Format-string placeholders (e.g. '{0}', '{1}') do not match the arguments supplied to a user-annotated formatting method; the call would throw FormatException at runtime. Annotate formatting methods via 'dotnet_diagnostic.EPC41.format_methods' in .editorconfig (e.g. MyCorp.Logger.Log:0).",
             helpLinkUri: GetHelpUri(nameof(EPC41)));
 
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor EPC42 = new DiagnosticDescriptor(
+            nameof(EPC42),
+            title: "A member of a data contract is not serializable",
+            messageFormat: "Member '{0}' cannot be serialized by DataContractSerializer because {1}",
+            category: ErrorHandlingCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "DataContractSerializer fails lazily (on the first serialization attempt) with 'InvalidDataContractException' when a type of a data member is not serializable. A type is serializable when it is marked with 'DataContractAttribute', 'CollectionDataContractAttribute' or 'SerializableAttribute', implements 'ISerializable'/'IXmlSerializable', or is a public type with a parameterless constructor. Types like 'System.Net.IPAddress' or 'System.Net.IPEndPoint' fail this check on .NET Core, and so do positional records.",
+            helpLinkUri: GetHelpUri(nameof(EPC42)));
+
         public static string GetHelpUri(string ruleId)
         {
             return $"https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/{ruleId}.md";

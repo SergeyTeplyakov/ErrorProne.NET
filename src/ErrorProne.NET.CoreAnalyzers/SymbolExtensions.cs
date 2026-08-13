@@ -33,6 +33,32 @@ namespace ErrorProne.NET.Core
             return (symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Constructor);
         }
 
+        /// <summary>
+        /// Returns true if a given <paramref name="symbol"/> is marked with a given <paramref name="attributeType"/>.
+        /// </summary>
+        /// <remarks>
+        /// <paramref name="attributeType"/> is nullable for the callers' convenience: the attribute may be
+        /// missing from the current compilation, and in this case no symbol can be marked with it.
+        /// </remarks>
+        public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol? attributeType)
+        {
+            return attributeType is not null &&
+                   symbol.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, attributeType));
+        }
+
+        /// <summary>
+        /// Returns true if a given <paramref name="type"/> implements any of the given <paramref name="interfaceTypes"/>.
+        /// </summary>
+        /// <remarks>
+        /// The interfaces are nullable for the callers' convenience: an interface may be missing from
+        /// the current compilation, and in this case no type can implement it.
+        /// </remarks>
+        public static bool ImplementsAny(this ITypeSymbol type, params INamedTypeSymbol?[] interfaceTypes)
+        {
+            return type.AllInterfaces.Any(
+                i => interfaceTypes.Any(t => t is not null && SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, t)));
+        }
+
         public static bool IsDisposeMethod(this ISymbol symbol)
         {
             if (symbol is IMethodSymbol method

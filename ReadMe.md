@@ -57,6 +57,7 @@ Add the following nuget package to you project: https://www.nuget.org/packages/E
 | [EPC34](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC34.md) | Method return value marked with MustUseResultAttribute must be used |
 | [ERP021](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/ERP021.md) | Incorrect exception propagation |
 | [ERP022](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/ERP022.md) | Unobserved exception in a generic exception handler |
+| [EPC42](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC42.md) | A member of a data contract is not serializable |
 
 ### Performance
 
