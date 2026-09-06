@@ -39,3 +39,4 @@ ERP022 | ErrorHandling | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
 ERP041 | CodeSmell | Info | EventSourceSealedAnalyzer
 ERP042 | CodeSmell | Warning | EventSourceAnalyzer
+ERP043 | CodeSmell | Warning | EmptyEventMessageAnalyzer

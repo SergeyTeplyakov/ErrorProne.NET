@@ -40,6 +40,7 @@ Add the following nuget package to you project: https://www.nuget.org/packages/E
 | [EPC30](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/EPC30.md) | Method calls itself recursively |
 | [ERP041](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/ERP041.md) | EventSource class should be sealed |
 | [ERP042](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/ERP042.md) | EventSource implementation is not correct |
+| [ERP043](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/ERP043.md) | EventSource event has an empty Message |
 
 ### Concurrency
 
