@@ -2,9 +2,8 @@
 using System.Threading.Tasks;
 using ErrorProne.NET.DisposableAnalyzers;
 using Verify = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.NET.DisposableAnalyzers.DisposeTaskAnalyzer,
+    ErrorProne.NET.AsyncAnalyzers.TaskInUsingBlockAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using System;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.DisposableAnalyzers
 {
@@ -23,7 +22,7 @@ public class Disposable : System.IDisposable
         private static Task VerifyAsync(string code)
         {
 
-            code = $"using System.Threading.Tasks;{Environment.NewLine}{code}{Environment.NewLine}{Disposable}";
+            code = $"using System.Threading.Tasks;\n{code}\n{Disposable}";
             return Verify.VerifyAsync(code);
         }
 
@@ -35,7 +34,7 @@ public class Test
 {
     public static async Task ShouldDispose()
     {
-        using var x = GetDisposableAsync();
+        [|using var x = GetDisposableAsync();|]
         await Task.Yield();
     }
 
@@ -54,9 +53,9 @@ public class Test
     public static async Task ShouldDispose()
     {
         await Task.Yield();
-        using (GetDisposableAsync())
+        [|using (GetDisposableAsync())
         {
-        }
+        }|]
     }
 
     private static Task<Disposable> GetDisposableAsync() => null;

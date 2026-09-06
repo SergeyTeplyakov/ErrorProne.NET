@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
-using ErrorProne.NET.CoreAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -38,7 +37,7 @@ namespace ErrorProne.NET.ExceptionsAnalyzers
             var exceptionDeclarationIdentifier = catchClause.Declaration.Identifier;
 
             // Exception identifier is optional in catch clause. It could be "catch(Exception)"
-            if (exceptionDeclarationIdentifier.Kind() == SyntaxKind.None)
+            if (exceptionDeclarationIdentifier.IsKind(SyntaxKind.None))
             {
                 return;
             }

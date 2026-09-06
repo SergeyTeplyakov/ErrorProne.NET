@@ -53,7 +53,7 @@ namespace ErrorProne.NET.CoreAnalyzers
                 var messageUsages = usages
                     .Select(id =>
                         new { Parent = id.Identifier.Parent as MemberAccessExpressionSyntax, Id = id.Identifier })
-                    .Where(x => x.Parent != null && x.Parent.Name.GetText().ToString() == "Message")
+                    .Where(x => x.Parent != null && x.Parent.Name.GetText().ToString().Trim() == "Message")
                     .ToList();
 
                 if (messageUsages.Count == 0)

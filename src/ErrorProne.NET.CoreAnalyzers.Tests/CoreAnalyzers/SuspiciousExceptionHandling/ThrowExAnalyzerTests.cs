@@ -4,7 +4,6 @@
 //  
 // --------------------------------------------------------------------
 
-using ErrorProne.NET.TestHelpers;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
@@ -67,13 +66,7 @@ class Test
   }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { test },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(test);
         }
 
         [Test]
@@ -90,13 +83,7 @@ class Test
   }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { test },
-                },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(test);
         }
 
         [Test]
@@ -124,12 +111,8 @@ class Test
     }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { test } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(test);
         }
-
 
         [Test]
         public async Task TestTwoWarnings()
@@ -148,10 +131,7 @@ class Test
     }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { test } },
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(test);
         }
     }
 }

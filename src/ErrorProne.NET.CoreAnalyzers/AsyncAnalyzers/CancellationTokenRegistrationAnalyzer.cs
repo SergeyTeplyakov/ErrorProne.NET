@@ -44,9 +44,10 @@ namespace ErrorProne.NET.AsyncAnalyzers
             if (context.Operation is IExpressionStatementOperation expressionStatement
                 && expressionStatement.Operation is IInvocationOperation invocation) 
             {
-                if (invocation.Type.IsClrType(context.Compilation, typeof(CancellationTokenRegistration)))
+                if (invocation.Type?.IsClrType(context.Compilation, typeof(CancellationTokenRegistration)) == true)
                 {
                     var semanticModel = context.Operation.SemanticModel;
+                    
 
                     var target = invocation.Instance;
                     // Covering the cases like 'cts.Token.Register'.
@@ -62,7 +63,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                     {
                         context.ReportDiagnostic(Diagnostic.Create(Rule, invocation.Syntax.GetLocation()));
                     }
-                    else if (target is ILocalReferenceOperation localReference)
+                    else if (target is ILocalReferenceOperation localReference && semanticModel is not null)
                     {
                         // Vary naive approach to understand where a local reference points to.
                         var localDeclaringOperation = GetLocalReferenceDeclaringOperation(localReference, semanticModel, context.CancellationToken);
@@ -91,7 +92,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             var localSymbolDeclaringSyntax = localReference.Local.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(token);
             if (localSymbolDeclaringSyntax != null)
             {
-                return semanticModel.GetOperation(localSymbolDeclaringSyntax);
+                return semanticModel.GetOperation(localSymbolDeclaringSyntax, token);
             }
 
             return null;

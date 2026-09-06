@@ -18,6 +18,41 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
+      0.9.0
+        * Add ERP044: track disposable ownership through attributes and bounded source inference.
+        * Add ERP045: validate external ownership contracts supplied through .ownership.xml files.
+        * Add ERP046: warn on obvious use after disposal/transfer and misuse of borrowed values.
+        * Support source-embedded contracts from ErrorProne.Net.Annotations without a runtime annotation DLL.
+        * Add EPC38: TaskEnumerableReEnumerationAnalyzer (disabled by default).
+        * Add EPC39: QuadraticEnumerationAnalyzer (disabled by default).
+        * Add EPC40: PrivateMethodMultipleEnumerationAnalyzer (disabled by default).
+        * Add EPC41: FormatMethodArgumentsAnalyzer to validate arguments passed to string.Format-like methods.
+        * Fix EPC30: only warn on provably non-terminating self-recursion -- unconditional calls or calls guarded only by invariant conditions (unchanged parameters/constants); do not warn when a conditional, instance-state, property, or changed argument can terminate the recursion.
+        * Fix EPC30: do not warn on recursive calls made from nested lambdas, anonymous methods, or local functions (#318).
+        * Fix EPC20: do not warn when the type defines a user-defined implicit conversion to string (#317).
+      0.8.2
+        * Reduce severity for the analyzers.
+      0.8.1
+        * Minor fixes in recursive analyzer
+        * Downgraded the compiler packages to 4.13.0 to avoid conflicts with the latest Roslyn versions.
+      0.8.0
+        * Add DoNotBlockAsyncCallsInAsyncMethodsAnalyzer
+        * Add MustUseResultAnalyzer
+        * Add DoNotUseThreadSleepAnalyzer
+        * Add analyzer to warn on returning null for Task-like types
+        * Add TaskCompletionSourceAnalyzer
+        * Add ExcludeFromCodeCoverage analyzer
+        * Add Do not use async void methods rule
+        * Add the analyzer for detecting infinite recursions
+      0.7.0
+        * Add EventSource analyzers
+        * Warn on using tasks in 'using' block or 'using' statements.
+      0.6.1
+        * Add Enumerable.Contains(HashSet{T}) analyzer.
+        * Move DefaultEqualsOrHashCodeUsageAnalyzer and HashTableIncompatibilityAnalyzer moved from structs analyzers to core analyzers.
+        * Changed DefaultEqualsOrHashCodeUsageAnalyzer to warn on any usages of ValueType.Equals/ValueType.GetHashCode in any place.
+      0.6.0
+        * Update all the dependendencies.
       0.5.0
         * Remove runtime dependencies for the prjoect (no RuntimeContracts, and no ErrorProne.Net.Core)
           to simplify deployment and to allow the customers to reference different versions of 'ErrorProne.Net.CoreAnalyzers'
@@ -51,14 +86,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ErrorProne.NET.CoreAnalyzers\ErrorProne.NET.CoreAnalyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -69,9 +105,9 @@
     <ItemGroup>
       <_File Include="$(OutputPath)$(AssemblyName).dll" />
       <_File Include="$(OutputPath)ErrorProne.Net.CoreAnalyzers.dll" />
+      <_File Include="$(OutputPath)RuntimeContracts.dll" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
   </Target>
-
 </Project>

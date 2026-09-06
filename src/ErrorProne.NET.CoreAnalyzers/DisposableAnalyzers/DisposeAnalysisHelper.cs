@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using ErrorProne.NET.Core;
 using Microsoft.CodeAnalysis;
@@ -14,13 +13,6 @@ internal sealed class DisposeAnalysisHelper
     public INamedTypeSymbol? IAsyncDisposable { get; }
     public INamedTypeSymbol? IConfigureAsyncDisposable { get; }
 
-    public static readonly ImmutableHashSet<OperationKind> DisposableCreationKinds = ImmutableHashSet.Create(
-        OperationKind.ObjectCreation,
-        OperationKind.TypeParameterObjectCreation,
-        OperationKind.DynamicObjectCreation, // What's that?
-        OperationKind.Invocation
-    );
-
     public DisposeAnalysisHelper(Compilation compilation)
     {
         _disposableExceptions = CreateExceptions(compilation);
@@ -34,8 +26,7 @@ internal sealed class DisposeAnalysisHelper
     {
         var result = new List<INamedTypeSymbol>();
 
-        // TODO: probably this list should be configurable
-        // and maybe we could have a special attribute and if the type is 
+        // Preserve the prototype's low-noise defaults; these are policy exemptions.
         addIfNotNull(compilation.TaskType());
         addIfNotNull(compilation.TaskOfTType());
         addIfNotNull(compilation.GetTypeByFullName("System.IO.StringReader"));

@@ -1,5 +1,4 @@
-﻿using ErrorProne.NET.TestHelpers;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.AsyncAnalyzers.NullConditionalOperatorAnalyzer,
@@ -22,11 +21,24 @@ public class MyClass
     }
 }
 ";
-
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
-   }
+
+        [Test]
+        public async Task No_Warn_When_Nullability_Is_Enabled()
+        {
+            // In this case the compiler will emit a warning.
+            string code = @"
+#nullable enable
+public class MyClass
+{
+    public async System.Threading.Tasks.Task Foo(MyClass? m)
+    {
+       await m?.Foo(null);
+    }
+}
+";
+            await VerifyCS.VerifyAsync(code);
+        }
+    }
 }

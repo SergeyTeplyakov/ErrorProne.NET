@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 namespace ErrorProne.NET.TestHelpers
@@ -11,17 +12,21 @@ namespace ErrorProne.NET.TestHelpers
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        public static Task VerifyAsync(string code)
+        public static Task VerifyAsync(string code, LanguageVersion langVersion = LanguageVersion.Latest)
         {
             return new Test
             {
-                TestState = { Sources = { code } },
-                LanguageVersion = LanguageVersion.Latest
-                
+                TestState =
+                {
+                    Sources = { code },
+                },
+                LanguageVersion = langVersion,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+
             }.WithoutGeneratedCodeVerification().RunAsync();
         }
 
-        public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, NUnitVerifier>
+        public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
         {
             public Test()
             {

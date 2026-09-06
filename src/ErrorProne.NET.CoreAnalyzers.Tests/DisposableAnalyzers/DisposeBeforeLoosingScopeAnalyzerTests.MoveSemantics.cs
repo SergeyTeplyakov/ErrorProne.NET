@@ -1,4 +1,3 @@
-﻿using System;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using Verify = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
@@ -20,6 +19,12 @@ public class ReturnsOwnershipAttribute : System.Attribute { }
 
 [System.AttributeUsage(System.AttributeTargets.Method)]
 public class KeepsOwnershipAttribute : System.Attribute { }
+
+[System.AttributeUsage(System.AttributeTargets.All)]
+public class NoOwnershipAttribute : System.Attribute { }
+
+[System.AttributeUsage(System.AttributeTargets.All)]
+public class DoNotDisposeAttribute : System.Attribute { }
 
 public static class DisposableExtensions
 {
@@ -85,7 +90,8 @@ public class Test
 {
     public static void StartActivityCase()
     {
-        new System.Diagnostics.ActivitySource(""name"").StartActivity();
+        using var source = new System.Diagnostics.ActivitySource(""name"");
+        using var activity = source.StartActivity();
     }
 }
 ";
@@ -162,7 +168,7 @@ public class Test
             var test = @"
 public class Test
 {
-    private static void TakesOwnership([AcquiresOwnership] Disposable [|d|]) { }
+    private static void TakesOwnership([AcquiresOwnership] Disposable {|ERP044:d|}) { }
 }
 ";
             await VerifyAsync(test);
@@ -174,7 +180,7 @@ public class Test
             var test = @"
 public class Test
 {
-    private static string TakesOwnership([AcquiresOwnership] Disposable [|d|])
+    private static string TakesOwnership([AcquiresOwnership] Disposable {|ERP044:d|})
     {
         return d.ToString();
     }
@@ -242,7 +248,7 @@ public class Test
         }
         
         [Test]
-        public async Task Warn_On_Taken_Ownership_With_Incorrect_Moved_Ownership()
+        public async Task NoWarn_On_Inferred_Disposal_By_Source_Callee()
         {
             var test = @"
 public class Test
@@ -255,7 +261,7 @@ public class Test
         }
     }
 
-    private static string TakesOwnership([AcquiresOwnership] Disposable [|d|])
+    private static string TakesOwnership([AcquiresOwnership] Disposable d)
     {
         return TakesOwnershipAndDisposes(d);
     }
@@ -266,7 +272,7 @@ public class Test
 
         private static Task VerifyAsync(string code)
         {
-            code += $"{Environment.NewLine}{AcquiresOwnershipAttribute}{Environment.NewLine}{Disposable}";
+            code += $"\n{AcquiresOwnershipAttribute}\n{Disposable}";
             return Verify.VerifyAsync(code);
         }
     }

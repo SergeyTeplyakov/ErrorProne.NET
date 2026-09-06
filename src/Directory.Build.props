@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project>
-
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <Nullable>Enable</Nullable>
@@ -10,13 +8,15 @@
   <PropertyGroup>
     <!-- Using preconditions and Assersions from RuntimeContracts -->
     <DefineConstants>$(DefineConstants);CONTRACTS_LIGHT_PRECONDITIONS;CONTRACTS_LIGHT_ASSERTS</DefineConstants>
+    <TreatWarningsAsErrors Condition=" '$(Configuration)' == 'Debug' ">false</TreatWarningsAsErrors>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" PrivateAssets="All" />
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="All" />
     <!-- RuntimeContracts is marked as 'PrivateAssets' because the dependency is erased via ILRepack. -->
-    <PackageReference Include="RuntimeContracts" Version="0.1.10" PrivateAssets="All" GeneratePathProperty="true"/>
-    <PackageReference Include="ILRepack.Lib.MSBuild" Version="2.1.16.1" PrivateAssets="All" />
+    <PackageReference Include="RuntimeContracts" PrivateAssets="All" GeneratePathProperty="true"/>
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>

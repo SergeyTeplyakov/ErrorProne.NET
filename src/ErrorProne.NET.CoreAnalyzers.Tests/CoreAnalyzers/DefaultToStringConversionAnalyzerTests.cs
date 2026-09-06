@@ -271,5 +271,39 @@ class Test {
 ";
             await Verify.VerifyAsync(test);
         }
+
+        [Test]
+        public async Task NoWarn_When_Type_Has_Implicit_Conversion_To_String()
+        {
+            // Issue #317: a type that defines 'public static implicit operator string'
+            // opts into its own string representation, so EPC20 should not fire.
+            var test = @"
+public class AmazonFile
+{
+    public static implicit operator string(AmazonFile f) => ""x"";
+}
+class Test {
+    string Concat(AmazonFile f) => ""x"" + f;
+    string Interp(AmazonFile f) => $""{f}"";
+    string Format(AmazonFile f) => string.Format(""{0}"", f);
+}
+";
+            await Verify.VerifyAsync(test);
+        }
+
+        [Test]
+        public async Task Warn_When_Implicit_Conversion_Returns_Something_Other_Than_String()
+        {
+            var test = @"
+public class AmazonFile
+{
+    public static implicit operator int(AmazonFile f) => 0;
+}
+class Test {
+    string Concat(AmazonFile f) => ""x"" + [|f|];
+}
+";
+            await Verify.VerifyAsync(test);
+        }
     }
 }

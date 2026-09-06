@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Threading.Tasks;
 using VerifyCS = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
     ErrorProne.NET.AsyncAnalyzers.ConcurrentCollectionAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using ErrorProne.NET.TestHelpers;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
 {
@@ -26,11 +24,7 @@ public class MyClass
        sequence = [|cd.OrderByDescending(kvp => kvp.Key)|];
     }
 }";
-
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -48,10 +42,7 @@ public class MyClass
     }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -69,10 +60,7 @@ public class MyClass
     }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -93,10 +81,7 @@ public class MyClass
     }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
         
         [Test]
@@ -120,10 +105,7 @@ public class MyClass
     }
 }";
 
-            await new VerifyCS.Test
-            {
-                TestState = { Sources = { code } }
-            }.WithoutGeneratedCodeVerification().RunAsync();
+            await VerifyCS.VerifyAsync(code);
         }
     }
 }

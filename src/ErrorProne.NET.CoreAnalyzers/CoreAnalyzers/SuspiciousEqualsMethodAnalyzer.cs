@@ -168,7 +168,7 @@ namespace ErrorProne.NET.CoreAnalyzers
             }
 
             // Still need to check that the member belongs to this type or one of its base types.
-            var typeHierarchy = methodContainingType.TraverseTypeAndItsBaseTypes().ToImmutableHashSet();
+            var typeHierarchy = methodContainingType.TraverseTypeAndItsBaseTypes().ToImmutableHashSet(SymbolEqualityComparer.IncludeNullability);
             return typeHierarchy.Contains(symbolDeclaredType);
         }
     }

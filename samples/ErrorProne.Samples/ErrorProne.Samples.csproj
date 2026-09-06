@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <LangVersion>latest</LangVersion>
     <AssemblyTitle>ErrorProne.Samples</AssemblyTitle>
@@ -10,41 +10,10 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <LangVersion>latest</LangVersion>
     <DebugType>full</DebugType>
+	  <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="1.1.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.1.1" />
-    <PackageReference Include="Rx-Core" Version="2.2.5" />
-    <PackageReference Include="Rx-Interfaces" Version="2.2.5" />
-    <PackageReference Include="Rx-Linq" Version="2.2.5" />
-    <PackageReference Include="Rx-Main" Version="2.2.5" />
-    <PackageReference Include="Rx-PlatformServices" Version="2.2.5" />
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
-    <PackageReference Include="System.Collections" Version="4.0.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.1.37" />
-    <PackageReference Include="System.Diagnostics.Debug" Version="4.0.0" />
-    <PackageReference Include="System.Globalization" Version="4.0.0" />
-    <PackageReference Include="System.IO" Version="4.0.0" />
-    <PackageReference Include="System.Linq" Version="4.0.0" />
-    <PackageReference Include="System.Memory" Version="4.5.4" />
-    <PackageReference Include="System.Reflection" Version="4.0.0" />
-    <PackageReference Include="System.Reflection.Extensions" Version="4.0.0" />
-    <PackageReference Include="System.Reflection.Metadata" Version="1.1.0" />
-    <PackageReference Include="System.Reflection.Primitives" Version="4.0.0" />
-    <PackageReference Include="System.Resources.ResourceManager" Version="4.0.0" />
-    <PackageReference Include="System.Runtime" Version="4.0.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.3" />
-    <PackageReference Include="System.Runtime.Extensions" Version="4.0.0" />
-    <PackageReference Include="System.Runtime.InteropServices" Version="4.0.0" />
-    <PackageReference Include="System.Text.Encoding" Version="4.0.0" />
-    <PackageReference Include="System.Text.Encoding.Extensions" Version="4.0.0" />
-    <PackageReference Include="System.Threading" Version="4.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Net.Http" />
+
   </ItemGroup>
 	<ItemGroup>
 		<Analyzer Include="..\..\src\ErrorProne.NET.CoreAnalyzers.CodeFixes\bin\Debug\netstandard2.0\ErrorProne.Net.CoreAnalyzers.CodeFixes.dll" />

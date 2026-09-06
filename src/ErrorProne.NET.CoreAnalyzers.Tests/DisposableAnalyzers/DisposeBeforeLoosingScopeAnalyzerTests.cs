@@ -18,7 +18,7 @@ public class Test
 {
     public static void ShouldDispose()
     {
-        var [|d1|] = new Disposable();
+        var {|ERP044:d1|} = new Disposable();
         var nd = new NonDisposable();
     }
 
@@ -41,8 +41,8 @@ public class Test
 {
     public static void ShouldDispose()
     {
-        var [|d1|] = new Disposable() as object;
-        var [|d2|] = (object)new Disposable();
+        var {|ERP044:d1|} = new Disposable() as object;
+        var {|ERP044:d2|} = (object)new Disposable();
     }
 
     public class Disposable : System.IDisposable
@@ -62,7 +62,7 @@ public class Test
 {
     public static void ShouldDispose()
     {
-        if ([|new Disposable()|] is null)
+        if ({|ERP044:new Disposable()|} is null)
         {
         }
     }
@@ -84,7 +84,7 @@ public class Test
 {
     public static void ShouldDispose()
     {
-        var [|d|] = Disposable.Create();
+        var {|ERP044:d|} = Disposable.Create();
     }
 
     public class Disposable : System.IDisposable
@@ -124,7 +124,7 @@ public class Test
 {
     public static void ShouldDispose()
     {
-        var [|d|] = Disposable.Instance;
+        var {|ERP044:d|} = Disposable.Instance;
     }
 
     public class Disposable : System.IDisposable
@@ -714,7 +714,7 @@ public class Test
 {
     public static void ShouldDispose(bool shouldDispose)
     {
-        var [|d|] = new Disposable();
+        var {|ERP044:d|} = new Disposable();
         try
         {
         }

@@ -32,7 +32,8 @@ namespace ErrorProne.NET.AsyncAnalyzers
         private void AnalyzeMethodInvocation(OperationAnalysisContext context)
         {
             var methodCall = (IInvocationOperation)context.Operation;
-            if (methodCall.TargetMethod.Name == nameof(ToString) &&
+            if (methodCall.Instance?.Type is not null &&
+                methodCall.TargetMethod.Name == nameof(ToString) &&
                 methodCall.TargetMethod.ContainingType.SpecialType is SpecialType.System_Object or SpecialType
                     .System_ValueType)
             {
@@ -52,7 +53,8 @@ namespace ErrorProne.NET.AsyncAnalyzers
             // This method checks for $"foobar: {taskLikeThing}";
             if (context.Operation is IInterpolationOperation interpolationOperation)
             {
-                if (TryCreateDiagnostic(
+                if (interpolationOperation.Expression.Type is not null &&
+                    TryCreateDiagnostic(
                         context.Compilation,
                         interpolationOperation.Expression.Type,
                         interpolationOperation.Expression.Syntax.GetLocation(),
@@ -89,7 +91,8 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 if (conversion.Type.SpecialType == SpecialType.System_Object &&
                     conversion.Parent?.Parent is IInvocationOperation invocation &&
                     invocation.TargetMethod.Name == nameof(StringBuilder.Append) &&
-                    invocation.TargetMethod.ContainingType.IsClrType(context.Compilation, typeof(StringBuilder)))
+                    invocation.TargetMethod.ContainingType.IsClrType(context.Compilation, typeof(StringBuilder)) &&
+                    conversion.Operand.Type is not null)
                 {
                     if (TryCreateDiagnostic(
                         context.Compilation,
