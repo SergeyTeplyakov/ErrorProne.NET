@@ -10,6 +10,19 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.AsyncAnalyzers
     public class EventSourceAnalyzerTests
     {
         [Test]
+        public async Task Empty_Message_Is_Not_Reported_As_ERP042()
+        {
+            string code = @"
+public sealed class DemoEventSource : System.Diagnostics.Tracing.EventSource
+{
+    [System.Diagnostics.Tracing.Event(1, Message = """")]
+    public void AppStarted(string m) => WriteEvent(1, m);
+}";
+
+            await VerifyCS.VerifyAsync(code);
+        }
+
+        [Test]
         public async Task Warn_On_Id_Mismatch()
         {
             string code = @"

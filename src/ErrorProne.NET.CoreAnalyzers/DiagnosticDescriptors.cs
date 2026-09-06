@@ -280,6 +280,16 @@ namespace ErrorProne.NET
             helpLinkUri: GetHelpUri(nameof(ERP042)));
 
         /// <nodoc />
+        public static readonly DiagnosticDescriptor ERP043 = new DiagnosticDescriptor(
+            nameof(ERP043),
+            title: "EventSource event has an empty Message",
+            messageFormat: "{0}: {1}",
+            CodeSmellCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "An empty [Event(Message = \"\")] produces an invalid ETW manifest that fails to load " +
+                         "on Windows Server 2025, silently dropping the whole provider.",
+            helpLinkUri: GetHelpUri(nameof(ERP043)));
+
+        /// <nodoc />
         public static readonly DiagnosticDescriptor EPC35 = new DiagnosticDescriptor(
             "EPC35",
             title: "Do not block unnecessarily in async methods",
