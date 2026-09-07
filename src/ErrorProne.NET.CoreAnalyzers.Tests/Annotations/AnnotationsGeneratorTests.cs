@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ErrorProne.NET.Annotations.Generation;
+using ErrorProne.NET.AsyncAnalyzers;
 using ErrorProne.NET.DisposableAnalyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -18,6 +19,8 @@ namespace ErrorProne.NET.CoreAnalyzers.Tests.Annotations;
 [TestFixture]
 public sealed class AnnotationsGeneratorTests
 {
+    private const int AnnotationCount = 9;
+
     private const string LibrarySource = @"
 [assembly: Library.UseConfigureAwaitFalse]
 namespace Library
@@ -29,6 +32,7 @@ namespace Library
         [return: DoNotDispose] public static Resource GetShared() { return null; }
         public static void Take([AcquiresOwnership] Resource resource) { resource.Dispose(); }
         [MustUseResult] public static int Observe() { return 42; }
+        [MustUseReturnValue] public static int ObserveAlias() { return 42; }
     }
 }";
 
@@ -79,9 +83,10 @@ namespace Library
     [TestCase(LanguageVersion.Latest)]
     public async Task Generates_Internal_Annotations_Without_Runtime_Dependencies(LanguageVersion languageVersion)
     {
-        var compilation = Generate(await CreateCompilation("Library", LibrarySource, languageVersion), 7);
+        var compilation = Generate(await CreateCompilation("Library", LibrarySource, languageVersion), AnnotationCount);
         foreach (var name in new[] { "AcquiresOwnership", "ReturnsOwnership", "DoNotDispose",
-            "KeepsOwnership", "NoOwnership", "MustUseResult", "UseConfigureAwaitFalse" })
+            "KeepsOwnership", "NoOwnership", "MustUseResult", "MustUseReturnValue",
+            "UseConfigureAwaitFalse", "DoNotUseConfigureAwait" })
         {
             var attribute = compilation.GetTypeByMetadataName("Library." + name + "Attribute");
             Assert.That(attribute, Is.Not.Null);
@@ -104,12 +109,38 @@ namespace Library
 {
     internal sealed class DoNotDisposeAttribute : System.Attribute { }
 }");
-        Generate(compilation, 6);
+        Generate(compilation, AnnotationCount - 1);
     }
 
-    [TestCase(null, 6, "ExistingAnnotations")]
-    [TestCase("Existing", 7, "Consumer")]
-    [TestCase("global,Existing", 6, "ExistingAnnotations")]
+    [TestCase("UseConfigureAwaitFalse")]
+    [TestCase("DoNotUseConfigureAwait")]
+    public async Task Reuses_An_Existing_Unsuffixed_ConfigureAwait_Attribute(string name)
+    {
+        var compilation = await CreateCompilation("Library", @"
+[assembly: Library." + name + @"]
+namespace Library
+{
+    [System.AttributeUsage(System.AttributeTargets.Assembly)]
+    internal sealed class " + name + @" : System.Attribute { }
+}");
+        Generate(compilation, AnnotationCount - 1);
+    }
+
+    [Test]
+    public async Task Does_Not_Treat_An_Unsuffixed_NonAttribute_Class_As_An_Annotation()
+    {
+        var compilation = await CreateCompilation("Library", @"
+[assembly: Library.DoNotUseConfigureAwait]
+namespace Library
+{
+    internal sealed class DoNotUseConfigureAwait { }
+}");
+        Generate(compilation, AnnotationCount);
+    }
+
+    [TestCase(null, AnnotationCount - 1, "ExistingAnnotations")]
+    [TestCase("Existing", AnnotationCount, "Consumer")]
+    [TestCase("global,Existing", AnnotationCount - 1, "ExistingAnnotations")]
     public async Task Reuses_Referenced_Attributes_Only_When_Globally_Accessible(
         string? aliases, int expectedCount, string expectedAssembly)
     {
@@ -142,7 +173,7 @@ namespace Library
     [TestCase(true)]
     public async Task Internal_Annotations_On_Public_APIs_Survive_Assembly_Boundaries(bool referenceAssembly)
     {
-        var library = Generate(await CreateCompilation("Library", LibrarySource), 7);
+        var library = Generate(await CreateCompilation("Library", LibrarySource), AnnotationCount);
         var reference = Emit(library, referenceAssembly);
         var consumer = await CreateCompilation("Consumer", @"
 public class UseLibrary
@@ -156,6 +187,7 @@ public class UseLibrary
         Library.Api.Take(transferred);
         transferred.Dispose();
         Library.Api.Observe();
+        Library.Api.ObserveAlias();
     }
 }", reference: reference);
         Assert.That(consumer.GetDiagnostics().Where(d => d.Severity >= DiagnosticSeverity.Warning), Is.Empty);
@@ -169,9 +201,9 @@ public class UseLibrary
             == "UseConfigureAwaitFalseAttribute"), Is.True);
 
         var diagnostics = await consumer.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-            new DisposeBeforeLoosingScopeAnalyzer(), new MustUseResultAnalyzer())).GetAnalyzerDiagnosticsAsync();
+            new DisposeBeforeLosingScopeAnalyzer(), new MustUseResultAnalyzer())).GetAnalyzerDiagnosticsAsync();
         Assert.That(diagnostics.Select(d => d.Id).OrderBy(id => id),
-            Is.EqualTo(new[] { "EPC34", "ERP044", "ERP046", "ERP046" }));
+            Is.EqualTo(new[] { "EPC34", "EPC34", "ERP044", "ERP046", "ERP046" }));
 
         // The consumer can also annotate its own API without reusing inaccessible library types.
         var annotatedConsumer = await CreateCompilation("AnnotatedConsumer", @"
@@ -183,7 +215,72 @@ public class ConsumerApi
     public System.IDisposable GetShared() { return Library.Api.GetShared(); }
 }
 }", reference: reference);
-        Generate(annotatedConsumer, 7);
+        Generate(annotatedConsumer, AnnotationCount);
+    }
+
+    [TestCase("MustUseResult")]
+    [TestCase("MustUseReturnValue")]
+    public async Task Generated_Result_Annotations_Require_Observing_Sync_And_Async_Results(string attribute)
+    {
+        var compilation = Generate(await CreateCompilation("Library", @"
+using System.Threading.Tasks;
+namespace Library
+{
+    public static class Api
+    {
+        [" + attribute + @"] public static int Observe() { return 42; }
+        [" + attribute + @"] public static Task<int> ObserveAsync() { return Task.FromResult(42); }
+        public static async Task Run()
+        {
+            Observe();
+            _ = Observe();
+            await ObserveAsync();
+            _ = await ObserveAsync();
+        }
+    }
+}"), AnnotationCount);
+
+        var diagnostics = await compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
+            new MustUseResultAnalyzer())).GetAnalyzerDiagnosticsAsync();
+        Assert.That(diagnostics.Select(d => d.Id), Is.EqualTo(new[] { "EPC34", "EPC34" }));
+    }
+
+    [TestCase(null, null)]
+    [TestCase("UseConfigureAwaitFalse", "EPC15")]
+    [TestCase("DoNotUseConfigureAwait", "EPC14")]
+    public async Task Generated_Assembly_Annotations_Configure_Await_Policy(string? attribute, string? expectedDiagnostic)
+    {
+        var assemblyAttribute = attribute == null ? "" : "[assembly: Library." + attribute + "]\n";
+        var compilation = Generate(await CreateCompilation("Library", "using System.Threading.Tasks;\n" + assemblyAttribute + @"
+namespace Library
+{
+    public static class Api
+    {
+        public static async Task Run()
+        {
+            await Task.Delay(1);
+            await Task.Delay(1).ConfigureAwait(false);
+        }
+    }
+}"), AnnotationCount);
+
+        var diagnostics = await compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
+            new ConfigureAwaitRequiredAnalyzer(), new RedundantConfigureAwaitFalseAnalyzer())).GetAnalyzerDiagnosticsAsync();
+        Assert.That(diagnostics.Select(d => d.Id), Is.EqualTo(expectedDiagnostic == null
+            ? System.Array.Empty<string>() : new[] { expectedDiagnostic }));
+    }
+
+    [TestCase("MustUseResult", System.AttributeTargets.Method)]
+    [TestCase("MustUseReturnValue", System.AttributeTargets.Method)]
+    [TestCase("UseConfigureAwaitFalse", System.AttributeTargets.Assembly)]
+    [TestCase("DoNotUseConfigureAwait", System.AttributeTargets.Assembly)]
+    public async Task Generated_Non_Ownership_Annotations_Have_Expected_Targets(
+        string name, System.AttributeTargets expectedTargets)
+    {
+        var compilation = Generate(await CreateCompilation("Library", ""), AnnotationCount);
+        var attribute = compilation.GetTypeByMetadataName("Library." + name + "Attribute")!;
+        var usage = attribute.GetAttributes().Single(a => a.AttributeClass?.Name == "AttributeUsageAttribute");
+        Assert.That(usage.ConstructorArguments.Single().Value, Is.EqualTo((int)expectedTargets));
     }
 
     [TestCase("Azure.Core", null, "Azure.Core")]
@@ -193,7 +290,7 @@ public class ConsumerApi
     [TestCase("class.namespace", null, "class.namespace")]
     public async Task Uses_Configured_Namespace(string rootNamespace, string? namespaceOverride, string expected)
     {
-        var compilation = Generate(await CreateCompilation("DifferentAssemblyName", ""), 7, rootNamespace, namespaceOverride);
+        var compilation = Generate(await CreateCompilation("DifferentAssemblyName", ""), AnnotationCount, rootNamespace, namespaceOverride);
         var prefix = expected.Length == 0 ? "" : expected + ".";
         Assert.That(compilation.GetTypeByMetadataName(prefix + "DoNotDisposeAttribute"), Is.Not.Null);
     }
@@ -241,7 +338,7 @@ namespace Azure.Core
     public async Task Reuses_Accessible_Friend_Attribute_Instead_Of_Duplicating_It()
     {
         var compilation = await CreateCompilation("Consumer", "", reference: await CreateFriendLibrary("Library"));
-        var generated = Generate(compilation, 6, rootNamespace: "Azure.Core");
+        var generated = Generate(compilation, AnnotationCount - 1, rootNamespace: "Azure.Core");
         Assert.That(generated.GetTypeByMetadataName("Azure.Core.DoNotDisposeAttribute")!
             .ContainingAssembly.Name, Is.EqualTo("Library"));
     }
@@ -253,9 +350,9 @@ namespace Azure.Core
             .AddReferences(await CreateFriendLibrary("FirstLibrary"), await CreateFriendLibrary("SecondLibrary"));
         var driver = CreateDriver(compilation, "Azure.Core").RunGenerators(compilation);
         Assert.That(driver.GetRunResult().Diagnostics.Select(d => d.Id), Is.EqualTo(new[] { "EPANN003" }));
-        Assert.That(driver.GetRunResult().GeneratedTrees.Length, Is.EqualTo(6));
+        Assert.That(driver.GetRunResult().GeneratedTrees.Length, Is.EqualTo(AnnotationCount - 1));
 
-        var generated = Generate(compilation, 7, "Azure.Core", "Azure.Core.InternalAnnotations");
+        var generated = Generate(compilation, AnnotationCount, "Azure.Core", "Azure.Core.InternalAnnotations");
         Assert.That(generated.GetTypeByMetadataName("Azure.Core.InternalAnnotations.DoNotDisposeAttribute")!
             .ContainingAssembly.Name, Is.EqualTo("Consumer"));
     }
@@ -268,7 +365,7 @@ namespace Azure.Core
 {
     internal sealed class DoNotDisposeAttribute : System.Attribute { }
 }")).AddReferences(await CreateFriendLibrary("FirstLibrary"), await CreateFriendLibrary("SecondLibrary"));
-        var generated = Generate(compilation, 6, rootNamespace: "Azure.Core");
+        var generated = Generate(compilation, AnnotationCount - 1, rootNamespace: "Azure.Core");
         Assert.That(generated.GetTypeByMetadataName("Azure.Core.DoNotDisposeAttribute")!
             .ContainingAssembly.Name, Is.EqualTo("Consumer"));
     }

@@ -31,7 +31,9 @@ public sealed class AnnotationsGenerator : IIncrementalGenerator
         ("KeepsOwnershipAttribute", "Method | Property | ReturnValue", "Compatibility annotation for a borrowed result; prefer DoNotDispose."),
         ("NoOwnershipAttribute", "Parameter | Field | Property", "Compatibility annotation for borrowed parameters and members; prefer DoNotDispose."),
         ("MustUseResultAttribute", "Method", "Requires the caller to observe the method result."),
+        ("MustUseReturnValueAttribute", "Method", "Compatibility annotation for a method result that must be observed; prefer MustUseResult."),
         ("UseConfigureAwaitFalseAttribute", "Assembly", "Requires ConfigureAwait(false) for awaits in this assembly."),
+        ("DoNotUseConfigureAwaitAttribute", "Assembly", "Marks ConfigureAwait(false) as redundant for awaits in this assembly."),
     };
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -69,6 +71,14 @@ public sealed class AnnotationsGenerator : IIncrementalGenerator
                 var metadataName = metadataNamespace.Length == 0
                     ? attribute.Name : metadataNamespace + "." + attribute.Name;
                 var existing = compilation.GetTypesByMetadataName(metadataName);
+                if (attribute.Name is "UseConfigureAwaitFalseAttribute" or "DoNotUseConfigureAwaitAttribute")
+                {
+                    // These assembly policies also recognize legacy attribute classes without the suffix.
+                    var legacyName = metadataName.Substring(0, metadataName.Length - nameof(Attribute).Length);
+                    existing = existing.AddRange(compilation.GetTypesByMetadataName(legacyName)
+                        .Where(type => IsAttributeType(type, compilation)));
+                }
+
                 if (existing.Any(type => SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, compilation.Assembly)))
                 {
                     continue;
@@ -106,6 +116,20 @@ public sealed class AnnotationsGenerator : IIncrementalGenerator
                 output.AddSource(attribute.Name + ".g.cs", SourceText.From(source, Encoding.UTF8));
             }
         });
+    }
+
+    private static bool IsAttributeType(INamedTypeSymbol type, Compilation compilation)
+    {
+        var attributeType = compilation.GetTypeByMetadataName("System.Attribute");
+        for (INamedTypeSymbol? current = type; current != null; current = current.BaseType)
+        {
+            if (SymbolEqualityComparer.Default.Equals(current, attributeType))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool TryGetNamespace(string value, out string sourceNamespace, out string metadataNamespace)

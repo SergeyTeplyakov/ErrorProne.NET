@@ -73,11 +73,47 @@ The generator provides:
 - `DoNotDispose`: borrowed parameters, fields, properties, and results.
 - `KeepsOwnership` and `NoOwnership`: compatibility ownership names.
 - `MustUseResult`: method results that must be observed.
-- `UseConfigureAwaitFalse`: assembly-wide ConfigureAwait policy.
+- `MustUseReturnValue`: a recognized compatibility name for `MustUseResult`.
+- `UseConfigureAwaitFalse`: assembly-wide policy requiring ConfigureAwait.
+- `DoNotUseConfigureAwait`: assembly-wide policy marking `ConfigureAwait(false)` as redundant.
+
+### Non-ownership annotations
+
+These annotations work independently of disposable ownership:
+
+```csharp
+// With RootNamespace = MyProject, choose the assembly policy appropriate for the project:
+[assembly: MyProject.UseConfigureAwaitFalse]
+// Alternatively: [assembly: MyProject.DoNotUseConfigureAwait]
+
+namespace MyProject
+{
+    public static class Validation
+    {
+        [MustUseResult]
+        public static bool IsValid(string value) => !string.IsNullOrEmpty(value);
+    }
+}
+```
+
+Ignoring an annotated method's result reports [EPC34](../../docs/Rules/EPC34.md),
+including an ignored awaited result. `MustUseResult` is the preferred name;
+`MustUseReturnValue` has the same analyzer behavior. Assembly-level policies
+enable [EPC15](../../docs/Rules/EPC15.md) or [EPC14](../../docs/Rules/EPC14.md),
+respectively. Generating the attribute types alone does not select a policy:
+apply the assembly attribute explicitly.
+
+All of these types are internal and source-embedded, just like the ownership
+attributes. They add no runtime DLL dependency.
+
+## Existing definitions
 
 If an accessible type with the same fully qualified name already exists, its
 definition is used instead of generating a duplicate. Inaccessible internal
 definitions in other assemblies do not prevent generating a local copy.
+For the ConfigureAwait assembly policies, recognized legacy attribute classes
+named `UseConfigureAwaitFalse` or `DoNotUseConfigureAwait` without the `Attribute`
+suffix are also reused to avoid ambiguous attribute names.
 Definitions reachable only through an `extern alias` also do not prevent local
 generation, since the generated source cannot use those types by their namespace.
 Friend/test assemblies can omit the generator when `InternalsVisibleTo` already

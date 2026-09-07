@@ -50,7 +50,7 @@ internal sealed class OwnershipInference
 
     public ISymbol? GetAwaitedMember(IOperation operation)
     {
-        operation = DisposeBeforeLoosingScopeAnalyzer.Unwrap(operation);
+        operation = DisposeBeforeLosingScopeAnalyzer.Unwrap(operation);
         if (operation is IInvocationOperation { Instance: { } instance } invocation
             && _configureAwaitMethods.Contains(invocation.TargetMethod.OriginalDefinition)
             && _contracts.GetReturnOwnership(invocation.TargetMethod) == OwnershipKind.Unspecified)
@@ -77,7 +77,7 @@ internal sealed class OwnershipInference
         }
 
         var target = invocation.Arguments.FirstOrDefault(a => a.Parameter?.Ordinal == 0);
-        return target != null && DisposeBeforeLoosingScopeAnalyzer.Unwrap(target.Value) is IMemberReferenceOperation member
+        return target != null && DisposeBeforeLosingScopeAnalyzer.Unwrap(target.Value) is IMemberReferenceOperation member
             && !_contracts.IsBorrowed(member.Member)
             ? invocation.Arguments.FirstOrDefault(a => a.Parameter?.Ordinal == 1)?.Value : null;
     }
@@ -236,7 +236,7 @@ internal sealed class OwnershipInference
             foreach (var root in GetSourceOperations(parameter.ContainingSymbol, cancellationToken))
             {
                 var aliases = new HashSet<ISymbol>(SymbolEqualityComparer.Default) { parameter };
-                foreach (var operation in DisposeBeforeLoosingScopeAnalyzer.EnumerateOperations(root))
+                foreach (var operation in DisposeBeforeLosingScopeAnalyzer.EnumerateOperations(root))
                 {
                     if (operation is IInvocationOperation invocation)
                     {
@@ -280,7 +280,7 @@ internal sealed class OwnershipInference
                     }
                     else if (operation is ISimpleAssignmentOperation assignment)
                     {
-                        var target = DisposeBeforeLoosingScopeAnalyzer.GetAliasSymbol(assignment.Target);
+                        var target = DisposeBeforeLosingScopeAnalyzer.GetAliasSymbol(assignment.Target);
                         if (ReferencesResource(assignment.Value, aliases))
                         {
                             if (assignment.Target is IMemberReferenceOperation member && !_contracts.IsBorrowed(member.Member))
@@ -293,13 +293,13 @@ internal sealed class OwnershipInference
                                 aliases.Add(target);
                             }
                         }
-                        else if (target != null && !DisposeBeforeLoosingScopeAnalyzer.IsConditional(assignment))
+                        else if (target != null && !DisposeBeforeLosingScopeAnalyzer.IsConditional(assignment))
                         {
                             aliases.Remove(target);
                         }
                     }
 
-                    if (DisposeBeforeLoosingScopeAnalyzer.GetUsingCapture(operation) is { } captured
+                    if (DisposeBeforeLosingScopeAnalyzer.GetUsingCapture(operation) is { } captured
                         && (ReferencesResource(operation, aliases) || captured.Locals.Any(aliases.Contains)))
                     {
                         return true;
@@ -345,15 +345,15 @@ internal sealed class OwnershipInference
             return false;
         }
 
-        operation = DisposeBeforeLoosingScopeAnalyzer.Unwrap(operation);
-        if (DisposeBeforeLoosingScopeAnalyzer.GetAliasSymbol(operation) is { } symbol)
+        operation = DisposeBeforeLosingScopeAnalyzer.Unwrap(operation);
+        if (DisposeBeforeLosingScopeAnalyzer.GetAliasSymbol(operation) is { } symbol)
         {
             return aliases.Contains(symbol);
         }
 
         if (operation is IConditionalAccessInstanceOperation)
         {
-            return ReferencesResource(DisposeBeforeLoosingScopeAnalyzer.GetConditionalReceiver(operation), aliases);
+            return ReferencesResource(DisposeBeforeLosingScopeAnalyzer.GetConditionalReceiver(operation), aliases);
         }
 
         if (operation is IInvocationOperation invocation && GetConfiguredDisposableResource(invocation) is { } resource)

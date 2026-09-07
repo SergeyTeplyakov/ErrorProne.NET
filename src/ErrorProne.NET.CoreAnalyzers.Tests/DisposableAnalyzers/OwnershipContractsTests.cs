@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
 using Verify = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.NET.DisposableAnalyzers.DisposeBeforeLoosingScopeAnalyzer,
+    ErrorProne.NET.DisposableAnalyzers.DisposeBeforeLosingScopeAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.DisposableAnalyzers;

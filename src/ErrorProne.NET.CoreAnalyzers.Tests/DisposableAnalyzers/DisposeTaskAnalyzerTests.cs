@@ -8,7 +8,7 @@ using Verify = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
 namespace ErrorProne.NET.CoreAnalyzers.Tests.DisposableAnalyzers
 {
     [TestFixture]
-    public partial class DisoseTaskAnalyzerTests
+    public partial class DisposeTaskAnalyzerTests
     {
         private const string Disposable =
             @"
@@ -43,7 +43,7 @@ public class Test
 ";
             await VerifyAsync(test);
         }
-        
+
         [Test]
         public async Task Warn_On_Using_On_Task()
         {

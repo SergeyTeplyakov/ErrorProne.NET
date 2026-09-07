@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.DisposableAnalyzers;
 
-public partial class DisposeBeforeLoosingScopeAnalyzerTests
+public partial class DisposeBeforeLosingScopeAnalyzerTests
 {
     [TestCase("var d = new Disposable(); using (d) { {|ERP044:d|} = new Disposable(); }")]
     [TestCase("var d = new Disposable(); using (var captured = d) { {|ERP044:d|} = new Disposable(); }")]

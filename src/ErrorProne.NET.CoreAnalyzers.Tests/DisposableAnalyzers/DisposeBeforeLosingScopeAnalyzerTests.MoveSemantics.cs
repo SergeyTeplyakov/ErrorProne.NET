@@ -1,13 +1,13 @@
 using NUnit.Framework;
 using System.Threading.Tasks;
 using Verify = ErrorProne.NET.TestHelpers.CSharpCodeFixVerifier<
-    ErrorProne.NET.DisposableAnalyzers.DisposeBeforeLoosingScopeAnalyzer,
+    ErrorProne.NET.DisposableAnalyzers.DisposeBeforeLosingScopeAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace ErrorProne.NET.CoreAnalyzers.Tests.DisposableAnalyzers
 {
     [TestFixture]
-    public partial class DisposeBeforeLoosingScopeAnalyzerTests
+    public partial class DisposeBeforeLosingScopeAnalyzerTests
     {
         private const string AcquiresOwnershipAttribute =
             @"

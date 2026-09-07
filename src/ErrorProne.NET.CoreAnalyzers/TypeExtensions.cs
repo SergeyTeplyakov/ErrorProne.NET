@@ -219,10 +219,11 @@ namespace ErrorProne.NET.Core
                 return false;
             }
 
+            var candidateIsDefinition = SymbolEqualityComparer.Default.Equals(candidateBaseType.OriginalDefinition, candidateBaseType);
             if (!baseTypesOnly && candidateBaseType.TypeKind == TypeKind.Interface)
             {
                 var allInterfaces = symbol.AllInterfaces.OfType<ITypeSymbol>();
-                if (SymbolEqualityComparer.Default.Equals(candidateBaseType.OriginalDefinition, candidateBaseType))
+                if (candidateIsDefinition)
                 {
                     // Candidate base type is not a constructed generic type, so use original definition for interfaces.
                     allInterfaces = allInterfaces.Select(i => i.OriginalDefinition);
@@ -248,7 +249,8 @@ namespace ErrorProne.NET.Core
 
             while (symbol != null)
             {
-                if (SymbolEqualityComparer.Default.Equals(symbol, candidateBaseType))
+                if (SymbolEqualityComparer.Default.Equals(
+                    candidateIsDefinition ? symbol.OriginalDefinition : symbol, candidateBaseType))
                 {
                     return true;
                 }

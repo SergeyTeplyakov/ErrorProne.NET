@@ -18,13 +18,13 @@ namespace ErrorProne.NET.DisposableAnalyzers;
 /// Conditional cleanup is accepted; this is not an exception-safe or path-sensitive proof.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class DisposeBeforeLoosingScopeAnalyzer : DiagnosticAnalyzerBase
+public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
 {
     internal static readonly DiagnosticDescriptor Rule = DiagnosticDescriptors.ERP044;
 
     public override bool ReportDiagnosticsOnGeneratedCode => false;
 
-    public DisposeBeforeLoosingScopeAnalyzer()
+    public DisposeBeforeLosingScopeAnalyzer()
         : base(Rule, DiagnosticDescriptors.ERP045, DiagnosticDescriptors.ERP046)
     {
     }
