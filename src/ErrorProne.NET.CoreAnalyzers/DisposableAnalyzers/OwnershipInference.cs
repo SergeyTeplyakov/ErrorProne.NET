@@ -15,7 +15,11 @@ internal sealed class OwnershipInference
     private readonly OwnershipContracts _contracts;
     private readonly DisposeAnalysisHelper _helper;
     private readonly IMethodSymbol? _configureAsyncDisposable;
+    private readonly IMethodSymbol? _disposeAsync;
+    private readonly IMethodSymbol? _configuredDisposeAsync;
     private readonly HashSet<IMethodSymbol> _configureAwaitMethods;
+    private readonly HashSet<IMethodSymbol> _completedTaskFactories;
+    private readonly INamedTypeSymbol? _valueTaskOfT;
     private readonly ConcurrentDictionary<IParameterSymbol, bool> _acquires = new(SymbolEqualityComparer.Default);
     private readonly ConcurrentDictionary<IMethodSymbol, bool> _freshReturns = new(SymbolEqualityComparer.Default);
 
@@ -24,6 +28,10 @@ internal sealed class OwnershipInference
         _compilation = compilation;
         _contracts = contracts;
         _helper = helper;
+        _disposeAsync = helper.IAsyncDisposable?.GetMembers("DisposeAsync").OfType<IMethodSymbol>()
+            .FirstOrDefault(method => !method.IsStatic && method.Parameters.IsEmpty);
+        _configuredDisposeAsync = helper.IConfigureAsyncDisposable?.GetMembers("DisposeAsync").OfType<IMethodSymbol>()
+            .FirstOrDefault(method => !method.IsStatic && method.Parameters.IsEmpty);
         _configureAsyncDisposable = compilation.GetTypeByMetadataName("System.Threading.Tasks.TaskAsyncEnumerableExtensions")
             ?.GetMembers("ConfigureAwait").OfType<IMethodSymbol>().FirstOrDefault(method =>
                 SymbolEqualityComparer.Default.Equals(method.ReturnType, helper.IConfigureAsyncDisposable));
@@ -33,6 +41,39 @@ internal sealed class OwnershipInference
                 "System.Threading.Tasks.ValueTask", "System.Threading.Tasks.ValueTask`1",
             }.SelectMany(name => compilation.GetTypeByMetadataName(name)?.GetMembers("ConfigureAwait")
                 .OfType<IMethodSymbol>() ?? Enumerable.Empty<IMethodSymbol>()), SymbolEqualityComparer.Default);
+        _completedTaskFactories = new HashSet<IMethodSymbol>(new[]
+            {
+                "System.Threading.Tasks.Task", "System.Threading.Tasks.ValueTask",
+            }.SelectMany(name => compilation.GetTypeByMetadataName(name)?.GetMembers("FromResult")
+                .OfType<IMethodSymbol>() ?? Enumerable.Empty<IMethodSymbol>()), SymbolEqualityComparer.Default);
+        _valueTaskOfT = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+    }
+
+    public IOperation? GetCompletedTaskValue(IOperation operation)
+    {
+        operation = DisposeBeforeLosingScopeAnalyzer.Unwrap(operation);
+        return operation switch
+        {
+            IInvocationOperation invocation when _completedTaskFactories.Contains(invocation.TargetMethod.OriginalDefinition)
+                && _contracts.GetReturnOwnership(invocation.TargetMethod) == OwnershipKind.Unspecified
+                => invocation.Arguments.FirstOrDefault(a => a.Parameter?.Ordinal == 0)?.Value,
+            IObjectCreationOperation { Constructor: { Parameters.Length: 1 } constructor } creation
+                when SymbolEqualityComparer.Default.Equals(constructor.ContainingType.OriginalDefinition, _valueTaskOfT)
+                    && constructor.OriginalDefinition.Parameters[0].Type is ITypeParameterSymbol
+                => creation.Arguments.FirstOrDefault(a => a.Parameter?.Ordinal == 0)?.Value,
+            _ => null,
+        };
+    }
+
+    internal bool IsTaskResultCarrier(ITypeSymbol? type) =>
+        type.IsTaskLike(_compilation, TaskLikeTypes.TaskOfT | TaskLikeTypes.ValueTaskOfT);
+
+    public IOperation? GetConfiguredTask(IOperation operation)
+    {
+        return operation is IInvocationOperation { Instance: { } instance } invocation
+            && _configureAwaitMethods.Contains(invocation.TargetMethod.OriginalDefinition)
+            && _contracts.GetReturnOwnership(invocation.TargetMethod) == OwnershipKind.Unspecified
+            ? instance : null;
     }
 
     public IOperation? GetConfiguredDisposableResource(IInvocationOperation invocation)
@@ -51,9 +92,7 @@ internal sealed class OwnershipInference
     public ISymbol? GetAwaitedMember(IOperation operation)
     {
         operation = DisposeBeforeLosingScopeAnalyzer.Unwrap(operation);
-        if (operation is IInvocationOperation { Instance: { } instance } invocation
-            && _configureAwaitMethods.Contains(invocation.TargetMethod.OriginalDefinition)
-            && _contracts.GetReturnOwnership(invocation.TargetMethod) == OwnershipKind.Unspecified)
+        if (GetConfiguredTask(operation) is { } instance)
         {
             return GetAwaitedMember(instance);
         }
@@ -82,10 +121,28 @@ internal sealed class OwnershipInference
             ? invocation.Arguments.FirstOrDefault(a => a.Parameter?.Ordinal == 1)?.Value : null;
     }
 
-    public bool AcquiresConversionInput(IConversionOperation conversion, CancellationToken cancellationToken)
+    internal static IEnumerable<(IParameterSymbol Parameter, IOperation Value)> GetOperatorInputs(IOperation operation)
     {
-        return conversion.OperatorMethod is { Parameters.Length: 1 } method
-            && AcquiresOwnership(method.Parameters[0], ImmutableArray<IArgumentOperation>.Empty, cancellationToken);
+        switch (operation)
+        {
+            case IConversionOperation { OperatorMethod: { Parameters.Length: 1 } method } conversion:
+                yield return (method.Parameters[0], conversion.Operand);
+                break;
+            case IUnaryOperation { OperatorMethod: { Parameters.Length: 1 } method } unary:
+                yield return (method.Parameters[0], unary.Operand);
+                break;
+            case IBinaryOperation { OperatorMethod: { Parameters.Length: 2 } method } binary:
+                yield return (method.Parameters[0], binary.LeftOperand);
+                yield return (method.Parameters[1], binary.RightOperand);
+                break;
+            case IIncrementOrDecrementOperation { OperatorMethod: { Parameters.Length: 1 } method } increment:
+                yield return (method.Parameters[0], increment.Target);
+                break;
+            case ICompoundAssignmentOperation { OperatorMethod: { Parameters.Length: 2 } method } assignment:
+                yield return (method.Parameters[0], assignment.Target);
+                yield return (method.Parameters[1], assignment.Value);
+                break;
+        }
     }
 
     public bool ReturnsOwnership(IMethodSymbol method, CancellationToken cancellationToken)
@@ -111,6 +168,13 @@ internal sealed class OwnershipInference
                 && method.Parameters.Length > 0
                 && SymbolEqualityComparer.Default.Equals(method.ReturnType, method.Parameters[0].Type));
         return candidate && !HasFreshReturn(method, cancellationToken);
+    }
+
+    public IOperation? GetFluentReceiver(IInvocationOperation invocation, CancellationToken cancellationToken = default)
+    {
+        return IsFluentAlias(invocation.TargetMethod, cancellationToken)
+            ? invocation.Instance ?? invocation.Arguments.FirstOrDefault(a => a.Parameter?.Ordinal == 0)?.Value
+            : null;
     }
 
     private bool HasFreshReturn(IMethodSymbol method, CancellationToken cancellationToken)
@@ -197,6 +261,12 @@ internal sealed class OwnershipInference
             p => InferAcquisition(p, new HashSet<IParameterSymbol>(SymbolEqualityComparer.Default), cancellationToken));
     }
 
+    public bool IsUnknownArgument(IArgumentOperation argument, ImmutableArray<IArgumentOperation> arguments)
+    {
+        return argument.Parameter is not { } parameter
+            || KnownAcquisition(parameter, arguments) == null;
+    }
+
     private bool? KnownAcquisition(IParameterSymbol parameter, ImmutableArray<IArgumentOperation> arguments)
     {
         if (_contracts.AcquiresOwnership(parameter))
@@ -212,7 +282,9 @@ internal sealed class OwnershipInference
         if (IsStreamWrapperParameter(parameter))
         {
             var leaveOpen = arguments.FirstOrDefault(a => a.Parameter?.Name == "leaveOpen");
-            return leaveOpen == null || leaveOpen.Value.ConstantValue is { HasValue: true, Value: false };
+            return leaveOpen == null ? true
+                : leaveOpen.Value.ConstantValue is { HasValue: true, Value: bool value } ? !value
+                : null;
         }
 
         return null;
@@ -235,36 +307,46 @@ internal sealed class OwnershipInference
         {
             foreach (var root in GetSourceOperations(parameter.ContainingSymbol, cancellationToken))
             {
-                var aliases = new HashSet<ISymbol>(SymbolEqualityComparer.Default) { parameter };
+                var aliases = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+                var carriers = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+                (IsTaskResultCarrier(parameter.Type) ? carriers : aliases).Add(parameter);
                 foreach (var operation in DisposeBeforeLosingScopeAnalyzer.EnumerateOperations(root))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (DisposeBeforeLosingScopeAnalyzer.GetPatternAlias(operation) is { } patternAlias)
+                    {
+                        TrackAlias(patternAlias.Local, patternAlias.Value, conditional: true);
+                    }
+
+                    if (GetOperatorInputs(operation).Any(input =>
+                        (ReferencesResource(input.Value, aliases, carriers) || ReferencesCarrier(input.Value, aliases, carriers))
+                        && (KnownAcquisition(input.Parameter, ImmutableArray<IArgumentOperation>.Empty)
+                            ?? InferAcquisition(input.Parameter.OriginalDefinition, visiting, cancellationToken))))
+                    {
+                        return true;
+                    }
+
                     if (operation is IInvocationOperation invocation)
                     {
-                        if ((IsDisposeCall(invocation) && ReferencesResource(invocation.Instance, aliases))
-                            || ReferencesResource(GetInterlockedOwningValue(invocation), aliases))
+                        var published = GetInterlockedOwningValue(invocation);
+                        if ((IsDisposeCall(invocation) && ReferencesResource(invocation.Instance, aliases, carriers))
+                            || ReferencesResource(published, aliases, carriers) || ReferencesCarrier(published, aliases, carriers))
                         {
                             return true;
                         }
 
-                        if (ForwardsOwnership(invocation.Arguments, aliases, visiting, cancellationToken))
+                        if (ForwardsOwnership(invocation.Arguments, aliases, carriers, visiting, cancellationToken))
                         {
                             return true;
                         }
                     }
                     else if (operation is IObjectCreationOperation creation
-                             && ForwardsOwnership(creation.Arguments, aliases, visiting, cancellationToken))
+                             && ForwardsOwnership(creation.Arguments, aliases, carriers, visiting, cancellationToken))
                     {
                         return true;
                     }
                     else if (operation is IPropertyReferenceOperation property
-                             && ForwardsOwnership(property.Arguments, aliases, visiting, cancellationToken))
-                    {
-                        return true;
-                    }
-                    else if (operation is IConversionOperation { OperatorMethod: { Parameters.Length: 1 } method } conversion
-                             && ReferencesResource(conversion.Operand, aliases)
-                             && (KnownAcquisition(method.Parameters[0], ImmutableArray<IArgumentOperation>.Empty)
-                                 ?? InferAcquisition(method.Parameters[0].OriginalDefinition, visiting, cancellationToken)))
+                             && ForwardsOwnership(property.Arguments, aliases, carriers, visiting, cancellationToken))
                     {
                         return true;
                     }
@@ -273,36 +355,53 @@ internal sealed class OwnershipInference
                     {
                         return true;
                     }
-                    else if (operation is IVariableDeclaratorOperation { Initializer: { } initializer } declarator
-                             && ReferencesResource(initializer.Value, aliases))
+                    else if (operation is IVariableDeclaratorOperation { Initializer: { } initializer } declarator)
                     {
-                        aliases.Add(declarator.Symbol);
+                        TrackAlias(declarator.Symbol, initializer.Value, conditional: false);
                     }
                     else if (operation is ISimpleAssignmentOperation assignment)
                     {
                         var target = DisposeBeforeLosingScopeAnalyzer.GetAliasSymbol(assignment.Target);
-                        if (ReferencesResource(assignment.Value, aliases))
+                        if ((ReferencesResource(assignment.Value, aliases, carriers)
+                                || ReferencesCarrier(assignment.Value, aliases, carriers))
+                            && assignment.Target is IMemberReferenceOperation member && !_contracts.IsBorrowed(member.Member))
                         {
-                            if (assignment.Target is IMemberReferenceOperation member && !_contracts.IsBorrowed(member.Member))
-                            {
-                                return true;
-                            }
-
-                            if (target != null)
-                            {
-                                aliases.Add(target);
-                            }
+                            return true;
                         }
-                        else if (target != null && !DisposeBeforeLosingScopeAnalyzer.IsConditional(assignment))
+
+                        if (target != null)
                         {
-                            aliases.Remove(target);
+                            TrackAlias(target, assignment.Value, DisposeBeforeLosingScopeAnalyzer.IsConditional(assignment));
                         }
                     }
 
                     if (DisposeBeforeLosingScopeAnalyzer.GetUsingCapture(operation) is { } captured
-                        && (ReferencesResource(operation, aliases) || captured.Locals.Any(aliases.Contains)))
+                        && (ReferencesResource(operation, aliases, carriers) || captured.Locals.Any(aliases.Contains)))
                     {
                         return true;
+                    }
+                }
+
+                void TrackAlias(ISymbol target, IOperation value, bool conditional)
+                {
+                    var resource = ReferencesResource(value, aliases, carriers);
+                    var carrier = ReferencesCarrier(value, aliases, carriers);
+                    if (resource)
+                    {
+                        aliases.Add(target);
+                    }
+                    else if (!conditional)
+                    {
+                        aliases.Remove(target);
+                    }
+
+                    if (carrier)
+                    {
+                        carriers.Add(target);
+                    }
+                    else if (!conditional)
+                    {
+                        carriers.Remove(target);
                     }
                 }
             }
@@ -315,10 +414,11 @@ internal sealed class OwnershipInference
         return false;
     }
 
-    private bool ForwardsOwnership(ImmutableArray<IArgumentOperation> arguments, HashSet<ISymbol> aliases,
+    private bool ForwardsOwnership(ImmutableArray<IArgumentOperation> arguments, HashSet<ISymbol> aliases, HashSet<ISymbol> carriers,
         HashSet<IParameterSymbol> visiting, CancellationToken cancellationToken)
     {
-        return arguments.Any(a => a.Parameter != null && ReferencesResource(a.Value, aliases)
+        return arguments.Any(a => a.Parameter != null
+            && (ReferencesResource(a.Value, aliases, carriers) || ReferencesCarrier(a.Value, aliases, carriers))
             && (KnownAcquisition(a.Parameter, arguments)
                 ?? InferAcquisition(a.Parameter.OriginalDefinition, visiting, cancellationToken)));
     }
@@ -331,14 +431,44 @@ internal sealed class OwnershipInference
                 "System.IO.StreamReader" or "System.IO.StreamWriter" or "System.IO.BinaryReader" or "System.IO.BinaryWriter";
     }
 
-    internal static bool IsDisposeCall(IInvocationOperation invocation)
+    internal bool IsDisposeCall(IInvocationOperation invocation)
     {
-        return !invocation.TargetMethod.IsStatic && invocation.Arguments.IsEmpty
-            && ((invocation.TargetMethod.Name is "Dispose" or "Close" && invocation.TargetMethod.ReturnsVoid)
-                || invocation.TargetMethod.Name == "DisposeAsync");
+        var method = invocation.TargetMethod;
+        if (method.IsStatic || !invocation.Arguments.IsEmpty)
+        {
+            return false;
+        }
+
+        if (method.Name is "Dispose" or "Close" && method.ReturnsVoid)
+        {
+            return true;
+        }
+
+        if (method.Name != "DisposeAsync")
+        {
+            return false;
+        }
+
+        if (SymbolEqualityComparer.Default.Equals(method.OriginalDefinition, _disposeAsync)
+            || SymbolEqualityComparer.Default.Equals(method.OriginalDefinition, _configuredDisposeAsync))
+        {
+            return true;
+        }
+
+        var receiver = invocation.Instance?.Type as INamedTypeSymbol ?? method.ContainingType;
+        var implementation = _disposeAsync == null ? null : receiver.FindImplementationForInterfaceMember(_disposeAsync);
+        for (IMethodSymbol? candidate = method; candidate != null; candidate = candidate.OverriddenMethod)
+        {
+            if (SymbolEqualityComparer.Default.Equals(candidate.OriginalDefinition, implementation?.OriginalDefinition))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    private bool ReferencesResource(IOperation? operation, HashSet<ISymbol> aliases)
+    private bool ReferencesResource(IOperation? operation, HashSet<ISymbol> aliases, HashSet<ISymbol> carriers)
     {
         if (operation == null)
         {
@@ -353,19 +483,51 @@ internal sealed class OwnershipInference
 
         if (operation is IConditionalAccessInstanceOperation)
         {
-            return ReferencesResource(DisposeBeforeLosingScopeAnalyzer.GetConditionalReceiver(operation), aliases);
+            return ReferencesResource(DisposeBeforeLosingScopeAnalyzer.GetConditionalReceiver(operation), aliases, carriers);
         }
 
         if (operation is IInvocationOperation invocation && GetConfiguredDisposableResource(invocation) is { } resource)
         {
-            return ReferencesResource(resource, aliases);
+            return ReferencesResource(resource, aliases, carriers);
         }
 
         if (operation is ISimpleAssignmentOperation assignment)
         {
-            return ReferencesResource(assignment.Value, aliases);
+            return ReferencesResource(assignment.Value, aliases, carriers);
         }
 
-        return false;
+        return operation is IAwaitOperation awaited && ReferencesCarrier(awaited.Operation, aliases, carriers);
+    }
+
+    private bool ReferencesCarrier(IOperation? operation, HashSet<ISymbol> aliases, HashSet<ISymbol> carriers)
+    {
+        if (operation == null)
+        {
+            return false;
+        }
+
+        operation = DisposeBeforeLosingScopeAnalyzer.Unwrap(operation);
+        if (DisposeBeforeLosingScopeAnalyzer.GetAliasSymbol(operation) is { } symbol)
+        {
+            return carriers.Contains(symbol);
+        }
+
+        if (GetCompletedTaskValue(operation) is { } result)
+        {
+            return ReferencesResource(result, aliases, carriers);
+        }
+
+        if (GetConfiguredTask(operation) is { } task)
+        {
+            return ReferencesCarrier(task, aliases, carriers);
+        }
+
+        if (operation is IInvocationOperation invocation && GetFluentReceiver(invocation) is { } receiver)
+        {
+            return ReferencesCarrier(receiver, aliases, carriers);
+        }
+
+        return operation is ISimpleAssignmentOperation assignment
+            && ReferencesCarrier(assignment.Value, aliases, carriers);
     }
 }

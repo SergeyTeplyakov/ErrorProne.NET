@@ -44,6 +44,39 @@ public sealed class Resource : System.IDisposable
         return test;
     }
 
+    [TestCase("object", "", "M:Api.Take(System.Object)")]
+    [TestCase("T", "<T>", "M:Api.Take``1(``0)")]
+    public Task ExternalAcquisitionChecksErasedCalleeParameters(string type, string typeParameters, string memberId)
+    {
+        return CreateTest(@"
+class Api
+{
+    public static void Take" + typeParameters + "(" + type + @" {|ERP044:value|}) { }
+    public static void Run() { Take(new Resource()); }
+}", $@"<ownership><member id=""{memberId}""><parameter name=""value"" ownership=""owned"" /></member></ownership>")
+            .RunAsync();
+    }
+
+    [TestCase("Task", "Task.FromResult")]
+    [TestCase("ValueTask", "ValueTask.FromResult")]
+    public Task ExternalAcquisitionTransfersAndChecksAwaitedParameterResults(string type, string factory)
+    {
+        return CreateTest(@"
+using System.Threading.Tasks;
+class Api
+{
+    public static async Task Take(" + type + @"<Resource> pending) { (await pending).Dispose(); }
+    public static async Task Run([DoNotDispose] Resource borrowed)
+    {
+        await Take({|ERP046:" + factory + @"(borrowed)|});
+        var resource = new Resource();
+        await Take(" + factory + @"(resource));
+        {|ERP046:resource|}.ToString();
+    }
+}", @"<ownership><member id=""M:Api.Take(System.Threading.Tasks." + type + @"{Resource})""><parameter name=""pending"" ownership=""owned"" /></member></ownership>")
+            .RunAsync();
+    }
+
     [Test]
     public Task ExternalBorrowedReturnsRemainBorrowedThroughLocalAliases()
     {
@@ -288,7 +321,7 @@ class Api
         var transferred = Library.Factory.Create();
         Library.Consumer.Take(transferred);
         " + (annotated ? "{|ERP046:transferred|}" : "transferred") + @".Dispose();
-        Library.Consumer.Take(" + (annotated ? "new Library.Resource()" : "{|ERP044:new Library.Resource()|}") + @");
+        Library.Consumer.Take(new Library.Resource());
     }
 }", annotated
             ? @"<ownership>
@@ -351,6 +384,9 @@ class Api
 }", @"<ownership>
   <member id=""M:Api.Take(System.Int32,Resource)"">
     <parameter name=""resource"" ownership=""owned"" />
+  </member>
+  <member id=""M:Api.Take(Resource)"">
+    <parameter name=""resource"" ownership=""borrowed"" />
   </member>
 </ownership>").RunAsync();
     }

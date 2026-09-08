@@ -108,9 +108,11 @@ attributes. They add no runtime DLL dependency.
 
 ## Existing definitions
 
-If an accessible type with the same fully qualified name already exists, its
-definition is used instead of generating a duplicate. Inaccessible internal
-definitions in other assemblies do not prevent generating a local copy.
+If an accessible attribute type with the same fully qualified name already
+exists, its definition is used instead of generating a duplicate. Inaccessible
+internal definitions in other assemblies do not prevent generating a local copy,
+and referenced non-attribute types with the same name do not suppress local
+generation.
 For the ConfigureAwait assembly policies, recognized legacy attribute classes
 named `UseConfigureAwaitFalse` or `DoNotUseConfigureAwait` without the `Attribute`
 suffix are also reused to avoid ambiguous attribute names.
@@ -122,7 +124,9 @@ makes the required annotations available.
 If multiple referenced definitions are accessible and ambiguous, EPANN003
 requests a namespace override or removal of the conflicting reference. The
 generator does not guess which assembly to reuse, silently change namespace,
-or switch to public attribute types.
+or switch to public attribute types. If the current assembly already declares a
+same-name non-attribute type in the target namespace, EPANN004 reports that
+local conflict instead of generating a duplicate attribute declaration.
 
 This package does not add type-level ownership markers or generate BCL
 nullability attributes. Existing application-defined and legacy ErrorProne.NET

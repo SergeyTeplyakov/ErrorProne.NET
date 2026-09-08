@@ -58,6 +58,11 @@ Unannotated results are ownership-oblivious by default. A simple, non-overridabl
 source method directly returning a new disposable can establish ownership;
 shared, complex, or external results need an explicit contract to establish a
 caller obligation. Unknown does not imply `DoNotDispose`.
+ERP044 is enabled by default with a low-noise policy: unknown argument handoffs
+and captures stop an unresolved local cleanup warning, without proving transfer
+or safety. Explicit borrowed arguments and ordinary receiver calls retain the
+caller obligation. Known completed-task wrappers carry result ownership rather
+than discharging it.
 The rules intentionally do not attempt a complete borrow checker or proof of
 exception safety; see the documented limitations. This first version focuses
 on contracts and simple inference. Dedicated diagnostics for unknown ownership
@@ -68,6 +73,14 @@ escapes are deferred; missing knowledge is not itself evidence of unsafe code.
 | [ERP044](docs/Rules/ERP044.md) | Dispose owned resources or transfer their ownership |
 | [ERP045](docs/Rules/ERP045.md) | Invalid external ownership annotation |
 | [ERP046](docs/Rules/ERP046.md) | Obvious use after disposal/transfer or misuse of explicit borrowing |
+
+For adoption in an existing codebase, start with the
+[ownership-adoption skill](.github/skills/ownership-adoption/SKILL.md).
+It coordinates a [disposable inventory](.github/skills/ownership-inventory/SKILL.md),
+[contract review](.github/skills/ownership-contract-review/SKILL.md), and an
+[opt-in local-package pilot](.github/skills/ownership-pilot/SKILL.md).
+These workflows distinguish actual lifetime defects from missing contracts and
+analysis gaps before applying source changes.
 
 ### Concurrency
 

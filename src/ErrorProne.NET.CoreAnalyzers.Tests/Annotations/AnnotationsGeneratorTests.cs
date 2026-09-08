@@ -138,6 +138,93 @@ namespace Library
         Generate(compilation, AnnotationCount);
     }
 
+    [Test]
+    public async Task Generates_A_Local_Attribute_When_Only_A_Referenced_NonAttribute_Exists()
+    {
+        var existing = await CreateCompilation("ExistingAnnotations", @"
+namespace Library
+{
+    public sealed class DoNotDisposeAttribute { }
+}");
+        var compilation = await CreateCompilation("Consumer", @"
+namespace Library
+{
+    public class Api
+    {
+        [return: DoNotDispose]
+        public System.IDisposable GetShared() { return null; }
+    }
+}", reference: Emit(existing, referenceAssembly: false));
+        var driver = CreateDriver(compilation).RunGeneratorsAndUpdateCompilation(compilation,
+            out var updated, out var diagnostics);
+
+        Assert.That(diagnostics, Is.Empty);
+        Assert.That(driver.GetRunResult().Diagnostics, Is.Empty);
+        Assert.That(driver.GetRunResult().GeneratedTrees.Length, Is.EqualTo(AnnotationCount));
+        Assert.That(updated.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error), Is.Empty);
+        Assert.That(updated.GetTypeByMetadataName("Library.DoNotDisposeAttribute")!
+            .ContainingAssembly.Name, Is.EqualTo("Consumer"));
+    }
+
+    [Test]
+    public async Task Reports_Local_NonAttribute_That_Occupies_The_Canonical_Annotation_Name()
+    {
+        var compilation = await CreateCompilation("Library", @"
+namespace Library
+{
+    internal sealed class DoNotDisposeAttribute { }
+
+    public class Api
+    {
+        [return: DoNotDispose]
+        public System.IDisposable GetShared() { return null; }
+    }
+}");
+        var driver = CreateDriver(compilation).RunGeneratorsAndUpdateCompilation(compilation,
+            out var updated, out var diagnostics);
+
+        Assert.That(diagnostics.Select(d => d.Id), Is.EqualTo(new[] { "EPANN004" }));
+        Assert.That(driver.GetRunResult().Diagnostics.Select(d => d.Id), Is.EqualTo(new[] { "EPANN004" }));
+        Assert.That(driver.GetRunResult().GeneratedTrees.Length, Is.EqualTo(AnnotationCount - 1));
+        Assert.That(updated.GetDiagnostics().Select(d => d.Id), Does.Contain("CS0616"));
+        Assert.That(updated.GetDiagnostics().Select(d => d.Id), Does.Not.Contain("CS0101"));
+    }
+
+    [Test]
+    public async Task Local_NonAttribute_Takes_Precedence_Over_A_Referenced_Attribute()
+    {
+        var reference = Emit(await CreateCompilation("ExistingAnnotations", @"
+namespace Library
+{
+    public sealed class DoNotDisposeAttribute : System.Attribute { }
+}"), referenceAssembly: false);
+        var compilation = await CreateCompilation("Consumer", @"
+namespace Library
+{
+    internal sealed class DoNotDisposeAttribute { }
+}", reference: reference);
+        var driver = CreateDriver(compilation).RunGenerators(compilation);
+
+        Assert.That(driver.GetRunResult().Diagnostics.Select(d => d.Id), Is.EqualTo(new[] { "EPANN004" }));
+        Assert.That(driver.GetRunResult().GeneratedTrees.Length, Is.EqualTo(AnnotationCount - 1));
+    }
+
+    [Test]
+    public async Task Nested_And_Generic_NonAttributes_Do_Not_Block_Generation()
+    {
+        var compilation = await CreateCompilation("Library", @"
+namespace Library
+{
+    internal sealed class Container
+    {
+        internal sealed class DoNotDisposeAttribute { }
+    }
+
+    internal sealed class DoNotDisposeAttribute<T> { }
+}");
+        Generate(compilation, AnnotationCount);
+    }
+
     [TestCase(null, AnnotationCount - 1, "ExistingAnnotations")]
     [TestCase("Existing", AnnotationCount, "Consumer")]
     [TestCase("global,Existing", AnnotationCount - 1, "ExistingAnnotations")]

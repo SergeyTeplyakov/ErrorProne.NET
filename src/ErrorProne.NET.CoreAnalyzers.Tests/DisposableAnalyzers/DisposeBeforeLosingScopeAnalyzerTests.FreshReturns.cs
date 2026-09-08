@@ -218,7 +218,7 @@ public class Test
         return VerifyAsync(@"
 public static class Factories
 {
-    public static T FreshCopy<T>(this T value) where T : System.IDisposable, new() => new T();
+    public static T FreshCopy<T>([DoNotDispose] this T value) where T : System.IDisposable, new() => new T();
 }
 public class Test
 {

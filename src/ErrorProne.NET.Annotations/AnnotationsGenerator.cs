@@ -23,6 +23,10 @@ public sealed class AnnotationsGenerator : IIncrementalGenerator
         "EPANN003", "Existing annotation definitions are ambiguous",
         "Multiple accessible definitions of '{0}' exist in {1}; set ErrorProneAnnotationsNamespace or remove the conflicting reference",
         "Configuration", DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor OccupiedByNonAttribute = new(
+        "EPANN004", "Annotation name is occupied by a non-attribute type",
+        "'{0}' already exists in this assembly but does not derive from System.Attribute; rename it or set ErrorProneAnnotationsNamespace",
+        "Configuration", DiagnosticSeverity.Error, isEnabledByDefault: true);
     private static readonly (string Name, string Targets, string Summary)[] Attributes =
     {
         ("AcquiresOwnershipAttribute", "Parameter", "Transfers cleanup responsibility to the receiving method."),
@@ -71,20 +75,33 @@ public sealed class AnnotationsGenerator : IIncrementalGenerator
                 var metadataName = metadataNamespace.Length == 0
                     ? attribute.Name : metadataNamespace + "." + attribute.Name;
                 var existing = compilation.GetTypesByMetadataName(metadataName);
+                var localConflict = existing.FirstOrDefault(type =>
+                    SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, compilation.Assembly)
+                    && !IsAttributeType(type, compilation));
+                if (localConflict != null)
+                {
+                    output.ReportDiagnostic(Diagnostic.Create(OccupiedByNonAttribute,
+                        localConflict.Locations.FirstOrDefault(location => location.IsInSource) ?? Location.None,
+                        metadataName));
+                    continue;
+                }
+
+                IEnumerable<INamedTypeSymbol> reusableCandidates =
+                    existing.Where(type => IsAttributeType(type, compilation));
                 if (attribute.Name is "UseConfigureAwaitFalseAttribute" or "DoNotUseConfigureAwaitAttribute")
                 {
                     // These assembly policies also recognize legacy attribute classes without the suffix.
                     var legacyName = metadataName.Substring(0, metadataName.Length - nameof(Attribute).Length);
-                    existing = existing.AddRange(compilation.GetTypesByMetadataName(legacyName)
+                    reusableCandidates = reusableCandidates.Concat(compilation.GetTypesByMetadataName(legacyName)
                         .Where(type => IsAttributeType(type, compilation)));
                 }
 
-                if (existing.Any(type => SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, compilation.Assembly)))
+                if (reusableCandidates.Any(type => SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, compilation.Assembly)))
                 {
                     continue;
                 }
 
-                var accessible = existing.Where(type => globalAssemblies.Contains(type.ContainingAssembly)
+                var accessible = reusableCandidates.Where(type => globalAssemblies.Contains(type.ContainingAssembly)
                     && compilation.IsSymbolAccessibleWithin(type, compilation.Assembly))
                     .Distinct<INamedTypeSymbol>(SymbolEqualityComparer.Default).ToArray();
                 if (accessible.Length > 1)

@@ -124,7 +124,7 @@ public class Test
 public sealed class Other : System.IDisposable
 {
     public void Dispose() { }
-    public static implicit operator Other(Disposable value) => new Other();
+    public static implicit operator Other([DoNotDispose] Disposable value) => new Other();
 }
 public class Test { public void Run([DoNotDispose] Disposable borrowed) { " + body + @" } }");
     }
@@ -140,7 +140,7 @@ public sealed class Other : System.IDisposable
 }
 public class Test
 {
-    public void Run() { Consume({|ERP044:new Disposable()|}); }
+    public void Run([DoNotDispose] Disposable borrowed) { Consume(borrowed); }
     private static void Consume(Disposable d) { using var converted = (Other)d; }
 }");
     }

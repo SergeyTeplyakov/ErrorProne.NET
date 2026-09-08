@@ -57,14 +57,18 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                 }
 
                 ReportBorrowedUses(operations, contracts, inference, block);
+                var capturedSymbols = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+                foreach (var closure in operations.Where(o => o is IAnonymousFunctionOperation or ILocalFunctionOperation))
+                {
+                    CollectCapturedSymbols(closure, capturedSymbols, block.CancellationToken);
+                }
 
                 foreach (var parameter in method.Parameters)
                 {
-                    if (contracts.AcquiresOwnership(parameter)
-                        && helper.ShouldBeDisposed(parameter.Type))
+                    if (contracts.AcquiresOwnership(parameter))
                     {
-                        var lifetime = new Lifetime(null, parameter, operations, contracts, inference, block.CancellationToken);
-                        if (!lifetime.IsDischarged())
+                        var lifetime = new Lifetime(null, parameter, operations, capturedSymbols, contracts, inference, block.CancellationToken);
+                        if (lifetime.Analyze() == LifetimeOutcome.Abandoned)
                         {
                             block.ReportDiagnostic(Diagnostic.Create(Rule, parameter.Locations.FirstOrDefault(),
                                 parameter.Name, parameter.Type.Name));
@@ -84,8 +88,8 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                         continue;
                     }
 
-                    var lifetime = new Lifetime(operation, null, operations, contracts, inference, block.CancellationToken);
-                    if (!lifetime.IsDischarged())
+                    var lifetime = new Lifetime(operation, null, operations, capturedSymbols, contracts, inference, block.CancellationToken);
+                    if (lifetime.Analyze() == LifetimeOutcome.Abandoned)
                     {
                         var (location, name) = GetDiagnosticTarget(operation);
                         block.ReportDiagnostic(Diagnostic.Create(Rule, location, name, operation.Type!.Name));
@@ -136,27 +140,38 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
         OwnershipInference inference, OperationBlockAnalysisContext context)
     {
         var bindings = new Dictionary<ISymbol, bool>(SymbolEqualityComparer.Default);
+        var carrierBindings = new Dictionary<ISymbol, bool>(SymbolEqualityComparer.Default);
         var reported = new HashSet<TextSpan>();
         foreach (var operation in operations)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
+            if (GetPatternAlias(operation) is { } patternAlias)
+            {
+                // A newly declared pattern local has no pre-existing non-borrowed binding to merge.
+                TrackBinding(patternAlias.Local, patternAlias.Value, conditional: false);
+            }
+
+            foreach (var input in OwnershipInference.GetOperatorInputs(operation))
+            {
+                if ((IsBorrowedValue(input.Value) || IsBorrowedCarrierValue(input.Value))
+                    && inference.AcquiresOwnership(input.Parameter, ImmutableArray<IArgumentOperation>.Empty, context.CancellationToken))
+                {
+                    Report(input.Value);
+                }
+            }
             if (operation is IInvocationOperation invocation)
             {
-                if (OwnershipInference.IsDisposeCall(invocation) && IsBorrowedValue(invocation.Instance))
+                if (inference.IsDisposeCall(invocation) && IsBorrowedValue(invocation.Instance))
                 {
                     Report(invocation.Instance!);
                 }
 
                 CheckArguments(invocation.Arguments);
-                if (inference.GetInterlockedOwningValue(invocation) is { } value && IsBorrowedValue(value))
+                if (inference.GetInterlockedOwningValue(invocation) is { } value
+                    && (IsBorrowedValue(value) || IsBorrowedCarrierValue(value)))
                 {
                     Report(value);
                 }
-            }
-            else if (operation is IConversionOperation conversion && IsBorrowedValue(conversion.Operand)
-                     && inference.AcquiresConversionInput(conversion, context.CancellationToken))
-            {
-                Report(conversion.Operand);
             }
             else if (operation is IObjectCreationOperation creation)
             {
@@ -176,7 +191,8 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
             }
             else if (operation is ISimpleAssignmentOperation assignment)
             {
-                if (IsBorrowedValue(assignment.Value) && IsOwningDestination(Unwrap(assignment.Target), contracts))
+                if ((IsBorrowedValue(assignment.Value) || IsBorrowedCarrierValue(assignment.Value))
+                    && IsOwningDestination(Unwrap(assignment.Target), contracts))
                 {
                     Report(assignment.Value);
                 }
@@ -187,7 +203,7 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                 }
             }
             else if (operation is IReturnOperation { ReturnedValue: { } value }
-                     && IsBorrowedValue(value)
+                     && (IsBorrowedValue(value) || IsBorrowedCarrierValue(value))
                      && context.OwningSymbol is IMethodSymbol method
                      && (method.AssociatedSymbol is IPropertySymbol property
                          ? contracts.GetReturnOwnership(property) == OwnershipKind.Owned
@@ -203,17 +219,24 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
             }
         }
 
-        bool IsBorrowedValue(IOperation? value) => IsBorrowed(value, contracts, inference, bindings);
+        bool IsBorrowedValue(IOperation? value) => IsBorrowed(value, contracts, inference, bindings, carrierBindings);
+        bool IsBorrowedCarrierValue(IOperation? value) => IsBorrowedCarrier(value, contracts, inference, bindings, carrierBindings);
 
         void TrackBinding(ISymbol symbol, IOperation value, bool conditional)
         {
             var borrowed = IsBorrowedValue(value);
+            var carriedBorrowing = IsBorrowedCarrierValue(value);
             if (conditional)
             {
                 borrowed &= bindings.TryGetValue(symbol, out var previous) ? previous : contracts.IsBorrowed(symbol);
+                carriedBorrowing &= carrierBindings.TryGetValue(symbol, out var previousCarrier)
+                    ? previousCarrier
+                    : symbol is IParameterSymbol parameter && inference.IsTaskResultCarrier(parameter.Type)
+                        && contracts.IsBorrowed(parameter);
             }
 
             bindings[symbol] = borrowed;
+            carrierBindings[symbol] = carriedBorrowing;
         }
 
         void CheckUsingResources(IOperation resources)
@@ -238,7 +261,8 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
         {
             foreach (var argument in arguments)
             {
-                if (argument.Parameter != null && IsBorrowedValue(argument.Value)
+                if (argument.Parameter != null
+                    && (IsBorrowedValue(argument.Value) || IsBorrowedCarrierValue(argument.Value))
                     && inference.AcquiresOwnership(argument.Parameter, arguments, context.CancellationToken))
                 {
                     Report(argument.Value);
@@ -268,7 +292,8 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
     }
 
     private static bool IsBorrowed(IOperation? operation, OwnershipContracts contracts,
-        OwnershipInference inference, IReadOnlyDictionary<ISymbol, bool> bindings)
+        OwnershipInference inference, IReadOnlyDictionary<ISymbol, bool> bindings,
+        IReadOnlyDictionary<ISymbol, bool> carrierBindings)
     {
         if (operation == null)
         {
@@ -287,17 +312,62 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
             IMemberReferenceOperation member => contracts.IsBorrowed(member.Member)
                 || contracts.GetReturnOwnership(member.Member) == OwnershipKind.Borrowed,
             IInvocationOperation invocation when inference.GetConfiguredDisposableResource(invocation) is { } resource =>
-                IsBorrowed(resource, contracts, inference, bindings),
+                IsBorrowed(resource, contracts, inference, bindings, carrierBindings),
             IInvocationOperation invocation => contracts.GetReturnOwnership(invocation.TargetMethod) == OwnershipKind.Borrowed,
             IConversionOperation { OperatorMethod: { } method } => contracts.GetReturnOwnership(method) == OwnershipKind.Borrowed,
-            IConditionalAccessInstanceOperation => IsBorrowed(GetConditionalReceiver(operation), contracts, inference, bindings),
-            IConditionalOperation conditional => IsBorrowed(conditional.WhenTrue, contracts, inference, bindings)
-                && IsBorrowed(conditional.WhenFalse, contracts, inference, bindings),
-            ICoalesceOperation coalesce => IsBorrowed(coalesce.Value, contracts, inference, bindings)
-                && IsBorrowed(coalesce.WhenNull, contracts, inference, bindings),
-            ISimpleAssignmentOperation assignment => IsBorrowed(assignment.Value, contracts, inference, bindings),
+            IConditionalAccessInstanceOperation => IsBorrowed(GetConditionalReceiver(operation), contracts, inference, bindings, carrierBindings),
+            IConditionalOperation conditional => IsBorrowed(conditional.WhenTrue, contracts, inference, bindings, carrierBindings)
+                && IsBorrowed(conditional.WhenFalse, contracts, inference, bindings, carrierBindings),
+            ICoalesceOperation coalesce => IsBorrowed(coalesce.Value, contracts, inference, bindings, carrierBindings)
+                && IsBorrowed(coalesce.WhenNull, contracts, inference, bindings, carrierBindings),
+            ISimpleAssignmentOperation assignment => IsBorrowed(assignment.Value, contracts, inference, bindings, carrierBindings),
             IAwaitOperation awaited => inference.GetAwaitedMember(awaited.Operation) is { } member
-                && contracts.GetReturnOwnership(member) == OwnershipKind.Borrowed,
+                && contracts.GetReturnOwnership(member) != OwnershipKind.Unspecified
+                    ? contracts.GetReturnOwnership(member) == OwnershipKind.Borrowed
+                    : IsBorrowedCarrier(awaited.Operation, contracts, inference, bindings, carrierBindings),
+            _ => false,
+        };
+    }
+
+    private static bool IsBorrowedCarrier(IOperation? operation, OwnershipContracts contracts,
+        OwnershipInference inference, IReadOnlyDictionary<ISymbol, bool> bindings,
+        IReadOnlyDictionary<ISymbol, bool> carrierBindings)
+    {
+        if (operation == null)
+        {
+            return false;
+        }
+
+        operation = Unwrap(operation);
+        if (GetAliasSymbol(operation) is { } symbol && carrierBindings.TryGetValue(symbol, out var borrowed))
+        {
+            return borrowed;
+        }
+
+        if (inference.GetCompletedTaskValue(operation) is { } value)
+        {
+            return IsBorrowed(value, contracts, inference, bindings, carrierBindings);
+        }
+
+        if (inference.GetConfiguredTask(operation) is { } task)
+        {
+            return IsBorrowedCarrier(task, contracts, inference, bindings, carrierBindings);
+        }
+
+        if (operation is IInvocationOperation invocation && inference.GetFluentReceiver(invocation) is { } receiver)
+        {
+            return IsBorrowedCarrier(receiver, contracts, inference, bindings, carrierBindings);
+        }
+
+        return operation switch
+        {
+            IParameterReferenceOperation parameter => inference.IsTaskResultCarrier(parameter.Type)
+                && contracts.IsBorrowed(parameter.Parameter),
+            ISimpleAssignmentOperation assignment => IsBorrowedCarrier(assignment.Value, contracts, inference, bindings, carrierBindings),
+            IConditionalOperation conditional => IsBorrowedCarrier(conditional.WhenTrue, contracts, inference, bindings, carrierBindings)
+                && IsBorrowedCarrier(conditional.WhenFalse, contracts, inference, bindings, carrierBindings),
+            ICoalesceOperation coalesce => IsBorrowedCarrier(coalesce.Value, contracts, inference, bindings, carrierBindings)
+                && IsBorrowedCarrier(coalesce.WhenNull, contracts, inference, bindings, carrierBindings),
             _ => false,
         };
     }
@@ -345,8 +415,15 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
         // Postorder follows evaluation order for arguments, initializers and their containing call.
         foreach (var child in root.ChildOperations)
         {
-            if (child is IAnonymousFunctionOperation or ILocalFunctionOperation or INameOfOperation)
+            if (child is INameOfOperation)
             {
+                continue;
+            }
+
+            if (child is IAnonymousFunctionOperation or ILocalFunctionOperation)
+            {
+                // Captures can end local certainty, but nested bodies are separate lifetimes.
+                yield return child;
                 continue;
             }
 
@@ -357,6 +434,26 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
         }
 
         yield return root;
+    }
+
+    private static void CollectCapturedSymbols(IOperation operation, HashSet<ISymbol> symbols, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (operation is INameOfOperation)
+        {
+            return;
+        }
+
+        if (operation is ILocalReferenceOperation or IParameterReferenceOperation
+            && GetAliasSymbol(operation) is { } symbol)
+        {
+            symbols.Add(symbol);
+        }
+
+        foreach (var child in operation.ChildOperations)
+        {
+            CollectCapturedSymbols(child, symbols, cancellationToken);
+        }
     }
 
     internal static IOperation Unwrap(IOperation operation)
@@ -396,6 +493,24 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
         };
     }
 
+    internal static (IOperation Value, ILocalSymbol Local)? GetPatternAlias(IOperation operation)
+    {
+        if (operation is not IIsPatternOperation isPattern)
+        {
+            return null;
+        }
+
+        var pattern = isPattern.Pattern;
+        while (pattern is INegatedPatternOperation negated)
+        {
+            pattern = negated.Pattern;
+        }
+
+        // Only a direct type-pattern binding aliases the input, not nested property patterns.
+        return pattern is IDeclarationPatternOperation { DeclaredSymbol: ILocalSymbol local }
+            ? (isPattern.Value, local) : null;
+    }
+
     internal static bool IsConditional(IOperation operation)
     {
         for (var parent = operation.Parent; parent != null; parent = parent.Parent)
@@ -411,35 +526,49 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
         return false;
     }
 
+    private enum LifetimeOutcome
+    {
+        Abandoned,
+        Discharged,
+        Unknown,
+    }
+
     private sealed class Lifetime
     {
         private readonly IOperation? _creation;
         private readonly ImmutableArray<IOperation> _operations;
+        private readonly HashSet<ISymbol> _capturedSymbols;
         private readonly OwnershipContracts _contracts;
         private readonly OwnershipInference _inference;
         private readonly CancellationToken _cancellationToken;
         private readonly HashSet<ISymbol> _aliases = new(SymbolEqualityComparer.Default);
         private readonly HashSet<ISymbol> _uncertainAliases = new(SymbolEqualityComparer.Default);
+        private readonly HashSet<ISymbol> _carriers = new(SymbolEqualityComparer.Default);
+        private readonly HashSet<ISymbol> _uncertainCarriers = new(SymbolEqualityComparer.Default);
 
         public Diagnostic? InvalidUse { get; private set; }
 
         public Lifetime(IOperation? creation, IParameterSymbol? parameter, ImmutableArray<IOperation> operations,
+            HashSet<ISymbol> capturedSymbols,
             OwnershipContracts contracts, OwnershipInference inference, CancellationToken cancellationToken)
         {
             _creation = creation;
             _operations = operations;
+            _capturedSymbols = capturedSymbols;
             _contracts = contracts;
             _inference = inference;
             _cancellationToken = cancellationToken;
             if (parameter != null)
             {
-                _aliases.Add(parameter);
+                // An acquiring Task<T>/ValueTask<T> parameter owns its result, not wrapper cleanup.
+                (inference.IsTaskResultCarrier(parameter.Type) ? _carriers : _aliases).Add(parameter);
             }
         }
 
-        public bool IsDischarged()
+        public LifetimeOutcome Analyze()
         {
             var started = _creation == null;
+            var ownershipUnknown = _capturedSymbols.Overlaps(_aliases) || _capturedSymbols.Overlaps(_carriers);
             foreach (var operation in _operations)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
@@ -452,13 +581,32 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                     }
                 }
 
+                if (GetPatternAlias(operation) is { } patternAlias)
+                {
+                    AssignAlias(patternAlias.Local, patternAlias.Value, operation);
+                }
+
+                foreach (var input in OwnershipInference.GetOperatorInputs(operation))
+                {
+                    if ((Matches(input.Value) || Carries(input.Value))
+                        && _inference.AcquiresOwnership(input.Parameter, ImmutableArray<IArgumentOperation>.Empty, _cancellationToken))
+                    {
+                        return Discharge(operation, Matches(input.Value, requireDefinite: true)
+                            || Carries(input.Value, requireDefinite: true));
+                    }
+                    if ((Matches(input.Value) || Carries(input.Value)) && !_contracts.IsBorrowed(input.Parameter))
+                    {
+                        ownershipUnknown = true;
+                    }
+                }
+
                 switch (operation)
                 {
                     case IVariableDeclaratorOperation { Initializer: { } initializer } declarator:
                         AssignAlias(declarator.Symbol, initializer.Value, operation);
                         break;
                     case ISimpleAssignmentOperation assignment:
-                        if (Matches(assignment.Value))
+                        if (Matches(assignment.Value) || Carries(assignment.Value))
                         {
                             switch (Unwrap(assignment.Target))
                             {
@@ -466,67 +614,86 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                                     AssignAlias(local.Local, assignment.Value, operation);
                                     break;
                                 case IParameterReferenceOperation parameter when IsOwningDestination(parameter, _contracts):
-                                    return Discharge(operation, Matches(assignment.Value, requireDefinite: true));
+                                    return Discharge(operation, Matches(assignment.Value, requireDefinite: true)
+                                        || Carries(assignment.Value, requireDefinite: true));
                                 case IParameterReferenceOperation parameter:
                                     AssignAlias(parameter.Parameter, assignment.Value, operation);
                                     break;
                                 case IMemberReferenceOperation member when !_contracts.IsBorrowed(member.Member):
-                                    return Discharge(operation, Matches(assignment.Value, requireDefinite: true));
+                                    return Discharge(operation, Matches(assignment.Value, requireDefinite: true)
+                                        || Carries(assignment.Value, requireDefinite: true));
                             }
                         }
                         else if (GetAliasSymbol(assignment.Target) is { } alias)
                         {
-                            if (IsConditional(operation))
-                            {
-                                if (_aliases.Contains(alias))
-                                {
-                                    _uncertainAliases.Add(alias);
-                                }
-                            }
-                            else
-                            {
-                                _aliases.Remove(alias);
-                                _uncertainAliases.Remove(alias);
-                            }
+                            AssignAlias(alias, assignment.Value, operation);
                         }
                         break;
                     case IInvocationOperation invocation:
-                        if (OwnershipInference.IsDisposeCall(invocation) && Matches(invocation.Instance))
+                        if (_inference.IsDisposeCall(invocation) && Matches(invocation.Instance))
                         {
                             return Discharge(operation, Matches(invocation.Instance, requireDefinite: true));
                         }
 
-                        if (MovesArgument(invocation.Arguments) || Matches(_inference.GetInterlockedOwningValue(invocation)))
+                        var published = _inference.GetInterlockedOwningValue(invocation);
+                        if (MovesArgument(invocation.Arguments) || Matches(published) || Carries(published))
                         {
                             return Discharge(operation, MovesArgument(invocation.Arguments, requireDefinite: true)
-                                || Matches(_inference.GetInterlockedOwningValue(invocation), requireDefinite: true));
+                                || Matches(published, requireDefinite: true) || Carries(published, requireDefinite: true));
+                        }
+                        if (_inference.GetCompletedTaskValue(invocation) == null
+                            && Escapes(invocation.Arguments, _inference.GetFluentReceiver(invocation, _cancellationToken)))
+                        {
+                            ownershipUnknown = true;
                         }
                         break;
-                    case IConversionOperation conversion when Matches(conversion.Operand)
-                        && _inference.AcquiresConversionInput(conversion, _cancellationToken):
-                        return Discharge(operation, Matches(conversion.Operand, requireDefinite: true));
                     case IObjectCreationOperation creation when MovesArgument(creation.Arguments):
                         return Discharge(operation, MovesArgument(creation.Arguments, requireDefinite: true));
+                    case IObjectCreationOperation creation when _inference.GetCompletedTaskValue(creation) == null
+                        && Escapes(creation.Arguments):
+                        ownershipUnknown = true;
+                        break;
                     case IPropertyReferenceOperation property when MovesArgument(property.Arguments):
                         return Discharge(operation, MovesArgument(property.Arguments, requireDefinite: true));
-                    case IReturnOperation returned when Matches(returned.ReturnedValue):
-                        return true;
+                    case IPropertyReferenceOperation property when Escapes(property.Arguments):
+                        ownershipUnknown = true;
+                        break;
+                    case IReturnOperation returned when Matches(returned.ReturnedValue) || Carries(returned.ReturnedValue):
+                        return LifetimeOutcome.Discharged;
+                    case IDelegateCreationOperation { Target: IMethodReferenceOperation method } when Matches(method.Instance):
+                        ownershipUnknown = true;
+                        break;
+                    case IDynamicInvocationOperation dynamicInvocation
+                        when dynamicInvocation.Arguments.Any(a => Matches(a) || Carries(a)):
+                        ownershipUnknown = true;
+                        break;
+                    case IDynamicObjectCreationOperation dynamicCreation
+                        when dynamicCreation.Arguments.Any(a => Matches(a) || Carries(a)):
+                        ownershipUnknown = true;
+                        break;
+                    case IDynamicIndexerAccessOperation dynamicIndexer
+                        when dynamicIndexer.Arguments.Any(a => Matches(a) || Carries(a)):
+                        ownershipUnknown = true;
+                        break;
                     case IUsingDeclarationOperation declaration when declaration.DeclarationGroup.Declarations
                         .SelectMany(d => d.Declarators).Any(d => _aliases.Contains(d.Symbol)):
-                        return true;
+                        return LifetimeOutcome.Discharged;
                 }
+
+                // Closures capture variables, including resources assigned after closure creation.
+                ownershipUnknown |= _capturedSymbols.Overlaps(_aliases) || _capturedSymbols.Overlaps(_carriers);
 
                 if (GetUsingCapture(operation) is { } captured
                     && (Matches(operation) || captured.Locals.Any(l => _aliases.Contains(l))))
                 {
-                    return true;
+                    return LifetimeOutcome.Discharged;
                 }
             }
 
-            return false;
+            return ownershipUnknown ? LifetimeOutcome.Unknown : LifetimeOutcome.Abandoned;
         }
 
-        private bool Discharge(IOperation terminal, bool definite)
+        private LifetimeOutcome Discharge(IOperation terminal, bool definite)
         {
             // Restrict invalid-use reports to later statements in the very same lexical block.
             // Conditional cleanup, finally blocks and implicit using cleanup remain best effort.
@@ -535,7 +702,7 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                 || IsConditional(terminal)
                 || EnumerateOperations(terminal).Any(o => o is IConditionalOperation or ICoalesceOperation))
             {
-                return true;
+                return LifetimeOutcome.Discharged;
             }
 
             var passedTerminal = false;
@@ -559,7 +726,7 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                 }
 
                 if (operation.Syntax.SpanStart < statement.Span.End
-                    || operation is not (ILocalReferenceOperation or IParameterReferenceOperation)
+                    || operation is not (ILocalReferenceOperation or IParameterReferenceOperation or IAwaitOperation)
                     || !Matches(operation, requireDefinite: true)
                     || IsConditional(operation)
                     || operation.Syntax.FirstAncestorOrSelf<StatementSyntax>()?.Parent != block)
@@ -578,37 +745,99 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                 break;
             }
 
-            return true;
+            return LifetimeOutcome.Discharged;
         }
 
         private void AssignAlias(ISymbol symbol, IOperation value, IOperation assignment)
         {
-            if (Matches(value))
+            var matches = Matches(value);
+            var carries = Carries(value);
+            var definiteMatch = Matches(value, requireDefinite: true);
+            var definiteCarrier = Carries(value, requireDefinite: true);
+            Track(_aliases, _uncertainAliases, matches, definiteMatch);
+            Track(_carriers, _uncertainCarriers, carries, definiteCarrier);
+
+            void Track(HashSet<ISymbol> aliases, HashSet<ISymbol> uncertain, bool matchesValue, bool definite)
             {
-                // May-alias tracking is enough for best-effort cleanup, but not to prove misuse.
-                var definite = Matches(value, requireDefinite: true) && !IsConditional(assignment);
-                _aliases.Add(symbol);
-                if (definite)
+                if (matchesValue)
                 {
-                    _uncertainAliases.Remove(symbol);
+                    aliases.Add(symbol);
+                    if (definite && !IsConditional(assignment))
+                    {
+                        uncertain.Remove(symbol);
+                    }
+                    else
+                    {
+                        uncertain.Add(symbol);
+                    }
+                }
+                else if (IsConditional(assignment) && aliases.Contains(symbol))
+                {
+                    uncertain.Add(symbol);
                 }
                 else
                 {
-                    _uncertainAliases.Add(symbol);
+                    aliases.Remove(symbol);
+                    uncertain.Remove(symbol);
                 }
             }
-            else
+        }
+
+        private bool Escapes(ImmutableArray<IArgumentOperation> arguments, IOperation? preservedReceiver = null)
+        {
+            return arguments.Any(argument => (Matches(argument.Value) || Carries(argument.Value))
+                && !ReferenceEquals(argument.Value, preservedReceiver)
+                && _inference.IsUnknownArgument(argument, arguments));
+        }
+
+        private bool Carries(IOperation? value, bool requireDefinite = false)
+        {
+            if (value == null)
             {
-                _aliases.Remove(symbol);
-                _uncertainAliases.Remove(symbol);
+                return false;
             }
+
+            value = Unwrap(value);
+            if (GetAliasSymbol(value) is { } symbol)
+            {
+                return _carriers.Contains(symbol) && (!requireDefinite || !_uncertainCarriers.Contains(symbol));
+            }
+
+            if (_inference.GetCompletedTaskValue(value) is { } result)
+            {
+                return Matches(result, requireDefinite);
+            }
+
+            if (_inference.GetConfiguredTask(value) is { } task)
+            {
+                return Carries(task, requireDefinite);
+            }
+
+            if (value is IInvocationOperation invocation
+                && _inference.GetFluentReceiver(invocation, _cancellationToken) is { } receiver)
+            {
+                return Carries(receiver, requireDefinite);
+            }
+
+            return value switch
+            {
+                ISimpleAssignmentOperation assignment => Carries(assignment.Value, requireDefinite),
+                IConditionalOperation conditional => requireDefinite
+                    ? Carries(conditional.WhenTrue, true) && Carries(conditional.WhenFalse, true)
+                    : Carries(conditional.WhenTrue) || Carries(conditional.WhenFalse),
+                ICoalesceOperation coalesce => requireDefinite
+                    ? Carries(coalesce.Value, true) && Carries(coalesce.WhenNull, true)
+                    : Carries(coalesce.Value) || Carries(coalesce.WhenNull),
+                _ => false,
+            };
         }
 
         private bool MovesArgument(ImmutableArray<IArgumentOperation> arguments, bool requireDefinite = false)
         {
             foreach (var argument in arguments)
             {
-                if (argument.Parameter != null && Matches(argument.Value, requireDefinite)
+                if (argument.Parameter != null
+                    && (Matches(argument.Value, requireDefinite) || Carries(argument.Value, requireDefinite))
                     && _inference.AcquiresOwnership(argument.Parameter, arguments, _cancellationToken))
                 {
                     return true;
@@ -649,10 +878,12 @@ public sealed class DisposeBeforeLosingScopeAnalyzer : DiagnosticAnalyzerBase
                         : Matches(coalesce.Value) || Matches(coalesce.WhenNull);
                 case ISimpleAssignmentOperation assignment:
                     return Matches(assignment.Value, requireDefinite);
+                case IAwaitOperation awaited:
+                    return Carries(awaited.Operation, requireDefinite);
                 case IInvocationOperation invocation when _inference.GetConfiguredDisposableResource(invocation) is { } resource:
                     return Matches(resource, requireDefinite);
-                case IInvocationOperation invocation when _inference.IsFluentAlias(invocation.TargetMethod, _cancellationToken):
-                    return Matches(invocation.Instance ?? invocation.Arguments.FirstOrDefault()?.Value, requireDefinite);
+                case IInvocationOperation invocation when _inference.GetFluentReceiver(invocation, _cancellationToken) is { } receiver:
+                    return Matches(receiver, requireDefinite);
             }
 
             return false;

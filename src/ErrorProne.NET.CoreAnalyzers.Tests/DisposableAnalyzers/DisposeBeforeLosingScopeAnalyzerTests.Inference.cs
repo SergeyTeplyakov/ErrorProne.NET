@@ -62,7 +62,7 @@ public class Test
         var " + (leaks ? "{|ERP044:d|}" : "d") + @" = new Disposable();
         " + call + @"
     }
-    private void Consume(Disposable borrowed, [AcquiresOwnership] Disposable owned)
+    private void Consume([DoNotDispose] Disposable borrowed, [AcquiresOwnership] Disposable owned)
     {
         owned.Dispose();
     }
@@ -159,7 +159,7 @@ public class Test
         return VerifyAsync(@"
 public class Test
 {
-    public void Run() { Loop({|ERP044:new Disposable()|}); }
+    public void Run([DoNotDispose] Disposable borrowed) { Loop(borrowed); }
     private static void Loop(Disposable value) { Loop(value); }
 }");
     }
@@ -332,17 +332,20 @@ public class Test
 }");
     }
 
-    [TestCase("var alias = value; alias.Dispose();", false)]
-    [TestCase("using var alias = value;", false)]
-    [TestCase("var alias = value; using (alias) { }", false)]
-    [TestCase("var alias = value; Forward(alias);", false)]
-    [TestCase("value = new Disposable(); value.Dispose();", true)]
-    public Task Infers_Disposal_Through_Simple_Callee_Aliases(string body, bool leaks)
+    [TestCase("var alias = value; alias.Dispose();", true)]
+    [TestCase("using var alias = value;", true)]
+    [TestCase("var alias = value; using (alias) { }", true)]
+    [TestCase("var alias = value; Forward(alias);", true)]
+    [TestCase("value = new Disposable(); value.Dispose();", false)]
+    public Task Infers_Disposal_Through_Simple_Callee_Aliases(string body, bool consumes)
     {
         return VerifyAsync(@"
 public class Test
 {
-    public void Run() { Consume(" + (leaks ? "{|ERP044:new Disposable()|}" : "new Disposable()") + @"); }
+    public void Run([DoNotDispose] Disposable borrowed)
+    {
+        Consume(" + (consumes ? "{|ERP046:borrowed|}" : "borrowed") + @");
+    }
     private static void Consume(Disposable value) { " + body + @" }
     private static void Forward([AcquiresOwnership] Disposable value) { value.Dispose(); }
 }");
@@ -409,7 +412,7 @@ public class Resource : System.IDisposable
 }
 public static class BorrowExtensions
 {
-    [KeepsOwnership] public static T BorrowGeneric<T>(this T resource) => default;
+    [KeepsOwnership] public static T BorrowGeneric<T>([DoNotDispose] this T resource) => default;
 }
 public class Test
 {
@@ -431,11 +434,11 @@ public class Test
         return VerifyAsync(@"
 public class Test
 {
-    public void Run(bool leaveOpen)
+    public void Run(bool leaveOpen, [DoNotDispose] System.IO.Stream borrowed)
     {
-        var " + (retainsStream ? "{|ERP044:stream|}" : "stream") + @" =
-            new System.IO.FileStream(""path"", System.IO.FileMode.Open);
+        var stream = new System.IO.FileStream(""path"", System.IO.FileMode.Open);
         using var reader = Read(stream, leaveOpen);
+        using var other = Read(" + (retainsStream ? "borrowed" : "{|ERP046:borrowed|}") + @", leaveOpen);
     }
     private static System.IO.StreamReader Read(System.IO.Stream stream, bool leaveOpen) => " + creation + @";
 }");
