@@ -6,6 +6,15 @@ This analyzer detects when methods marked with `MustUseResultAttribute` have the
 
 The analyzer warns when the return value of a method decorated with `MustUseResultAttribute` is not used. This attribute indicates that the method's return value contains important information that should always be observed by the caller.
 
+## Getting the attribute
+
+The [ErrorProne.Net.Annotations source generator](../../src/ErrorProne.NET.Annotations/README.md)
+provides `MustUseResultAttribute` and the recognized compatibility name
+`MustUseReturnValueAttribute`. It embeds internal types in the project's root
+namespace without adding a runtime annotation DLL. Attributes on public APIs
+remain visible to downstream analyzers through assembly metadata.
+Applications can also continue defining their own attributes, as shown below.
+
 ## Code that triggers the analyzer
 
 ```csharp
