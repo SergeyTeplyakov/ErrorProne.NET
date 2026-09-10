@@ -15,7 +15,6 @@
     <Authors>Sergey Teplyakov</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET/</RepositoryUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
       0.9.0
