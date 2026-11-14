@@ -38,6 +38,12 @@ namespace ErrorProne.NET.CoreAnalyzers
             {
                 context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
             }
+            else
+            {
+                // Opting out must be explicit: if ConfigureGeneratedCodeAnalysis is not called,
+                // Roslyn defaults to analyzing generated code and reporting diagnostics in it.
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            }
 
             InitializeCore(context);
         }
