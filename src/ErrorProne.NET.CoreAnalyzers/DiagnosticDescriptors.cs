@@ -9,6 +9,7 @@ namespace ErrorProne.NET
         private const string CodeSmellCategory = "CodeSmell";
         private const string PerformanceCategory = "Performance";
         private const string ConcurrencyCategory = "Concurrency";
+        private const string ReliabilityCategory = "Reliability";
 
         private const string AsyncCategory = "Async";
 
@@ -366,6 +367,33 @@ namespace ErrorProne.NET
             isEnabledByDefault: true,
             description: "DataContractSerializer fails lazily (on the first serialization attempt) with 'InvalidDataContractException' when a type of a data member is not serializable. A type is serializable when it is marked with 'DataContractAttribute', 'CollectionDataContractAttribute' or 'SerializableAttribute', implements 'ISerializable'/'IXmlSerializable', or is a public type with a parameterless constructor. Types like 'System.Net.IPAddress' or 'System.Net.IPEndPoint' fail this check on .NET Core, and so do positional records.",
             helpLinkUri: GetHelpUri(nameof(EPC42)));
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor ERP044 = new DiagnosticDescriptor(
+            nameof(ERP044),
+            title: "Dispose owned resources before losing scope",
+            messageFormat: "Owned resource '{0}' of type '{1}' must be disposed or its ownership transferred",
+            ReliabilityCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "An acquired disposable resource must be disposed or transferred to another owner.",
+            helpLinkUri: GetHelpUri(nameof(ERP044)));
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor ERP045 = new DiagnosticDescriptor(
+            nameof(ERP045),
+            title: "Invalid external ownership annotation",
+            messageFormat: "Invalid ownership annotation: {0}",
+            ReliabilityCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "External ownership annotations must describe valid, unambiguous ownership contracts.",
+            helpLinkUri: GetHelpUri(nameof(ERP045)));
+
+        /// <nodoc />
+        public static readonly DiagnosticDescriptor ERP046 = new DiagnosticDescriptor(
+            nameof(ERP046),
+            title: "Respect disposable ownership",
+            messageFormat: "Resource '{0}' {1}",
+            ReliabilityCategory, DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: "Do not dispose or transfer explicitly borrowed resources, or use a resource after disposing or transferring it.",
+            helpLinkUri: GetHelpUri(nameof(ERP046)));
 
         public static string GetHelpUri(string ruleId)
         {

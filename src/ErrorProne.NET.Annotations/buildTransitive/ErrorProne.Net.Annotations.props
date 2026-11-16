@@ -1,0 +1,6 @@
+<Project>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="RootNamespace" />
+    <CompilerVisibleProperty Include="ErrorProneAnnotationsNamespace" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>ErrorProne.Net.Annotations</AssemblyName>
+    <RootNamespace>ErrorProne.NET.Annotations</RootNamespace>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <EmbedRuntimeContracts>false</EmbedRuntimeContracts>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageId>ErrorProne.Net.Annotations</PackageId>
+    <Authors>Sergey Teplyakov</Authors>
+    <Description>Source-embedded ErrorProne.NET annotations without a runtime assembly dependency.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/SergeyTeplyakov/ErrorProne.NET</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Remove="RuntimeContracts;ILRepack.Lib.MSBuild.Task" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Update="README.md" Pack="true" PackagePath="" />
+    <None Update="buildTransitive\ErrorProne.Net.Annotations.props" Pack="true" PackagePath="buildTransitive\ErrorProne.Net.Annotations.props" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+</Project>

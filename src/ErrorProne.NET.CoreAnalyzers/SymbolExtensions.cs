@@ -20,6 +20,11 @@ namespace ErrorProne.NET.Core
     /// <nodoc />
     public static class SymbolExtensions
     {
+        public static bool HasAttributeWithName(this ISymbol? symbol, string attributeName)
+        {
+            return symbol?.GetAttributes().Any(a => a.AttributeClass?.Name == attributeName) == true;
+        }
+
         public static bool IsPartialDefinition(this INamedTypeSymbol symbol)
         {
             return symbol.DeclaringSyntaxReferences
@@ -298,5 +303,33 @@ namespace ErrorProne.NET.Core
             // Use following code if the trick with DeclaredSyntaxReferences would not work properly!
             // return (bool?)(symbol.GetType().GetRuntimeProperty("IsCatch")?.GetValue(symbol)) == true;
         }
+
+        public static bool IsPrivate(this ISymbol symbol)
+        {
+            return symbol.DeclaredAccessibility == Accessibility.Private;
+        }
     }
+
+    public static class MethodSymbolExtensions
+    {
+        /// <summary>
+        /// Checks if the given method matches Dispose method convention and can be recognized by "using".
+        /// </summary>
+        public static bool HasDisposeSignatureByConvention(this IMethodSymbol method)
+        {
+            return method.HasDisposeMethodSignature()
+                   && !method.IsStatic
+                   && !method.IsPrivate();
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose()".
+        /// </summary>
+        private static bool HasDisposeMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                   method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
+    }
+
 }

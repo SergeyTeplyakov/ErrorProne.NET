@@ -42,4 +42,10 @@ namespace ErrorProne.NET.Core
                 v => Compilation.GetBestTypeByMetadataName(v));
         }
     }
+
+    public static class WellKnownTypeNames
+    {
+        public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
+        public const string SystemIDisposable = "System.IDisposable";
+    }
 }

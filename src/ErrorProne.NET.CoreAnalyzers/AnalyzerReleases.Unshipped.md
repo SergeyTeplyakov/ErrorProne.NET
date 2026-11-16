@@ -39,3 +39,6 @@ ERP022 | ErrorHandling | Warning | SwallowAllExceptionsAnalyzer
 ERP031 | Concurrency | Warning | ConcurrentCollectionAnalyzer
 ERP041 | CodeSmell | Info | EventSourceSealedAnalyzer
 ERP042 | CodeSmell | Warning | EventSourceAnalyzer
+ERP044 | Reliability | Warning | DisposeBeforeLosingScopeAnalyzer
+ERP045 | Reliability | Warning | Invalid external ownership annotation
+ERP046 | Reliability | Warning | Respect disposable ownership

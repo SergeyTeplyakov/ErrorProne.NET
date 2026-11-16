@@ -41,6 +41,47 @@ Add the following nuget package to you project: https://www.nuget.org/packages/E
 | [ERP041](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/ERP041.md) | EventSource class should be sealed |
 | [ERP042](https://github.com/SergeyTeplyakov/ErrorProne.NET/tree/master/docs/Rules/ERP042.md) | EventSource implementation is not correct |
 
+### Disposable ownership
+
+The `ErrorProne.Net.Annotations` source-generator package embeds internal
+attributes directly in each project's root namespace, without adding a runtime
+DLL. Public API contracts remain visible to consuming analyzers through metadata.
+See [source-embedded annotations](src/ErrorProne.NET.Annotations/README.md) for
+package setup, namespace overrides, and friend-assembly behavior.
+
+Ownership analysis uses attributes and bounded inference: a caller trusts a
+transfer, and the consuming method is checked for disposal or further transfer.
+Third-party contracts can be supplied as `*.ownership.xml` additional files.
+Use `DoNotDispose` for borrowed values, including `[return: DoNotDispose]` on
+borrowed results; disposing or transferring them reports ERP046.
+Unannotated results are ownership-oblivious by default. A simple, non-overridable
+source method directly returning a new disposable can establish ownership;
+shared, complex, or external results need an explicit contract to establish a
+caller obligation. Unknown does not imply `DoNotDispose`.
+ERP044 is enabled by default with a low-noise policy: unknown argument handoffs
+and captures stop an unresolved local cleanup warning, without proving transfer
+or safety. Explicit borrowed arguments and ordinary receiver calls retain the
+caller obligation. Known completed-task wrappers carry result ownership rather
+than discharging it.
+The rules intentionally do not attempt a complete borrow checker or proof of
+exception safety; see the documented limitations. This first version focuses
+on contracts and simple inference. Dedicated diagnostics for unknown ownership
+escapes are deferred; missing knowledge is not itself evidence of unsafe code.
+
+| Id | Description |
+|---|---|
+| [ERP044](docs/Rules/ERP044.md) | Dispose owned resources or transfer their ownership |
+| [ERP045](docs/Rules/ERP045.md) | Invalid external ownership annotation |
+| [ERP046](docs/Rules/ERP046.md) | Obvious use after disposal/transfer or misuse of explicit borrowing |
+
+For adoption in an existing codebase, start with the
+[ownership-adoption skill](.github/skills/ownership-adoption/SKILL.md).
+It coordinates a [disposable inventory](.github/skills/ownership-inventory/SKILL.md),
+[contract review](.github/skills/ownership-contract-review/SKILL.md), and an
+[opt-in local-package pilot](.github/skills/ownership-pilot/SKILL.md).
+These workflows distinguish actual lifetime defects from missing contracts and
+analysis gaps before applying source changes.
+
 ### Concurrency
 
 | Id | Description |

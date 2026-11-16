@@ -19,6 +19,10 @@
     <Description>Core .NET analyzers for detecting the most common coding issues</Description>
     <PackageReleaseNotes>
       0.9.0
+        * Add ERP044: track disposable ownership through attributes and bounded source inference.
+        * Add ERP045: validate external ownership contracts supplied through .ownership.xml files.
+        * Add ERP046: warn on obvious use after disposal/transfer and misuse of borrowed values.
+        * Support source-embedded contracts from ErrorProne.Net.Annotations without a runtime annotation DLL.
         * Add EPC38: TaskEnumerableReEnumerationAnalyzer (disabled by default).
         * Add EPC39: QuadraticEnumerationAnalyzer (disabled by default).
         * Add EPC40: PrivateMethodMultipleEnumerationAnalyzer (disabled by default).
