@@ -556,6 +556,27 @@ class Component
         }
 
         [Test]
+        public async Task NoWarn_In_Partial_Type_Nested_In_Type_Marked_As_Generated()
+        {
+            await Verify.VerifyAsync(@"
+class Item {}
+[System.CodeDom.Compiler.GeneratedCode(""Generator"", ""1.0"")]
+class Component
+{
+    partial class Nested
+    {
+        string Render(Item value) => $""{value}"";
+    }
+
+    partial class Nested
+    {
+        void Other() {}
+    }
+}
+");
+        }
+
+        [Test]
         public async Task NoWarn_In_Partial_Implementation_Explicitly_Marked_As_Generated()
         {
             await new Verify.Test

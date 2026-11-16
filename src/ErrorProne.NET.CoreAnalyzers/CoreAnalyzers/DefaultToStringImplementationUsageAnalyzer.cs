@@ -133,13 +133,10 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
             while (symbol is not null)
             {
-                if (symbol.Kind != SymbolKind.Namespace)
+                // Skip attributes on partial symbols, but keep walking to their containing types.
+                if (symbol.Kind != SymbolKind.Namespace &&
+                    symbol.DeclaringSyntaxReferences.Length <= 1)
                 {
-                    if (symbol.DeclaringSyntaxReferences.Length > 1)
-                    {
-                        return false;
-                    }
-
                     foreach (var attribute in symbol.GetAttributes())
                     {
                         if (!SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, generatedCodeAttribute))
