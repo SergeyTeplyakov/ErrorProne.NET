@@ -21,6 +21,9 @@ namespace ErrorProne.NET.AsyncAnalyzers
 
         protected abstract bool TryCreateDiagnostic(Compilation compilation, ITypeSymbol type, Location location, [NotNullWhen(true)]out Diagnostic? diagnostic);
 
+        /// <nodoc />
+        protected virtual bool ShouldReportDiagnostic(OperationAnalysisContext context, Diagnostic diagnostic) => true;
+
         /// <inheritdoc />
         protected override void InitializeCore(AnalysisContext context)
         {
@@ -43,7 +46,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                     methodCall.Syntax.GetLocation(),
                     out var diagnostic))
                 {
-                    context.ReportDiagnostic(diagnostic);
+                    ReportDiagnostic(context, diagnostic);
                 }
             }
         }
@@ -60,7 +63,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                         interpolationOperation.Expression.Syntax.GetLocation(),
                         out var diagnostic))
                 {
-                    context.ReportDiagnostic(diagnostic);
+                    ReportDiagnostic(context, diagnostic);
                 }
             }
         }
@@ -83,7 +86,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                             context.Operation.Syntax.GetLocation(),
                             out var diagnostic))
                     {
-                        context.ReportDiagnostic(diagnostic);
+                        ReportDiagnostic(context, diagnostic);
                     }
                 }
 
@@ -100,7 +103,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
                         context.Operation.Syntax.GetLocation(),
                         out var diagnostic))
                     {
-                        context.ReportDiagnostic(diagnostic);
+                        ReportDiagnostic(context, diagnostic);
                     }
                 }
             }
@@ -121,6 +124,14 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 }
 
                 return false;
+            }
+        }
+
+        private void ReportDiagnostic(OperationAnalysisContext context, Diagnostic diagnostic)
+        {
+            if (ShouldReportDiagnostic(context, diagnostic))
+            {
+                context.ReportDiagnostic(diagnostic);
             }
         }
     }
