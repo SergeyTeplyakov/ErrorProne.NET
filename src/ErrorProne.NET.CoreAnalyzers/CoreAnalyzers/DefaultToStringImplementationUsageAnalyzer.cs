@@ -39,17 +39,21 @@ namespace ErrorProne.NET.AsyncAnalyzers
         protected override bool ShouldReportDiagnostic(OperationAnalysisContext context, Diagnostic diagnostic)
         {
             var location = diagnostic.Location;
-            if (location.SourceTree is not { } tree)
+
+            // Keep diagnostics without a source tree instead of applying source-based filters.
+            if (location.SourceTree is not SyntaxTree tree)
             {
                 return true;
             }
 
+            // Suppress diagnostics in hidden regions, such as generated Razor scaffolding.
             if (tree.GetLineVisibility(location.SourceSpan.Start, context.CancellationToken) == LineVisibility.Hidden)
             {
                 return false;
             }
 
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
+            // An explicit generated_code = true takes precedence over Razor source mapping.
             if (options.TryGetValue("generated_code", out var value) &&
                 bool.TryParse(value, out var explicitlyGenerated) && explicitlyGenerated)
             {
@@ -57,6 +61,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             }
 
             var mappedSpan = location.GetMappedLineSpan();
+            // Report diagnostics mapped back to authored Razor or cshtml source files.
             if (mappedSpan.HasMappedPath &&
                 (mappedSpan.Path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) ||
                  mappedSpan.Path.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase)))
@@ -64,8 +69,9 @@ namespace ErrorProne.NET.AsyncAnalyzers
                 return true;
             }
 
+            // Otherwise, report only when neither the file nor the symbol is generated.
             return !IsGeneratedFile(tree, context.Options, context.CancellationToken) &&
-                   !IsGeneratedSymbol(context.ContainingSymbol, tree, context);
+                   !IsGeneratedSymbol(context.ContainingSymbol, context);
         }
 
         // Roslyn may mark every context as non-generated when all analyzers opt in to generated code.
@@ -117,7 +123,7 @@ namespace ErrorProne.NET.AsyncAnalyzers
             return false;
         }
 
-        private static bool IsGeneratedSymbol(ISymbol? symbol, SyntaxTree tree, OperationAnalysisContext context)
+        private static bool IsGeneratedSymbol(ISymbol? symbol, OperationAnalysisContext context)
         {
             var generatedCodeAttribute = context.Compilation.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
             if (generatedCodeAttribute is null)
@@ -141,11 +147,12 @@ namespace ErrorProne.NET.AsyncAnalyzers
                             continue;
                         }
 
-                        // Partial method attributes are shared with the authored implementation.
-                        if (symbol is IMethodSymbol { PartialDefinitionPart: not null } &&
-                            attribute.ApplicationSyntaxReference is { } syntaxReference &&
-                            syntaxReference.SyntaxTree != tree &&
-                            IsGeneratedFile(syntaxReference.SyntaxTree, context.Options, context.CancellationToken))
+                        // Ignore a declaration-part attribute when analyzing the authored implementation.
+                        if (symbol is IMethodSymbol { PartialDefinitionPart: IMethodSymbol definition } &&
+                            attribute.ApplicationSyntaxReference is SyntaxReference syntaxReference &&
+                            definition.DeclaringSyntaxReferences.Any(declaration =>
+                                declaration.SyntaxTree == syntaxReference.SyntaxTree &&
+                                declaration.Span.Contains(syntaxReference.Span)))
                         {
                             continue;
                         }
@@ -154,7 +161,10 @@ namespace ErrorProne.NET.AsyncAnalyzers
                     }
                 }
 
-                symbol = symbol.ContainingSymbol;
+                // Check the property or event associated with an accessor before its containing type.
+                symbol = symbol is IMethodSymbol method && method.AssociatedSymbol is ISymbol associatedSymbol
+                    ? associatedSymbol
+                    : symbol.ContainingSymbol;
             }
 
             return false;

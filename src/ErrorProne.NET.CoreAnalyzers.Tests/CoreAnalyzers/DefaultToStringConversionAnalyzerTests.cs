@@ -392,6 +392,55 @@ partial class ViewModel
             }.RunAsync();
         }
 
+        [Test]
+        public async Task Warn_In_Authored_Partial_Method_With_GeneratedCode_Declaration_In_Plain_File()
+        {
+            await new Verify.Test
+            {
+                LanguageVersion = LanguageVersion.Latest,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("ViewModel.cs", @"
+class Item {}
+partial class ViewModel
+{
+    partial void OnChanged(Item value) => System.Console.WriteLine($""{[|value|]}"");
+}
+"),
+                        ("ViewModel.Declarations.cs", @"
+partial class ViewModel
+{
+    [System.CodeDom.Compiler.GeneratedCode(""Generator"", ""1.0"")]
+    partial void OnChanged(Item value);
+}
+"),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Test]
+        public async Task Warn_Only_In_Authored_Partial_Implementation_In_Same_File()
+        {
+            await Verify.VerifyAsync(@"
+class Item {}
+partial class ViewModel
+{
+    [System.CodeDom.Compiler.GeneratedCode(""Generator"", ""1.0"")]
+    partial void OnChanged(Item value);
+    partial void OnChanged(Item value) => System.Console.WriteLine($""{[|value|]}"");
+
+    partial void OnGenerated(Item value);
+    [System.CodeDom.Compiler.GeneratedCode(""Generator"", ""1.0"")]
+    partial void OnGenerated(Item value) => System.Console.WriteLine($""{value}"");
+}
+");
+        }
+
         [TestCase("Component.razor")]
         [TestCase("View.cshtml")]
         public async Task Warn_In_Razor_Mapped_Code_But_Not_Generated_Code(string mappedPath)
@@ -452,6 +501,56 @@ class Component
 {
     [System.CodeDom.Compiler.GeneratedCode(""Generator"", ""1.0"")]
     string Generated(Item value) => $""{value}"";
+}
+");
+        }
+
+        [Test]
+        public async Task Warn_Only_In_Authored_Property_Accessors()
+        {
+            await Verify.VerifyAsync(@"
+class Item {}
+class Component
+{
+    private Item item = new Item();
+
+    [System.CodeDom.Compiler.GeneratedCode(""Generator"", ""1.0"")]
+    public string Generated
+    {
+        get { return $""{item}""; }
+        set { System.Console.WriteLine($""{item}""); }
+    }
+
+    public string Authored
+    {
+        get { return $""{[|item|]}""; }
+        set { System.Console.WriteLine($""{[|item|]}""); }
+    }
+}
+");
+        }
+
+        [Test]
+        public async Task Warn_Only_In_Authored_Event_Accessors()
+        {
+            await Verify.VerifyAsync(@"
+class Item {}
+class Component
+{
+    private Item item = new Item();
+
+    [System.CodeDom.Compiler.GeneratedCode(""Generator"", ""1.0"")]
+    public event System.Action Generated
+    {
+        add { System.Console.WriteLine($""{item}""); }
+        remove { System.Console.WriteLine($""{item}""); }
+    }
+
+    public event System.Action Authored
+    {
+        add { System.Console.WriteLine($""{[|item|]}""); }
+        remove { System.Console.WriteLine($""{[|item|]}""); }
+    }
 }
 ");
         }
